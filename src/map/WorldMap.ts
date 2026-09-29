@@ -12,6 +12,7 @@ import type { SailSetting } from '@/game/sailing';
 import { FogLayer } from './fogLayer';
 import { getDetailedLand, getLandRings } from './land';
 import { SeaFx } from './seaFx';
+import { SeaLifeLayer, type TrafficView, type WeatherView } from './seaLifeLayer';
 import { ShipSprite } from './shipSprite';
 import {
   DEG_PX,
@@ -111,6 +112,10 @@ export class WorldMap {
   private shipSprite = new ShipSprite({ hull: COLORS.hull, sail: COLORS.sail, flag: 0xb5482b });
   private fog = new FogLayer();
   private fx = new SeaFx();
+  private life = new SeaLifeLayer();
+  /** 夜色（畫面座標，蓋在整張海圖上） */
+  private night = new Graphics();
+  private darkness = 0;
   private courseGfx = new Graphics();
   private sailing: SailingView | null = null;
   private shipWorld: Point | null = null;
@@ -167,13 +172,17 @@ export class WorldMap {
       this.drawLand(),
       this.fx.over,
       this.fog.container,
+      this.life.weather,
       this.drawGraticule(),
       this.routeGfx,
       this.courseGfx,
       this.marksGfx,
       this.portLayer,
+      this.life.ships,
       this.ship,
     );
+    this.night.eventMode = 'none';
+    this.app.stage.addChild(this.night);
     this.app.ticker.add((t) => this.frame(Math.min(0.1, t.deltaMS / 1000)));
 
     const stage = this.app.stage;
@@ -265,6 +274,7 @@ export class WorldMap {
       (this.shipHeading * Math.PI) / 180 + Math.sin(this.time * 1.9) * 0.035 * sway;
     this.shipSprite.drawRig(this.time);
     this.fx.update(dt);
+    this.life.update(dt);
   }
 
   /** 親手駕船的風與帆狀態；null 表示停在港口或自動航行 */
@@ -272,6 +282,7 @@ export class WorldMap {
     this.sailing = v;
     if (v) {
       this.fx.setWind(v.windToward, v.windStrength);
+      this.life.setWind(v.windToward);
       this.shipSprite.setTrim({ windRel: v.windRel, angleOffWind: v.angleOffWind, sail: v.sail });
     } else {
       this.fx.clearWake();
@@ -404,6 +415,8 @@ export class WorldMap {
     // 拉近航行時船畫大一點，看得到帆的角度
     this.ship.scale.set(inv * (this.view.scale >= 4 ? 1.7 : 1.1));
     this.fx.setView(this.view, this.size);
+    this.life.setScale(this.view.scale);
+    this.drawNight();
     this.drawRoute();
     this.drawMarks();
     this.drawCourse();
@@ -490,6 +503,36 @@ export class WorldMap {
     this.drawCourse();
   }
 
+  /** 海上的其他船隻 */
+  setTraffic(ships: TrafficView[]) {
+    if (!this.destroyed) this.life.setTraffic(ships);
+  }
+
+  /** 風暴與霧 */
+  setWeather(cells: WeatherView[]) {
+    this.life.setWeather(cells);
+  }
+
+  /** 推算位置的不確定圈（km 小於 6 時不畫） */
+  setUncertainty(ship: LonLat | null, km: number) {
+    if (!this.destroyed) this.life.setUncertainty(ship, km);
+  }
+
+  /** 夜色濃淡 0–1 */
+  setNight(darkness: number) {
+    if (Math.abs(darkness - this.darkness) < 0.02) return;
+    this.darkness = darkness;
+    this.drawNight();
+  }
+
+  private drawNight() {
+    const g = this.night;
+    g.clear();
+    if (this.darkness <= 0) return;
+    const s = this.size;
+    g.rect(0, 0, s.width, s.height).fill({ color: 0x0b1a33, alpha: 0.32 * this.darkness });
+  }
+
   /** 整張迷霧重畫（載入存檔時） */
   setFog(fog: Uint8Array) {
     this.fog.setFog(fog);
@@ -507,6 +550,7 @@ export class WorldMap {
   destroy() {
     this.destroyed = true;
     this.fog.destroy();
+    this.life.destroy();
     this.resizeObserver?.disconnect();
     this.app.canvas.removeEventListener('wheel', this.onWheel);
     this.app.destroy({ removeView: true }, { children: true, texture: true });

@@ -1,7 +1,9 @@
 import { useRef } from 'react';
 import { compass16 } from '@/geo/geo';
 import { knots, normDeg, type SailSetting } from '@/game/sailing';
-import { portInReach, rumorInReach, sailingStatus } from '@/game/state';
+import { navErrorKm, portInReach, rumorInReach, sailingStatus, sightBlocked } from '@/game/state';
+import { estimatedPosition, isNight, timeLabel } from '@/game/navigation';
+import { formatLonLat } from '@/map/projection';
 import { useGame } from '../store';
 import { ConditionBars } from './Condition';
 
@@ -33,7 +35,7 @@ export function HelmPanel() {
   const game = useGame((s) => s.game)!;
   const paused = useGame((s) => s.paused);
   const speed = useGame((s) => s.speed);
-  const { steer, trimSail, toggleAnchor, togglePause, setSpeed, dock, investigate } =
+  const { steer, trimSail, toggleAnchor, togglePause, setSpeed, dock, investigate, openStarSight } =
     useGame.getState();
   const dial = useRef<SVGSVGElement>(null);
   const dragging = useRef(false);
@@ -46,6 +48,10 @@ export function HelmPanel() {
   const port = nearPort ? world.ports.get(nearPort) : null;
   const rumorHere = rumorInReach(world, game);
   const kn = knots(st.motion.speed);
+  const errKm = navErrorKm(game.nav);
+  const est = estimatedPosition(game.ship.position, game.nav);
+  const sky = sightBlocked(game);
+  const night = isNight(game.day);
   const sailClass =
     st.motion.pointOfSail === '頂風' ? 'bad' : st.motion.pointOfSail === '迎風' ? 'ok' : 'good';
 
@@ -66,6 +72,21 @@ export function HelmPanel() {
   return (
     <>
       <div className="sea-actions">
+        {sky === null && (
+          <button type="button" onClick={openStarSight}>
+            ✨ 觀星定位
+          </button>
+        )}
+        {sky === 'daytime' && errKm >= 15 && (
+          <button type="button" onClick={openStarSight}>
+            🌙 等到入夜觀星
+          </button>
+        )}
+        {sky === 'cloudy' && night && (
+          <button type="button" disabled>
+            ☁️ 雲霧遮住了星空
+          </button>
+        )}
         {rumorHere && (
           <button type="button" className="primary" onClick={() => investigate(rumorHere)}>
             🔍 調查這一帶
@@ -117,6 +138,15 @@ export function HelmPanel() {
                     : st.motion.pointOfSail === '頂風'
                       ? '頂風：帆吃不到風！'
                       : `${st.motion.pointOfSail}・帆效率 ${Math.round(st.motion.efficiency * 100)}%`}
+            </span>
+          </div>
+          <div className="helm-fix">
+            <span>
+              {night ? '🌙' : '☀️'} {timeLabel(game.day)}
+            </span>
+            <span title="船長推算的位置；圈越大越不確定">
+              <span className="fix-pos">推算位置 {formatLonLat(est, 1)}</span>
+              {errKm >= 6 ? `（誤差約 ${Math.round(errKm / 5) * 5} 公里）` : '（位置確定）'}
             </span>
           </div>
           <div className="helm-env">

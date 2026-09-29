@@ -3,10 +3,15 @@
   "category": "river",
   "name": "湄公河三角洲",
   "name_en": "Mekong Delta",
-  "location": [106.3, 9.8],
-  "discover_radius_km": 180,
+  "location": [106.75, 9.95],
   "domains": ["C", "F"],
   "body": "湄公河發源於青藏高原，全長約 4900 公里，流經六個國家，在越南南部形成廣大的三角洲，是東南亞重要的稻米產區。",
   "source": "維基百科「湄公河」「湄公河三角洲」條目",
+  "rumor": {
+    "port": "champa",
+    "from": "運米的船主",
+    "text": "從這裡沿著海岸往西南走，海水會從藍色慢慢變成黃褐色。那是一條從很遠很遠的高山流下來的大河，在海邊分成好幾個河口。北辰星五指多一點高的地方，就是河口了。",
+    "investigate_km": 50
+  },
   "reviewed": false
 }

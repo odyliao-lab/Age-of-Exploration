@@ -1730,3 +1730,90 @@ table.market .tag {
     display: none;
   }
 }
+
+/* ---- 辨位：推算位置與牽星術 */
+.helm-fix {
+  display: grid;
+  gap: 2px;
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+}
+.sea-actions button:disabled {
+  opacity: 0.75;
+}
+.star-modal {
+  width: min(560px, 100%);
+}
+.star-intro {
+  margin: 0 0 8px;
+  font-size: 0.92rem;
+}
+.star-sky {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+  touch-action: manipulation;
+}
+.star-bob {
+  animation: star-bob 2.6s ease-in-out infinite;
+}
+@keyframes star-bob {
+  0%,
+  100% {
+    transform: translateY(-2.5px);
+  }
+  50% {
+    transform: translateY(2.5px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .star-bob {
+    animation: none;
+  }
+}
+.star-controls {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  justify-content: center;
+  margin-top: 10px;
+}
+.star-controls button {
+  min-height: 44px;
+  min-width: 56px;
+}
+.star-reading {
+  display: grid;
+  min-width: 96px;
+  text-align: center;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+.star-reading small {
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: var(--ink-soft);
+}
+.star-slider {
+  width: 100%;
+  margin: 8px 0 2px;
+}
+.star-result p {
+  margin: 8px 0;
+}
+@media (max-height: 500px) {
+  .star-sky {
+    max-height: 42vh;
+  }
+}
+@media (max-height: 500px) {
+  .helm-fix {
+    display: flex;
+    gap: 8px;
+    font-size: 0.72rem;
+  }
+  .helm-fix .fix-pos {
+    display: none;
+  }
+}

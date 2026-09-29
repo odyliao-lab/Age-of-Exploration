@@ -9,7 +9,8 @@ import { bearingDeg, compass16, distanceKm, EARTH_RADIUS_KM } from '@/geo/geo';
 import { formatLonLat } from '@/map/projection';
 import type { Wind } from './environment';
 
-export type EventId = 'doldrums' | 'pirates' | 'flotsam' | 'stargazing' | 'scurvy' | 'lost';
+export type EventId =
+  'doldrums' | 'pirates' | 'flotsam' | 'stargazing' | 'scurvy' | 'lost' | 'merchant' | 'envoy';
 
 export interface EventQuestion {
   prompt: string;
@@ -36,6 +37,8 @@ export interface VoyageEvent {
   choices?: EventChoice[];
   /** 問答型事件（觀星、迷航、海盜的知識挑戰） */
   question?: EventQuestion;
+  /** 商船分享的行情消息 */
+  tip?: string;
 }
 
 /** 事件結算對遊戲狀態的影響（由 state.ts 套用） */
@@ -49,6 +52,7 @@ export interface EventEffect {
   morale?: number;
   food?: number;
   water?: number;
+  reputation?: number;
   /** 正確答題 */
   correct?: boolean;
 }
@@ -82,6 +86,10 @@ const PIRATE_ZONES: [number, number, number, number][] = [
 const inBox = ([lon, lat]: LonLat, b: [number, number, number, number]) =>
   lon >= b[0] && lat >= b[1] && lon <= b[2] && lat <= b[3];
 
+export function inPirateZone(p: LonLat): boolean {
+  return PIRATE_ZONES.some((b) => inBox(p, b));
+}
+
 export function eventChances(ctx: EventContext): Partial<Record<EventId, number>> {
   const chances: Partial<Record<EventId, number>> = {
     flotsam: 0.03,
@@ -90,7 +98,7 @@ export function eventChances(ctx: EventContext): Partial<Record<EventId, number>
   const lost = 0.025 * (ctx.lostChance ?? 1);
   if (lost > 0) chances.lost = lost;
   if (ctx.wind.strength < 0.2) chances.doldrums = 0.35;
-  if (PIRATE_ZONES.some((b) => inBox(ctx.position, b))) chances.pirates = 0.08;
+  if (inPirateZone(ctx.position)) chances.pirates = 0.08;
   if (ctx.daysAtSea > 20 && !ctx.scurvyImmune) chances.scurvy = 0.1;
   return chances;
 }
@@ -246,7 +254,71 @@ export function createEvent(id: EventId, ctx: EventContext, rand: () => number):
         ),
       };
     }
+    default:
+      // 商船與使節船需要額外資料，由 merchantEvent、envoyEvent 建立
+      throw new Error(`createEvent 不處理 ${id}`);
   }
+}
+
+/** 海上遇到的商船（企畫書 v2 4.6）：猜對方從哪個國家來，就會分享行情 */
+export function merchantEvent(
+  at: { position: LonLat; month: number },
+  home: { name: string; country: string },
+  otherCountries: string[],
+  tip: string,
+  rand: () => number,
+): VoyageEvent {
+  return {
+    kind: 'event',
+    id: 'merchant',
+    position: at.position,
+    month: at.month,
+    title: '海上相逢的商船',
+    text: `一艘滿載貨物的商船迎面駛來，桅杆上掛著${home.name}的旗號。對方船長站在船頭向你揮手。`,
+    lesson:
+      '季風帶動了亞洲海上貿易：冬天東北季風把中國商船送往南洋，夏天西南季風再帶他們回來。海上相逢的商人會互相交換各港的行情。',
+    choices: [
+      { id: 'quiz', label: '靠過去打招呼', hint: '說對他們從哪裡來，對方會分享行情' },
+      { id: 'pass', label: '揮手致意', hint: '各自航行' },
+    ],
+    question: mcq(
+      `對方船長笑著問：「猜猜我們從哪裡來？」旗號寫著「${home.name}」。${home.name}在今天的哪個國家？`,
+      home.country,
+      otherCountries.filter((c) => c !== home.country).slice(0, 3),
+      `${home.name}位於今天的${home.country}。認識港口在哪個國家，是認識世界的第一步。`,
+      rand,
+    ),
+    tip,
+  };
+}
+
+/** 海上遇到的朝貢使節船 */
+export function envoyEvent(
+  at: { position: LonLat; month: number },
+  country: string,
+  rand: () => number,
+): VoyageEvent {
+  return {
+    kind: 'event',
+    id: 'envoy',
+    position: at.position,
+    month: at.month,
+    title: '使節船',
+    text: `一艘裝飾華麗的大船緩緩駛來，船上載著${country}國王派往明朝的使節與貢品。`,
+    lesson:
+      '明朝初年，許多國家派使節到中國「朝貢」：獻上當地物產，換回絲綢、瓷器等賞賜，這其實也是一種國與國之間的貿易。鄭和下西洋之後，來華的使節更多了。',
+    choices: [
+      { id: 'quiz', label: '上前問候', hint: '使節想確認前往明朝都城的路' },
+      { id: 'salute', label: '鳴鑼致意', hint: '名聲 +2' },
+    ],
+    question: mcq(
+      '使節問：「我們要去晉見大明皇帝，都城在哪裡？」（現在是永樂初年）',
+      '南京',
+      ['北京', '西安', '杭州'],
+      '明朝建國時定都南京。永樂皇帝在 1421 年才把都城遷到北京，所以鄭和第一次下西洋（1405 年）時，使節要去的是南京。',
+      rand,
+    ),
+  };
 }
 
 /** 結算選擇型事件；roll 為 0–1 亂數 */
@@ -318,6 +390,15 @@ export function resolveChoice(
         morale: -25,
         lesson: ev.lesson,
       };
+    case 'merchant':
+      return { title: '各自航行', text: '兩船互相揮手，交錯而過。', lesson: ev.lesson };
+    case 'envoy':
+      return {
+        title: '鳴鑼致意',
+        text: '使節船也鳴鑼回禮。消息傳開，大家都說你是懂禮數的船長。',
+        reputation: 2,
+        lesson: ev.lesson,
+      };
     default:
       return { title: '', text: '' };
   }
@@ -381,6 +462,37 @@ export function resolveAnswer(
         correct,
         lesson: q.explanation,
       };
+    case 'merchant':
+      return correct
+        ? {
+            title: '交換消息',
+            text: `對方船長很高興：「沒錯！告訴你一個消息：${ev.tip}」`,
+            xp: 15,
+            correct,
+            lesson: q.explanation,
+          }
+        : {
+            title: '猜錯了',
+            text: `正確答案是「${q.choices[q.answer]}」。對方船長笑著糾正你，還是告訴你：「${ev.tip}」`,
+            correct,
+            lesson: q.explanation,
+          };
+    case 'envoy':
+      return correct
+        ? {
+            title: '為使節指路',
+            text: '使節連聲道謝，說回國後要向國王稱讚你。',
+            xp: 15,
+            reputation: 5,
+            correct,
+            lesson: q.explanation,
+          }
+        : {
+            title: '指錯路了',
+            text: `正確答案是「${q.choices[q.answer]}」。幸好使節船上的通事知道正確的路。`,
+            correct,
+            lesson: q.explanation,
+          };
     default:
       return { title: '', text: '', correct };
   }

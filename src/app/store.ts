@@ -48,6 +48,8 @@ import {
   startVoyage,
   stopVoyage,
   tick,
+  sightBlocked,
+  starSight,
   type GameEvent,
   type GameState,
   type QuestReward,
@@ -62,6 +64,7 @@ import { play } from './sound';
 import type { World } from '@/game/world';
 import type { Appearance } from '@/game/cosmetics';
 import type { SailSetting } from '@/game/sailing';
+import { daysUntilNight, type SightResult } from '@/game/navigation';
 import type { BuildingKind } from '@/town/layout';
 
 /** 1 倍速時，現實 1.2 秒 = 遊戲 1 天 */
@@ -126,6 +129,8 @@ interface GameStore {
   building: BuildingKind | null;
   /** 剛離開的建築：回到城裡時站在它門口 */
   lastBuilding: BuildingKind | null;
+  /** 牽星術觀星畫面開著（遊戲暫停） */
+  stargazing: boolean;
 
   init: (world: World) => void;
   refreshSaves: () => Promise<void>;
@@ -161,6 +166,11 @@ interface GameStore {
   buyGood: (good: string, qty: number) => void;
   sellGood: (good: string, qty: number) => void;
   investigate: (id: string) => void;
+  /** 打開觀星畫面；白天時先等到入夜 */
+  openStarSight: () => void;
+  closeStarSight: () => void;
+  /** 用牽星板量星高，回傳結果 */
+  takeSight: (jiao: number) => SightResult | null;
 
   accept: (questId: string) => void;
   closeDialogue: (questId: string) => void;
@@ -316,6 +326,7 @@ export const useGame = create<GameStore>((set, get) => {
     townView: true,
     building: null,
     lastBuilding: null,
+    stargazing: false,
 
     init: (world) => {
       set({ world });
@@ -354,6 +365,7 @@ export const useGame = create<GameStore>((set, get) => {
         toasts: [],
         modals: [],
         panel: null,
+        stargazing: false,
       });
       emitFog('all');
     },
@@ -429,8 +441,9 @@ export const useGame = create<GameStore>((set, get) => {
     },
 
     advance: (realSeconds) => {
-      const { world, game, paused, speed, modals } = get();
+      const { world, game, paused, speed, modals, stargazing } = get();
       if (!world || !game || (!game.voyage && !game.helm) || paused || modals.length) return;
+      if (stargazing) return;
       const perDay = game.helm ? SAIL_SECONDS_PER_DAY : SECONDS_PER_DAY;
       const days = (Math.min(realSeconds, 0.25) / perDay) * speed;
       apply(tick(world, game, days));
@@ -560,6 +573,39 @@ export const useGame = create<GameStore>((set, get) => {
       const c = world.codex.get(id)!;
       toast({ text: `調查成功！傳聞中的地方就是「${c.name}」`, kind: 'success' });
       play('achievement');
+    },
+
+    openStarSight: () => {
+      const { world } = get();
+      let g = get().game;
+      if (!world || !g) return;
+      if (sightBlocked(g) === 'daytime') {
+        // 白天：船繼續航行，等到入夜（途中遇到狀況就停下）
+        let left = daysUntilNight(g.day) + 0.002;
+        for (let i = 0; i < 40 && left > 0 && g && !g.encounter; i++) {
+          const step = Math.min(0.05, left);
+          apply(tick(world, g, step));
+          left -= step;
+          g = get().game;
+        }
+        if (!g || g.encounter || get().modals.length) return;
+        toast({ text: '入夜了，星星一顆顆亮起來。', kind: 'info' });
+      }
+      if (sightBlocked(g)) return;
+      set({ stargazing: true });
+    },
+
+    closeStarSight: () => set({ stargazing: false }),
+
+    takeSight: (jiao) => {
+      const { world, game } = get();
+      if (!world || !game) return null;
+      const r = starSight(world, game, jiao);
+      if (!r.sight) return null;
+      apply(r);
+      scheduleSave(true);
+      play(r.sight.quality === 'poor' ? 'wrong' : 'correct');
+      return r.sight;
     },
 
     accept: (questId) => {
@@ -796,6 +842,9 @@ function handleEvent(
       break;
     case 'warning':
       push({ text: e.text, kind: 'warn' });
+      break;
+    case 'notice':
+      push({ text: e.text, kind: 'info' });
       break;
     case 'encounter':
       break;

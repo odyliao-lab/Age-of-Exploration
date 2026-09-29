@@ -176,7 +176,7 @@ describe('rumors and investigation', () => {
     expect(rumorsAt(world, s, 'quanzhou').map((c) => c.id)).toContain('taiwan');
     s = hearRumor(world, s, 'taiwan');
     expect(openRumors(world, s).map((c) => c.id)).toEqual(['taiwan']);
-    expect(rumorsAt(world, s, 'quanzhou')).toEqual([]);
+    expect(rumorsAt(world, s, 'quanzhou').map((c) => c.id)).not.toContain('taiwan');
 
     // 傳聞的地點不會因為路過就自動發現
     const target = world.codex.get('taiwan')!.location!;

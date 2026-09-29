@@ -10,6 +10,7 @@ import { fullCondition, shipType } from './ship';
 import { skillPointsEarned } from './progression';
 import { EMPTY_STATS } from './achievements';
 import { defaultAppearance } from './cosmetics';
+import { NAV_FIXED } from './navigation';
 import { SAVE_VERSION, type GameState } from './state';
 
 export interface SerializedSave extends Omit<GameState, 'fog'> {
@@ -68,6 +69,11 @@ export function deserialize(data: SerializedSave): GameState {
     rumors: data.rumors ?? [],
     cargo: data.cargo ?? {},
     market: data.market ?? {},
+    // 第 8 版新增：辨位、海上船隻與天氣
+    nav: { ...NAV_FIXED, ...data.nav },
+    traffic: data.traffic ?? [],
+    weather: data.weather ?? [],
+    nextEntityId: data.nextEntityId ?? 1,
   };
 }
 

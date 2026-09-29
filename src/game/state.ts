@@ -95,7 +95,32 @@ import type { Rig } from './progression';
 import { isLand } from '@/geo/landmask';
 import type { World } from './world';
 import {
+  COAST_FIX_FLOOR_KM,
+  INVESTIGATE_MAX_ERROR_KM,
+  NAV_FIXED,
+  SIGHT_XP,
+  advanceNav,
+  applySight,
+  canSightTonight,
+  isNight,
+  navErrorKm,
+  takeSight,
+  type NavState,
+  type SightResult,
+} from './navigation';
+import { PIRATE_PORT_SAFE_KM, moveTraffic, spawnTraffic, type SeaShip } from './traffic';
+import {
+  FOG_DRIFT,
+  FOG_SIGHT,
+  inFog,
+  moveWeather,
+  spawnWeather,
+  type WeatherCell,
+} from './weather';
+import { envoyEvent, merchantEvent } from './events';
+import {
   GOODS_PRICE,
+  basePrice,
   buyGoods,
   cargoUsed,
   quote,
@@ -105,7 +130,7 @@ import {
   type Quote,
 } from './trade';
 
-export const SAVE_VERSION = 7;
+export const SAVE_VERSION = 8;
 
 /** 航行中需要玩家處理的狀況：風暴或隨機事件 */
 export type Encounter = StormEncounter | VoyageEvent;
@@ -197,6 +222,14 @@ export interface GameState {
   cargo: Cargo;
   /** 各港各貨因買賣造成的價格波動 */
   market: Market;
+  /** 推算位置的誤差與觀星紀錄 */
+  nav: NavState;
+  /** 海上看得見的其他船隻 */
+  traffic: SeaShip[];
+  /** 海上看得見的風暴與霧 */
+  weather: WeatherCell[];
+  /** 下一個海上物件的編號 */
+  nextEntityId: number;
 }
 
 export interface HelmState extends Helm {
@@ -229,6 +262,7 @@ export type GameEvent =
   | { type: 'levelUp'; level: number }
   | { type: 'portUnlocked'; portId: string }
   | { type: 'warning'; text: string }
+  | { type: 'notice'; text: string }
   | { type: 'encounter'; encounter: Encounter }
   | { type: 'stormResolved'; choice: StormChoice; hullLoss: number; days: number }
   | { type: 'eventResolved'; effect: EventEffect }
@@ -299,6 +333,10 @@ export function newGame(world: World, scenarioId: string, seed = newSeed()): Ste
     rumors: [],
     cargo: {},
     market: {},
+    nav: { ...NAV_FIXED },
+    traffic: [],
+    weather: [],
+    nextEntityId: 1,
   };
   return { state, events: [], fogChanged };
 }
@@ -403,6 +441,8 @@ export function startVoyage(
     ...state,
     dockedAt: null,
     voyage: createVoyage([state.ship.position, ...waypoints.slice(1)], destinationPortId),
+    traffic: [],
+    weather: [],
   };
 }
 
@@ -444,6 +484,8 @@ export function tick(world: World, state: GameState, days: number): StepResult {
   let discovered = state.discovered;
   let usedDays = 0;
   let encounter: Encounter | null = null;
+  /** 距離上一次更新海上船隻、天氣與推算位置的天數 */
+  let lifeClock = 0;
 
   for (let i = 0; i < steps && !(voyage && isFinished(voyage)); i++) {
     const from = s.ship.position;
@@ -499,16 +541,32 @@ export function tick(world: World, state: GameState, days: number): StepResult {
     }
     warnConditionChanges(before, condition, events);
 
-    fogChanged.push(...revealAround(state.fog, to, sight));
+    const foggy = !!helm && s.weather.length > 0 && inFog(s.weather, to);
+    fogChanged.push(...revealAround(state.fog, to, foggy ? sight * FOG_SIGHT : sight));
     const found = landmarksInSight(world, discovered, to, m.discovery);
     if (found.length) {
       discovered = [...discovered, ...found];
       for (const id of found) events.push({ type: 'discovered', codexId: id });
     }
 
-    // 風暴：依每天的機率換算這一小步的機率
+    if (helm) {
+      // 親手駕船：風暴、霧、海盜與商船都是看得見的，定期更新
+      lifeClock += stepDays;
+      if (lifeClock >= SEA_LIFE_STEP || i === steps - 1) {
+        const life = seaLife(world, s, lifeClock, state.day + usedDays, heading, sight);
+        s = life.state;
+        events.push(...life.events);
+        lifeClock = 0;
+        if (life.encounter) {
+          encounter = life.encounter;
+          break;
+        }
+      }
+    }
+
+    // 風暴：依每天的機率換算這一小步的機率（自動航行時；親手駕船時風暴看得見）
     const storm = stormRiskAt(to, gameDate(s, usedDays).month);
-    const chance = 1 - Math.pow(1 - storm.chancePerDay, stepDays);
+    const chance = helm ? 0 : 1 - Math.pow(1 - storm.chancePerDay, stepDays);
     if (chance > 0) {
       const [r, seed] = nextRandom(s.seed);
       s = { ...s, seed };
@@ -525,7 +583,7 @@ export function tick(world: World, state: GameState, days: number): StepResult {
 
     // 隨機事件（有冷卻時間，避免太頻繁打斷航行）
     if (state.day + usedDays >= s.eventCooldownUntil) {
-      const rolled = rollEvent(world, s, to, heading, stepDays, usedDays);
+      const rolled = rollEvent(world, s, to, heading, stepDays, usedDays, !!helm);
       s = rolled.state;
       if (rolled.event) {
         encounter = rolled.event;
@@ -596,6 +654,215 @@ function seaNear(world: World, p: LonLat): { point: LonLat; bearing: number } | 
   }
   return fallback;
 }
+
+// ---------------------------------------------------------------- 海上的世界（天氣、船隻、辨位）
+
+/** 每隔這麼多天更新一次海上船隻、天氣與推算位置 */
+const SEA_LIFE_STEP = 0.02;
+/** 朝貢使節船可能來自的國家 */
+const ENVOY_COUNTRIES = ['占城', '暹羅', '滿剌加', '渤泥', '爪哇', '蘇門答剌', '琉球', '呂宋'];
+
+/** 瞭望範圍內看不看得見陸地（對照岸形定位） */
+function landInSight(world: World, p: LonLat, km: number): boolean {
+  if (landAt(world, p)) return true;
+  for (const d of [km * 0.5, km]) {
+    for (let b = 0; b < 360; b += 45) {
+      if (landAt(world, destinationPoint(p, b, d))) return true;
+    }
+  }
+  return false;
+}
+
+/** 商船分享的行情：它家鄉的特產運到哪個港口賣最好 */
+function tradeTip(world: World, homeId: string | undefined): string {
+  const home = homeId ? world.ports.get(homeId) : undefined;
+  const good = home?.goods.find((g) => GOODS_PRICE[g] !== undefined);
+  if (!home || !good) return '聽說季風一轉，南洋的胡椒價錢就要漲了。';
+  let best = home;
+  let price = 0;
+  for (const p of world.content.ports) {
+    const v = basePrice(world.content.ports, p, good);
+    if (v > price) {
+      price = v;
+      best = p;
+    }
+  }
+  const name = world.codex.get(good)?.name ?? good;
+  return `我們${home.name}的${name}，運到${best.name}最好賣，一單位能賣到 ${Math.round(price * 0.92)} 金幣左右。`;
+}
+
+function seaLife(
+  world: World,
+  state: GameState,
+  dt: number,
+  day: number,
+  heading: number,
+  sight: number,
+): { state: GameState; events: GameEvent[]; encounter: Encounter | null } {
+  const events: GameEvent[] = [];
+  const pos = state.ship.position;
+  const usedDays = day - state.day;
+  const month = gameDate(state, usedDays).month;
+  const env = environmentAt(state, pos, heading, usedDays);
+  const wind = gustyWind(env.wind, pos, day);
+  let seed = state.seed;
+  const rand = () => {
+    const [v, n] = nextRandom(seed);
+    seed = n;
+    return v;
+  };
+  let nextId = state.nextEntityId;
+
+  // 推算位置：看得見陸地就用岸形校正，否則誤差慢慢累積（霧中更快）
+  const foggy = inFog(state.weather, pos);
+  const seesLand = landInSight(world, pos, sight * (foggy ? FOG_SIGHT : 1) * 0.8);
+  const before = navErrorKm(state.nav);
+  const rate = Math.max(0.3, mods(world, state).lostChance) * (foggy ? FOG_DRIFT : 1);
+  let nav = advanceNav(state.nav, day, dt, rate, seesLand);
+  if (seesLand && !state.nav.landInSight && before > 25) {
+    events.push({
+      type: 'notice',
+      text: '看見陸地了！對照海岸與山的形狀，重新確認船的位置。',
+    });
+  }
+  nav = { ...nav, landInSight: seesLand };
+
+  // 天氣
+  let weather = spawnWeather(state.weather, dt, {
+    player: pos,
+    day,
+    month,
+    wind,
+    risk: stormRiskAt(pos, month),
+    rand,
+    nextId,
+  });
+  if (weather.length > state.weather.length) nextId++;
+  const w = moveWeather(weather, dt, pos, day);
+  weather = w.cells;
+  let encounter: Encounter | null = null;
+  for (const e of w.events) {
+    if (e.type === 'stormNear') {
+      events.push({
+        type: 'warning',
+        text: `${e.direction}方烏雲密布，${e.cell.risk?.name ?? '風暴'}正在接近！可以轉向避開。`,
+      });
+    } else if (!encounter) {
+      encounter = {
+        kind: 'storm',
+        risk: e.cell.risk ?? stormRiskAt(pos, month),
+        position: pos,
+        month,
+      };
+    }
+  }
+
+  // 海上的其他船隻
+  const nearPort = world.content.ports.some(
+    (p) => distanceKm(p.location, pos) <= PIRATE_PORT_SAFE_KM,
+  );
+  const tctx = { player: pos, day, wind, nearPort, isLand: (p: LonLat) => landAt(world, p) };
+  let traffic = spawnTraffic(state.traffic, dt, {
+    ...tctx,
+    rand,
+    nextId,
+    ports: world.content.ports.map((p) => ({ id: p.id, location: p.location })),
+    envoyCountries: ENVOY_COUNTRIES,
+    inRegion: regionAt(world, pos) !== null,
+  });
+  if (traffic.length > state.traffic.length) nextId++;
+  const t = moveTraffic(traffic, dt, tctx);
+  traffic = t.ships;
+  for (const e of t.events) {
+    if (e.type === 'spotted') {
+      events.push({
+        type: 'warning',
+        text: '海盜船發現你們了！看準風向逃跑，或躲到港口附近。',
+      });
+    } else if (e.type === 'escaped') {
+      events.push({ type: 'notice', text: '海盜船放棄追趕，掉頭走了。' });
+    } else if (!encounter) {
+      const at = { position: pos, month };
+      if (e.type === 'caught') {
+        const ctx = eventContext(world, state, pos, heading, usedDays);
+        encounter = createEvent('pirates', ctx, rand);
+      } else if (e.ship.kind === 'merchant') {
+        const home = e.ship.from ? world.ports.get(e.ship.from) : undefined;
+        const countries = [...new Set(world.content.ports.map((p) => p.country))];
+        encounter = merchantEvent(
+          at,
+          { name: home?.name ?? '泉州', country: home?.country ?? '中國' },
+          countries.sort(() => rand() - 0.5),
+          tradeTip(world, e.ship.from),
+          rand,
+        );
+      } else {
+        encounter = envoyEvent(at, e.ship.from ?? '占城', rand);
+      }
+    }
+  }
+
+  return {
+    state: { ...state, seed, nav, weather, traffic, nextEntityId: nextId },
+    events,
+    encounter,
+  };
+}
+
+// ---------------------------------------------------------------- 牽星術
+
+/** 天空是否晴朗：在霧裡或風暴附近看不到星星 */
+export function skyClear(state: GameState): boolean {
+  const p = state.ship.position;
+  if (inFog(state.weather, p)) return false;
+  return !state.weather.some(
+    (c) => c.kind === 'storm' && distanceKm(c.center, p) <= c.radiusKm * 1.6,
+  );
+}
+
+export type SightBlock = 'not-at-sea' | 'daytime' | 'cloudy' | 'done-tonight' | null;
+
+/** 現在能不能觀星；不能時說明原因 */
+export function sightBlocked(state: GameState): SightBlock {
+  if (!state.helm || state.encounter) return 'not-at-sea';
+  if (!isNight(state.day)) return 'daytime';
+  if (!skyClear(state)) return 'cloudy';
+  if (!canSightTonight(state.nav, state.day)) return 'done-tonight';
+  return null;
+}
+
+/**
+ * 用牽星板量星高（jiao：以「角」為單位，1 指 = 4 角）。
+ * 量得的緯度取代推算的緯度；經度仍然只能推算。
+ */
+export function starSight(
+  world: World,
+  state: GameState,
+  jiao: number,
+): StepResult & { sight: SightResult | null } {
+  if (sightBlocked(state)) return { state, events: [], fogChanged: [], sight: null };
+  const lat = state.ship.position[1];
+  const sight = takeSight(lat, jiao);
+  const nav = applySight(state.nav, lat, sight, state.day);
+  const xp = gainXp(state, Math.round(SIGHT_XP[sight.quality] * mods(world, state).starXp));
+  const accurate = sight.quality !== 'poor';
+  return {
+    state: {
+      ...state,
+      nav,
+      captain: xp.captain,
+      skillPoints: xp.skillPoints,
+      stats: accurate
+        ? { ...state.stats, starsCorrect: state.stats.starsCorrect + 1 }
+        : state.stats,
+    },
+    events: xp.events,
+    fogChanged: [],
+    sight,
+  };
+}
+
+export { COAST_FIX_FLOOR_KM, INVESTIGATE_MAX_ERROR_KM, navErrorKm };
 
 export interface SailingStatus {
   /** 此時此地的風（含緩慢變化） */
@@ -745,9 +1012,9 @@ export function openRumors(world: World, state: GameState): CodexEntry[] {
     .filter(Boolean);
 }
 
-/** 船附近可以調查的傳聞地點 */
+/** 船附近可以調查的傳聞地點（在海上、沒有在自動航行時） */
 export function rumorInReach(world: World, state: GameState): string | null {
-  if (!state.helm) return null;
+  if (state.dockedAt || state.voyage) return null;
   for (const c of openRumors(world, state)) {
     if (distanceKm(state.ship.position, c.location!) <= c.rumor!.investigate_km) return c.id;
   }
@@ -759,6 +1026,18 @@ export const INVESTIGATE_REWARD = { xp: 60, reputation: 5 };
 
 export function investigate(world: World, state: GameState, id: string): StepResult {
   if (rumorInReach(world, state) !== id) return { state, events: [], fogChanged: [] };
+  if (navErrorKm(state.nav) > INVESTIGATE_MAX_ERROR_KM) {
+    return {
+      state,
+      events: [
+        {
+          type: 'warning',
+          text: '船的位置太不確定，沒辦法確認這裡是不是傳聞中的地方。先觀星量緯度，或靠近海岸辨認位置。',
+        },
+      ],
+      fogChanged: [],
+    };
+  }
   const events: GameEvent[] = [{ type: 'discovered', codexId: id }];
   const xp = gainXp(state, INVESTIGATE_REWARD.xp);
   events.push(...xp.events);
@@ -861,19 +1140,18 @@ function warnConditionChanges(before: ShipCondition, after: ShipCondition, event
 
 const EVENT_ORDER: EventId[] = ['pirates', 'doldrums', 'scurvy', 'stargazing', 'lost', 'flotsam'];
 
-function rollEvent(
+function eventContext(
   world: World,
   state: GameState,
   position: LonLat,
   heading: number,
-  stepDays: number,
   usedDays: number,
-): { state: GameState; event: VoyageEvent | null } {
+) {
   const month = gameDate(state, usedDays).month;
   const env = environmentAt(state, position, heading, usedDays);
   const lastPort = world.ports.get(state.lastPortId);
   const regionId = regionAt(world, position);
-  const ctx = {
+  return {
     position,
     heading,
     month,
@@ -887,9 +1165,34 @@ function rollEvent(
     lostChance: mods(world, state).lostChance,
     scurvyImmune: mods(world, state).scurvyImmune,
   };
+}
+
+/** 推算誤差超過這個值，才可能在海上迷航 */
+const LOST_ERROR_KM = 50;
+
+function rollEvent(
+  world: World,
+  state: GameState,
+  position: LonLat,
+  heading: number,
+  stepDays: number,
+  usedDays: number,
+  handSailing: boolean,
+): { state: GameState; event: VoyageEvent | null } {
+  const ctx = eventContext(world, state, position, heading, usedDays);
+  if (handSailing) {
+    // 親手駕船：位置越不確定越容易迷航；位置清楚就不會迷航
+    const err = navErrorKm(state.nav);
+    ctx.lostChance = err > LOST_ERROR_KM ? err / LOST_ERROR_KM : 0;
+  }
   // 迷航題需要離開港口一段距離才有意義
   const farEnough = distanceKm(ctx.lastPort.location, position) > 150;
   const chances = eventChances(ctx);
+  if (handSailing) {
+    // 海盜看得見（traffic.ts）、觀星改成親手操作的牽星術
+    delete chances.pirates;
+    delete chances.stargazing;
+  }
   let seed = state.seed;
   const rand = () => {
     const [v, n] = nextRandom(seed);
@@ -976,9 +1279,16 @@ export function resolveEvent(
   };
   const xp = effect.xp ? gainXp(state, effect.xp) : null;
   if (xp) events.push(...xp.events);
+  // 迷航時推算正確，位置誤差大幅縮小
+  const nav =
+    ev.id === 'lost' && effect.correct
+      ? { ...state.nav, errorE: state.nav.errorE * 0.3, errorN: state.nav.errorN * 0.3 }
+      : state.nav;
   return {
     state: {
       ...state,
+      nav,
+      reputation: state.reputation + (effect.reputation ?? 0),
       seed,
       encounter: null,
       quizLog,
@@ -1003,12 +1313,21 @@ export function resolveEncounter(world: World, state: GameState, choice: StormCh
   const severity = enc.risk.kind === 'gale' ? 0.8 : 1;
   const m = mods(world, state);
   const out = resolveStormChoice(state.condition, choice, roll, m.stormDamage, severity, m);
+  // 風暴把船吹離航線，推算位置多了誤差
+  const [dir, seed2] = state.helm ? nextRandom(seed) : [0, seed];
+  const push = state.helm ? 25 + out.days * 15 : 0;
+  const b = dir * Math.PI * 2;
   let next: GameState = {
     ...state,
-    seed,
+    seed: seed2,
     encounter: null,
     condition: out.condition,
     day: state.day + out.days,
+    nav: {
+      ...state.nav,
+      errorE: state.nav.errorE + Math.sin(b) * push,
+      errorN: state.nav.errorN + Math.cos(b) * push,
+    },
   };
   const events: GameEvent[] = [
     { type: 'stormResolved', choice, hullLoss: out.hullLoss, days: out.days },
@@ -1042,6 +1361,9 @@ function shipwreck(world: World, state: GameState, cause: StormRisk, month: numb
       shipwrecks: state.shipwrecks + 1,
       // 貨物隨船沉沒
       cargo: {},
+      nav: { ...state.nav, errorE: 0, errorN: 0 },
+      traffic: [],
+      weather: [],
     },
     events: [{ type: 'shipwreck', cause, lostGold, portId: port.id, month }],
     fogChanged: [],
@@ -1098,6 +1420,10 @@ function arrive(world: World, state: GameState, portId: string): StepResult {
       helm: null,
       dockedAt: portId,
       lastPortId: portId,
+      // 進港就知道自己在哪裡；港外的船與天氣下次出海重新生成
+      nav: { ...state.nav, errorE: 0, errorN: 0 },
+      traffic: [],
+      weather: [],
       condition: rest(state.condition),
       ship: { position: port.location, heading: state.ship.heading },
       discovered: [...state.discovered, ...newGoods],
@@ -1350,6 +1676,17 @@ export function progressQuests(world: World, state: GameState): StepResult {
       if (satisfied) {
         s = { ...s, quests: { ...s.quests, [questId]: { ...p, step: p.step + 1 } } };
         changed = true;
+      } else if (
+        step.type === 'discover' &&
+        world.codex.get(step.target)?.rumor &&
+        !s.rumors.includes(step.target)
+      ) {
+        // 要調查的地點：委託人把線索告訴玩家，記進航海日誌
+        s = { ...s, rumors: [...s.rumors, step.target] };
+        events.push({
+          type: 'notice',
+          text: `「${quest.title}」的線索記在航海日誌裡了：依線索找到地點，靠近後調查。`,
+        });
       }
     }
   }

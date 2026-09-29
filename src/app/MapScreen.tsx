@@ -7,9 +7,15 @@ import {
   activeNavigateTargets,
   pendingInteraction,
   portNameKnown,
+  navErrorKm,
   sailingStatus,
+  sightKm,
   visiblePortIds,
 } from '@/game/state';
+import { darkness } from '@/game/navigation';
+import { distanceKm } from '@/geo/geo';
+import { FOG_SIGHT, inFog } from '@/game/weather';
+import { StarSightModal } from './panels/StarSightModal';
 import { bearingDeg } from '@/geo/geo';
 import { positionAt } from '@/game/voyage';
 import { isDebug } from './debug';
@@ -48,6 +54,7 @@ export function MapScreen() {
   const townView = useGame((s) => s.townView);
   const building = useGame((s) => s.building);
   const lastBuilding = useGame((s) => s.lastBuilding);
+  const stargazing = useGame((s) => s.stargazing);
 
   const scenario = world.scenarios.get(game.scenarioId)!;
   const hostRef = useRef<HTMLDivElement>(null);
@@ -186,6 +193,30 @@ export function MapScreen() {
           }
         : null,
     );
+    // 海上的船隻、天氣、推算位置與夜色（只在親手駕船時）
+    if (game.helm) {
+      const range =
+        sightKm(world, game) * 1.3 * (inFog(game.weather, game.ship.position) ? FOG_SIGHT : 1);
+      m.setTraffic(
+        game.traffic
+          .filter((t) => distanceKm(t.position, game.ship.position) <= range)
+          .map((t) => ({
+            id: t.id,
+            kind: t.kind,
+            position: t.position,
+            heading: t.heading,
+            chasing: t.mode === 'chase',
+          })),
+      );
+      m.setWeather(game.weather);
+      m.setUncertainty(game.ship.position, navErrorKm(game.nav));
+      m.setNight(darkness(game.day));
+    } else {
+      m.setTraffic([]);
+      m.setWeather([]);
+      m.setUncertainty(null, 0);
+      m.setNight(0);
+    }
     if (planning) {
       m.setRoute({
         done: [],
@@ -323,6 +354,7 @@ export function MapScreen() {
       {panel === 'logbook' && <LogbookPanel />}
 
       {modals[0] && <RewardModal modal={modals[0]} />}
+      {!modals[0] && !game.encounter && stargazing && game.helm && <StarSightModal />}
       {!modals[0] && game.encounter?.kind === 'storm' && <StormModal encounter={game.encounter} />}
       {!modals[0] && game.encounter?.kind === 'event' && (
         <EventModal event={game.encounter} key={`${game.encounter.id}-${game.day}`} />

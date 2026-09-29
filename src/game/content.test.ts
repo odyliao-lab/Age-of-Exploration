@@ -12,7 +12,9 @@ import {
   answerQuiz,
   availableQuests,
   finishDialogue,
+  investigate,
   newGame,
+  rumorInReach,
   pendingInteraction,
   resolveEncounter,
   resolveEvent,
@@ -109,6 +111,12 @@ function playQuest(s: GameState, questId: string): GameState {
       const sea = nearestSea(codex.location);
       if (!sea) throw new Error(`${questId}：「${step.target}」附近沒有海面`);
       s = sailToPoint(s, sea);
+      if (codex.rumor) {
+        // 傳聞地點：任務會把線索記進航海日誌，要開到附近調查
+        expect(s.rumors, `${questId}：任務沒有給線索`).toContain(step.target);
+        expect(rumorInReach(world, s), `${questId}：開到附近仍無法調查`).toBe(step.target);
+        s = investigate(world, s, step.target).state;
+      }
       if (!s.discovered.includes(step.target)) {
         throw new Error(`${questId}：開到「${step.target}」旁邊仍沒有發現，發現半徑太小`);
       }
@@ -135,6 +143,20 @@ describe('Treasure Fleet MVP content', () => {
       for (let i = 1; i < path.length; i++) {
         expect(checkLeg(path[i - 1], path[i], allHarbors).ok, `${p.id} 第 ${i} 段`).toBe(true);
       }
+    }
+  });
+
+  it('can sail to every rumor site and investigate it', () => {
+    const home = world.ports.get('quanzhou')!;
+    expect(world.rumors.length).toBeGreaterThanOrEqual(12);
+    for (const c of world.rumors) {
+      const sea = nearestSea(c.location!);
+      expect(sea, `${c.id} 附近沒有海面`).not.toBeNull();
+      route(home.location, sea!);
+      let s = newGame(world, 'treasure-fleet', 5).state;
+      s = sailToPoint({ ...s, rumors: [c.id] }, sea!);
+      expect(rumorInReach(world, s), `${c.id}：開到最近的海面仍無法調查`).toBe(c.id);
+      expect(investigate(world, s, c.id).state.discovered).toContain(c.id);
     }
   });
 

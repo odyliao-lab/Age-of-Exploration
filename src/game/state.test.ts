@@ -21,6 +21,8 @@ import {
   visiblePortIds,
   type GameEvent,
   type GameState,
+  investigate,
+  rumorInReach,
 } from './state';
 import { contentForTests } from './testContent';
 import { checkLeg } from './voyage';
@@ -166,12 +168,17 @@ describe('Treasure Fleet prologue and chapter 1', () => {
     ]);
     s = acceptQuest(world, s, 'tf-01-champa').state;
     s = finishDialogue(world, s, 'tf-01-champa').state;
-    // 先找到海南島（任務的「發現」步驟），占城這個目的地才會出現在海圖上
+    // 先找到海南島（任務的「發現」步驟），占城這個目的地才會出現在海圖上。
+    // 海南島是傳聞地點：任務把線索記進航海日誌，要開到東岸附近調查
     expect(visiblePortIds(world, s)).not.toContain('champa');
-    const leg2 = sail(s, ROUTES.toChampa.slice(0, 4), null);
-    expect(leg2.events).toContainEqual({ type: 'discovered', codexId: 'hainan' });
-    expect(visiblePortIds(world, leg2.state)).toContain('champa');
-    s = sail(leg2.state, [leg2.state.ship.position, ...ROUTES.toChampa.slice(4)], 'champa').state;
+    expect(s.rumors).toContain('hainan');
+    const leg2 = sail(s, [...ROUTES.toChampa.slice(0, 4), [110.75, 18.6]], null);
+    expect(leg2.state.discovered).not.toContain('hainan');
+    expect(rumorInReach(world, leg2.state)).toBe('hainan');
+    const found = investigate(world, leg2.state, 'hainan');
+    expect(found.events).toContainEqual({ type: 'discovered', codexId: 'hainan' });
+    expect(visiblePortIds(world, found.state)).toContain('champa');
+    s = sail(found.state, [found.state.ship.position, ...ROUTES.toChampa.slice(4)], 'champa').state;
     expect(s.dockedAt).toBe('champa');
     expect(s.discovered).toContain('agarwood');
     const done = answerQuiz(world, s, 'tf-01-champa', 1);
