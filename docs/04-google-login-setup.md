@@ -2,6 +2,7 @@
 
 第 7 週要做「用 Google 帳號登入、存檔同步到雲端」（企畫書 Q21）。
 這需要用你自己的帳號建立兩個服務，這部分只能由你操作。完成後把**第 5 步列出的兩個值**交給 Claude，其餘程式由 Claude 接手。
+由 Codex 代為設定時，請改用交接文件 `docs/05-codex-handoff-week7-setup.md`。
 
 預估時間：20–30 分鐘。兩個服務在這個規模下都是免費方案。
 
@@ -67,7 +68,7 @@ Supabase 專案 → **Project Settings → API Keys**（或 **Data API**）：
 
 ## 6. 第 7 週 Claude 會做的事
 
-- 資料表 `saves`（每位玩家每個劇本一筆存檔）與 RLS 規則：只能讀寫自己的存檔。SQL 會放在 repo，由你在 Supabase 的 SQL Editor 貼上執行一次。
+- 資料表 `saves`（每位玩家每個劇本一筆存檔）與 RLS 規則：只能讀寫自己的存檔。SQL 已放在 `supabase/migrations/0001_saves.sql`，在 Supabase 的 SQL Editor 貼上執行一次。
 - 登入／登出按鈕；未登入時照常用本機存檔（不強迫登入）。
 - 登入後同步：本機與雲端存檔比較，保留進度較新的一份，衝突時讓玩家選。
 - 隱私：只儲存 Google 提供的使用者 ID 與存檔內容，不讀取其他資料；試玩說明加上給家長的說明。
