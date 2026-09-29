@@ -4,13 +4,16 @@
 
 ---
 
-## 2026-09-29 — 第 7 週：分支與 preview 設定完成，外部服務待授權
+## 2026-09-29 — 第 7 週：Supabase、Google OAuth 與 Cloudflare 建置設定完成
 
 - GitHub 預設分支與 Cloudflare production branch 改為既有 `main`；開發分支維持 `claude/gallant-bardeen-wewmq8`。
 - 確認 Cloudflare「Previews Base → Worker 預覽的建置」已啟用，使用 `npx wrangler preview`。提交 `c312abb` 的 GitHub 與 Cloudflare 檢查均成功，並產生固定分支 preview：<https://claude-gallant-bardeen-wewmq8-age-of-exploration.odyliao-pikmin.workers.dev/>。
 - 實際建置發現新版 Worker Previews 要求 `wrangler.jsonc` 包含 `previews` 區塊，已補上空物件；未修改遊戲程式。
 - 正式版保持版本 `b91f6cb9`、100% 流量；正式站與 preview 均可看到劇本選單，主控台沒有錯誤。每次推送前的 `npm run check`（91 個測試）與 `npm run build` 均通過。
-- Supabase、Google OAuth 與前端建置變數尚未完成；目前等待 Supabase 登入同意、Google 試玩者名單及聯絡信箱。詳細結果更新於 `docs/05-codex-handoff-week7-setup.md`。
+- Supabase 東京區免費專案已建立，執行 `0001_saves.sql`，確認 RLS、4 條 policy 與匿名 CRUD 禁止；Auth 已設定正式站、localhost 與 preview 回傳網址。
+- Google OAuth 網頁用戶端已建立，維持 External／Testing，只設定 openid、email、profile，加入擁有者指定的 2 位測試者；Supabase Google Provider 已儲存並確認 Enabled，nonce 檢查維持啟用。
+- Cloudflare 生產與 Previews Base 均已保存 `VITE_SUPABASE_URL`、`VITE_SUPABASE_ANON_KEY` 建置變數；兩個環境共用同一 Supabase 專案。
+- `docs/05-codex-handoff-week7-setup.md` 已改為 🟢，記錄公開 Project URL／Publishable key、preview 格式及介面差異。未修改 `src/` 或 `content/`；登入與雲端同步程式及實測交由 Claude 接續，OAuth 憑證與資料庫密碼未寫入 repo。
 
 ## 2026-09-29 — 第 6 週：音效、外觀、離線遊玩
 
