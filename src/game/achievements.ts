@@ -15,6 +15,8 @@ export interface AchievementStats {
   piratesOutwitted: number;
   crossedEquator: boolean;
   crossedTropic: boolean;
+  /** 貿易累計利潤（只計賺錢的交易） */
+  tradeProfit: number;
 }
 
 export const EMPTY_STATS: AchievementStats = {
@@ -24,6 +26,7 @@ export const EMPTY_STATS: AchievementStats = {
   piratesOutwitted: 0,
   crossedEquator: false,
   crossedTropic: false,
+  tradeProfit: 0,
 };
 
 /** 判斷成就所需的狀態（state.ts 的 GameState 符合這個介面） */
@@ -195,6 +198,21 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     category: '成長',
     title: '資深船長',
     check: (s) => s.captain.level >= 5,
+  },
+  {
+    id: 'first-profit',
+    name: '第一筆生意',
+    description: '做一次賺錢的貿易',
+    category: '成長',
+    check: (s) => s.stats.tradeProfit > 0,
+  },
+  {
+    id: 'merchant-500',
+    name: '海上商人',
+    description: '貿易累計賺進 500 金幣',
+    category: '成長',
+    title: '海商',
+    check: (s) => s.stats.tradeProfit >= 500,
   },
   {
     id: 'crew-3',

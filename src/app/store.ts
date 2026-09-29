@@ -19,6 +19,14 @@ import {
   ensureDaily,
   trackDaily,
   buyShip,
+  departPort,
+  pray,
+  tradeBuy,
+  tradeSell,
+  hearRumor,
+  investigate,
+  enterPort,
+  setHelm,
   buyPaint,
   setAppearance,
   checkAchievements,
@@ -53,9 +61,13 @@ import { findSeaPath } from '@/geo/seaPath';
 import { play } from './sound';
 import type { World } from '@/game/world';
 import type { Appearance } from '@/game/cosmetics';
+import type { SailSetting } from '@/game/sailing';
+import type { BuildingKind } from '@/town/layout';
 
 /** 1 倍速時，現實 1.2 秒 = 遊戲 1 天 */
 export const SECONDS_PER_DAY = 1.2;
+/** 親手駕船時時間走得慢一些，才來得及掌舵、看海岸 */
+export const SAIL_SECONDS_PER_DAY = 6;
 const AUTOSAVE_MS = 4000;
 
 type Screen = 'menu' | 'map';
@@ -108,6 +120,12 @@ interface GameStore {
   /** 座標定位挑戰的回饋 */
   locateFeedback: string | null;
   mapMarks: MapMark[];
+  /** 停泊時顯示城鎮（false 為海圖） */
+  townView: boolean;
+  /** 目前在哪棟建築裡 */
+  building: BuildingKind | null;
+  /** 剛離開的建築：回到城裡時站在它門口 */
+  lastBuilding: BuildingKind | null;
 
   init: (world: World) => void;
   refreshSaves: () => Promise<void>;
@@ -129,6 +147,20 @@ interface GameStore {
   setSpeed: (s: 1 | 2 | 4) => void;
   setFollow: (f: boolean) => void;
   anchor: () => void;
+  /** 親手駕船 */
+  depart: () => void;
+  steer: (course: number) => void;
+  trimSail: (sail: SailSetting) => void;
+  toggleAnchor: () => void;
+  dock: (portId: string) => void;
+  hearRumor: (id: string) => void;
+  setTownView: (on: boolean) => void;
+  enterBuilding: (kind: BuildingKind) => void;
+  leaveBuilding: () => void;
+  pray: () => void;
+  buyGood: (good: string, qty: number) => void;
+  sellGood: (good: string, qty: number) => void;
+  investigate: (id: string) => void;
 
   accept: (questId: string) => void;
   closeDialogue: (questId: string) => void;
@@ -281,6 +313,9 @@ export const useGame = create<GameStore>((set, get) => {
     codexFocus: null,
     locateFeedback: null,
     mapMarks: [],
+    townView: true,
+    building: null,
+    lastBuilding: null,
 
     init: (world) => {
       set({ world });
@@ -308,6 +343,9 @@ export const useGame = create<GameStore>((set, get) => {
       const game = ensureDaily(state, Date.now());
       if (fromDisk) persisted = game;
       set({
+        townView: true,
+        building: null,
+        lastBuilding: null,
         screen: 'map',
         game,
         selectedPortId: state.dockedAt,
@@ -392,8 +430,9 @@ export const useGame = create<GameStore>((set, get) => {
 
     advance: (realSeconds) => {
       const { world, game, paused, speed, modals } = get();
-      if (!world || !game?.voyage || paused || modals.length) return;
-      const days = (Math.min(realSeconds, 0.25) / SECONDS_PER_DAY) * speed;
+      if (!world || !game || (!game.voyage && !game.helm) || paused || modals.length) return;
+      const perDay = game.helm ? SAIL_SECONDS_PER_DAY : SECONDS_PER_DAY;
+      const days = (Math.min(realSeconds, 0.25) / perDay) * speed;
       apply(tick(world, game, days));
       scheduleSave();
     },
@@ -405,6 +444,122 @@ export const useGame = create<GameStore>((set, get) => {
     anchor: () => {
       const g = get().game;
       if (g) apply(stopVoyage(g));
+    },
+
+    depart: () => {
+      const { world, game } = get();
+      if (!world || !game || pendingInteraction(world, game)) return;
+      const next = departPort(world, game);
+      if (next === game) return;
+      set({ selectedPortId: null, paused: false, follow: true, planning: null, building: null });
+      commit(next);
+      play('depart');
+      if (game.stats.voyages === 0) {
+        // 第一次出海：說明舵盤與風（遊戲會暫停到按下繼續）
+        set((s) => ({
+          modals: [
+            ...s.modals,
+            {
+              type: 'info',
+              title: '親手掌舵',
+              text: '帆船不能往任何方向都開得一樣快，要看風從哪裡吹來。',
+              stats: [
+                '拖曳右下角舵盤上的紅色圓點設定航向，或直接點一下海面，船頭就會轉過去。',
+                '舵盤外圈的顏色：綠色最好開（順風到橫風），黃色開得動但慢（迎風），紅色是頂風，帆吃不到風，船會停住。',
+                '藍色箭頭是風吹去的方向。想往紅色那邊走，就要走之字形：先偏左、再偏右，一段一段前進。',
+                '收帆、半帆、滿帆控制速度；靠近港口會出現「入港」按鈕。',
+              ],
+              lesson:
+                '冬天（11–3 月）南海與東海吹東北季風，往西南順風好走，往東北就是頂風。鄭和船隊都是冬天出發、夏天返航，就是順著季風航行。',
+            },
+          ],
+        }));
+      } else {
+        toast({ text: '起錨出航！', kind: 'info' });
+      }
+    },
+
+    steer: (course) => {
+      const g = get().game;
+      if (g?.helm) set({ game: setHelm(g, { course }) });
+    },
+
+    trimSail: (sail) => {
+      const g = get().game;
+      if (g?.helm) set({ game: setHelm(g, { sail }) });
+    },
+
+    toggleAnchor: () => {
+      const g = get().game;
+      if (g?.helm) set({ game: setHelm(g, { anchored: !g.helm.anchored }) });
+    },
+
+    dock: (portId) => {
+      const { world, game } = get();
+      if (!world || !game) return;
+      const r = enterPort(world, game, portId);
+      if (r.state === game) return;
+      set({ follow: true, townView: true, building: null, lastBuilding: null });
+      apply(r);
+    },
+
+    setTownView: (on) => set({ townView: on, building: null }),
+    enterBuilding: (kind) => set({ building: kind, lastBuilding: kind }),
+    leaveBuilding: () => set({ building: null }),
+
+    pray: () => {
+      const g = get().game;
+      if (!g) return;
+      const next = pray(g);
+      if (next === g) return;
+      commit(next);
+      toast({ text: '上香祈求航海平安，船員士氣回升了。', kind: 'success' });
+    },
+
+    buyGood: (good, qty) => {
+      const { world, game } = get();
+      if (!world || !game) return;
+      const r = tradeBuy(world, game, good, qty);
+      if (!r.qty) return;
+      commit(r.state);
+      play('arrive');
+    },
+
+    sellGood: (good, qty) => {
+      const { world, game } = get();
+      if (!world || !game) return;
+      const r = tradeSell(world, game, good, qty);
+      if (!r.qty) return;
+      commit(r.state);
+      const name = world.codex.get(good)?.name ?? good;
+      toast({
+        text:
+          r.profit >= 0
+            ? `賣出${name} ${r.qty} 單位，賺了 ${r.profit} 金幣`
+            : `賣出${name} ${r.qty} 單位，虧了 ${-r.profit} 金幣`,
+        kind: r.profit >= 0 ? 'success' : 'warn',
+      });
+      play(r.profit >= 0 ? 'questComplete' : 'warn');
+    },
+
+    hearRumor: (id) => {
+      const { world, game } = get();
+      if (!world || !game) return;
+      const next = hearRumor(world, game, id);
+      if (next === game) return;
+      commit(next);
+      toast({ text: '傳聞記下了。依線索推理位置，靠近後按「調查」。', kind: 'info' });
+    },
+
+    investigate: (id) => {
+      const { world, game } = get();
+      if (!world || !game) return;
+      const r = investigate(world, game, id);
+      if (r.state === game) return;
+      apply(r);
+      const c = world.codex.get(id)!;
+      toast({ text: `調查成功！傳聞中的地方就是「${c.name}」`, kind: 'success' });
+      play('achievement');
     },
 
     accept: (questId) => {

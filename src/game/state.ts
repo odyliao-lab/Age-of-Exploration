@@ -4,7 +4,7 @@
  * 所有函式都回傳新的狀態物件；唯一的例外是迷霧陣列（fog）會就地更新，
  * 以免每一幀複製整張格網。事件（GameEvent）交給介面顯示提示與對話框。
  */
-import type { LonLat, Quest, QuestStep } from '@/data/schema';
+import type { CodexEntry, LonLat, Quest, QuestStep } from '@/data/schema';
 import { bearingDeg, compass16, distanceKm } from '@/geo/geo';
 import { addXp, newCaptain, type Captain } from './captain';
 import { ACHIEVEMENT_MAP, EMPTY_STATS, newlyUnlocked, type AchievementStats } from './achievements';
@@ -79,9 +79,33 @@ import {
   type StormEncounter,
 } from './ship';
 import { createVoyage, isFinished, positionAt, type Harbor, type Voyage } from './voyage';
+import { destinationPoint } from './events';
+import {
+  angleDiff,
+  angleOffWind,
+  gustyWind,
+  motion,
+  NO_GO,
+  turnToward,
+  TURN_DEG_PER_DAY,
+  type Helm,
+  type Motion,
+} from './sailing';
+import type { Rig } from './progression';
+import { isLand } from '@/geo/landmask';
 import type { World } from './world';
+import {
+  GOODS_PRICE,
+  buyGoods,
+  cargoUsed,
+  quote,
+  sellGoods,
+  type Cargo,
+  type Market,
+  type Quote,
+} from './trade';
 
-export const SAVE_VERSION = 6;
+export const SAVE_VERSION = 7;
 
 /** 航行中需要玩家處理的狀況：風暴或隨機事件 */
 export type Encounter = StormEncounter | VoyageEvent;
@@ -93,10 +117,12 @@ export const LOCATE_MAX_ATTEMPTS = 3;
 
 /** 基礎航速：每日 100 海里（約 4 節），接近鄭和寶船的歷史估計 */
 export const BASE_SPEED_KM_PER_DAY = 185;
-/** 船上瞭望的揭霧半徑 */
-export const SIGHT_KM = 220;
-const HOME_REVEAL_KM = 450;
-const PORT_REVEAL_KM = 260;
+/** 船上瞭望的揭霧半徑：桅頂看得到的海岸與山（地圖逐步繪出） */
+export const SIGHT_KM = 70;
+const HOME_REVEAL_KM = 160;
+const PORT_REVEAL_KM = 90;
+/** 離港口多近可以入港 */
+const PORT_REACH_KM = 30;
 
 export interface QuestProgress {
   status: 'active' | 'completed';
@@ -120,7 +146,10 @@ export interface GameState {
   day: number;
   ship: { position: LonLat; heading: number };
   dockedAt: string | null;
+  /** 自動航行（熟悉航線）；親手駕船時為 null */
   voyage: Voyage | null;
+  /** 親手駕船：在海上時不為 null */
+  helm: HelmState | null;
   fog: Uint8Array;
   discovered: string[];
   visitedPorts: string[];
@@ -162,6 +191,19 @@ export interface GameState {
   log: LogEntry[];
   /** 船長頭像、船旗、船身配色 */
   appearance: Appearance;
+  /** 聽過的傳聞（codex id） */
+  rumors: string[];
+  /** 船上的貨物 */
+  cargo: Cargo;
+  /** 各港各貨因買賣造成的價格波動 */
+  market: Market;
+}
+
+export interface HelmState extends Helm {
+  /** 下錨：船完全不動 */
+  anchored: boolean;
+  /** 船頭頂到海岸（用來只提醒一次） */
+  blocked: boolean;
 }
 
 export interface LogEntry {
@@ -226,6 +268,7 @@ export function newGame(world: World, scenarioId: string, seed = newSeed()): Ste
     ship: { position: home.location, heading: 180 },
     dockedAt: home.id,
     voyage: null,
+    helm: null,
     fog,
     discovered: [...home.goods, ...home.sights],
     visitedPorts: [home.id],
@@ -253,6 +296,9 @@ export function newGame(world: World, scenarioId: string, seed = newSeed()): Ste
     daily: null,
     log: [{ day: 0, text: `從${home.name}出發，展開航海生涯`, kind: 'arrive' }],
     appearance: defaultAppearance(),
+    rumors: [],
+    cargo: {},
+    market: {},
   };
   return { state, events: [], fogChanged };
 }
@@ -370,42 +416,82 @@ export function stopVoyage(state: GameState): StepResult {
   };
 }
 
-/** 推進遊戲時間（天）。航行中才會移動；有待處理的遭遇時暫停。 */
+/** 這個位置是不是陸地：有精確海岸就用海岸，否則用陸地遮罩 */
+export function landAt(world: World, p: LonLat): boolean {
+  return world.coast ? world.coast.isLand(p) : isLand(p);
+}
+
+/** 推進遊戲時間（天）。在海上（自動航行或親手駕船）才會移動；有待處理的遭遇時暫停。 */
 export function tick(world: World, state: GameState, days: number): StepResult {
-  if (!state.voyage || state.encounter || days <= 0) {
+  if ((!state.voyage && !state.helm) || state.encounter || days <= 0) {
     return { state, events: [], fogChanged: [] };
   }
   const events: GameEvent[] = [];
   const fogChanged: number[] = [];
+  const m = mods(world, state);
+  const sight = SIGHT_KM * m.sight;
+  const base = BASE_SPEED_KM_PER_DAY * m.speed;
+  const rig = shipDef(state.shipTypeId).rig;
 
-  // 以時間分小步前進：每步約 25 公里，避免高速時跳過地標或留下迷霧空洞
-  const steps = Math.max(1, Math.ceil((days * BASE_SPEED_KM_PER_DAY * 1.5) / 25));
+  // 分小步前進：親手駕船每步約 2 公里（貼近海岸也不會穿過陸地），自動航行每步約 25 公里
+  const stepKm = state.helm ? 2 : 25;
+  const maxKmPerDay = BASE_SPEED_KM_PER_DAY * 1.5 + (state.helm ? 80 : 0);
+  const steps = Math.max(1, Math.ceil((days * maxKmPerDay) / stepKm));
   const dt = days / steps;
   let s: GameState = state;
   let voyage = state.voyage;
+  let helm = state.helm;
   let discovered = state.discovered;
   let usedDays = 0;
   let encounter: Encounter | null = null;
-  const m = mods(world, state);
-  const sight = SIGHT_KM * m.sight;
 
-  for (let i = 0; i < steps && !isFinished(voyage); i++) {
-    const here = positionAt(voyage, voyage.traveledKm);
-    const env = environmentAt(s, here.position, here.heading, usedDays);
-    const speed =
-      BASE_SPEED_KM_PER_DAY * m.speed * conditionSpeedFactor(s.condition) * env.factors.total;
-    const remaining = voyage.totalKm - voyage.traveledKm;
-    const km = Math.min(remaining, speed * dt);
-    const stepDays = speed > 0 ? km / speed : dt;
-    voyage = { ...voyage, traveledKm: voyage.traveledKm + km };
+  for (let i = 0; i < steps && !(voyage && isFinished(voyage)); i++) {
+    const from = s.ship.position;
+    let to: LonLat;
+    let heading: number;
+    let stepDays = dt;
+    if (helm) {
+      // 親手駕船：轉向、依風與帆計算船速、洋流推送、撞到海岸就停住
+      heading = turnToward(s.ship.heading, helm.course, TURN_DEG_PER_DAY * dt);
+      to = from;
+      if (!helm.anchored) {
+        const env = environmentAt(s, from, heading, usedDays);
+        const wind = gustyWind(env.wind, from, s.day + usedDays);
+        const mv = motion(
+          heading,
+          helm.sail,
+          wind,
+          env.current,
+          rig,
+          base * conditionSpeedFactor(s.condition),
+        );
+        const next = destinationPoint(from, mv.course, mv.speed * dt);
+        const blocked = mv.speed > 0 && landAt(world, next);
+        if (!blocked) to = next;
+        if (blocked && !helm.blocked) {
+          events.push({ type: 'warning', text: '船頭頂到海岸了！轉個方向離開淺灘。' });
+        }
+        if (blocked !== helm.blocked) helm = { ...helm, blocked };
+      }
+    } else {
+      const v = voyage!;
+      const here = positionAt(v, v.traveledKm);
+      const env = environmentAt(s, here.position, here.heading, usedDays);
+      const speed = base * conditionSpeedFactor(s.condition) * env.factors.total;
+      const km = Math.min(v.totalKm - v.traveledKm, speed * dt);
+      stepDays = speed > 0 ? km / speed : dt;
+      voyage = { ...v, traveledKm: v.traveledKm + km };
+      const pos = positionAt(voyage, voyage.traveledKm);
+      to = pos.position;
+      heading = pos.heading;
+    }
     usedDays += stepDays;
 
-    const pos = positionAt(voyage, voyage.traveledKm);
     const before = s.condition;
     const condition = passTime(before, stepDays, m);
-    const stats = trackCrossings(s.stats, s.ship.position[1], pos.position[1]);
-    s = { ...s, ship: { position: pos.position, heading: pos.heading }, condition, stats };
-    for (const id of linesCrossed(world, here.position[1], pos.position[1])) {
+    const stats = trackCrossings(s.stats, from[1], to[1]);
+    s = { ...s, ship: { position: to, heading }, condition, stats };
+    for (const id of linesCrossed(world, from[1], to[1])) {
       if (!discovered.includes(id)) {
         discovered = [...discovered, id];
         events.push({ type: 'discovered', codexId: id });
@@ -413,23 +499,24 @@ export function tick(world: World, state: GameState, days: number): StepResult {
     }
     warnConditionChanges(before, condition, events);
 
-    fogChanged.push(...revealAround(state.fog, pos.position, sight));
-    const found = landmarksInSight(world, discovered, pos.position, m.discovery);
+    fogChanged.push(...revealAround(state.fog, to, sight));
+    const found = landmarksInSight(world, discovered, to, m.discovery);
     if (found.length) {
       discovered = [...discovered, ...found];
       for (const id of found) events.push({ type: 'discovered', codexId: id });
     }
 
     // 風暴：依每天的機率換算這一小步的機率
-    const chance = 1 - Math.pow(1 - env.storm.chancePerDay, stepDays);
+    const storm = stormRiskAt(to, gameDate(s, usedDays).month);
+    const chance = 1 - Math.pow(1 - storm.chancePerDay, stepDays);
     if (chance > 0) {
       const [r, seed] = nextRandom(s.seed);
       s = { ...s, seed };
       if (r < chance) {
         encounter = {
           kind: 'storm',
-          risk: env.storm,
-          position: pos.position,
+          risk: storm,
+          position: to,
           month: gameDate(s, usedDays).month,
         };
         break;
@@ -438,7 +525,7 @@ export function tick(world: World, state: GameState, days: number): StepResult {
 
     // 隨機事件（有冷卻時間，避免太頻繁打斷航行）
     if (state.day + usedDays >= s.eventCooldownUntil) {
-      const rolled = rollEvent(world, s, pos.position, pos.heading, stepDays, usedDays);
+      const rolled = rollEvent(world, s, to, heading, stepDays, usedDays);
       s = rolled.state;
       if (rolled.event) {
         encounter = rolled.event;
@@ -448,11 +535,11 @@ export function tick(world: World, state: GameState, days: number): StepResult {
     }
   }
 
-  let next: GameState = { ...s, day: state.day + usedDays, voyage, discovered };
+  let next: GameState = { ...s, day: state.day + usedDays, voyage, helm, discovered };
   if (encounter) {
     next = { ...next, encounter };
     events.push({ type: 'encounter', encounter });
-  } else if (isFinished(voyage)) {
+  } else if (voyage && isFinished(voyage)) {
     next = { ...next, stats: { ...next.stats, voyages: next.stats.voyages + 1 } };
     const dest = voyage.destinationPortId;
     if (dest) {
@@ -471,6 +558,256 @@ export function tick(world: World, state: GameState, days: number): StepResult {
     state: progressed.state,
     events: [...events, ...progressed.events],
     fogChanged: [...fogChanged, ...progressed.fogChanged],
+  };
+}
+
+// ---------------------------------------------------------------- 親手駕船
+
+/** 從港口出海：找到港外最近的海面，升半帆，船頭朝向外海 */
+export function departPort(world: World, state: GameState): GameState {
+  if (!state.dockedAt || state.voyage || state.helm) return state;
+  const port = world.ports.get(state.dockedAt)!;
+  const start = seaNear(world, port.location);
+  if (!start) return state;
+  const heading = start.bearing;
+  return {
+    ...state,
+    dockedAt: null,
+    ship: { position: start.point, heading },
+    helm: { course: heading, sail: 1, anchored: false, blocked: false },
+  };
+}
+
+/**
+ * 由近而遠繞圈尋找開闊的海面（周圍 6 公里都是海），避免把船放進河口或窄灣卡住。
+ * 回傳位置與從港口出發的方位。
+ */
+function seaNear(world: World, p: LonLat): { point: LonLat; bearing: number } | null {
+  const open = (q: LonLat) =>
+    !landAt(world, q) &&
+    [0, 45, 90, 135, 180, 225, 270, 315].every((b) => !landAt(world, destinationPoint(q, b, 6)));
+  let fallback: { point: LonLat; bearing: number } | null = null;
+  for (let km = 4; km <= 90; km += 3) {
+    for (let b = 0; b < 360; b += 10) {
+      const q = destinationPoint(p, b, km);
+      if (open(q)) return { point: q, bearing: b };
+      if (!fallback && !landAt(world, q)) fallback = { point: q, bearing: b };
+    }
+  }
+  return fallback;
+}
+
+export interface SailingStatus {
+  /** 此時此地的風（含緩慢變化） */
+  wind: Wind;
+  current: Current | null;
+  /** 以目前船頭與帆計算的運動 */
+  motion: Motion;
+  rig: Rig;
+  /** 頂風區的半角：船頭與風吹來方向的夾角小於此值就開不動 */
+  noGo: number;
+  /** 風吹向相對於船頭的角度 */
+  windRel: number;
+  angleOffWind: number;
+}
+
+/** 介面與畫面用：和航行物理使用同一套風與帆的計算 */
+export function sailingStatus(world: World, state: GameState): SailingStatus | null {
+  const helm = state.helm;
+  if (!helm) return null;
+  const { position, heading } = state.ship;
+  const env = environmentAt(state, position, heading);
+  const wind = gustyWind(env.wind, position, state.day);
+  const rig = shipDef(state.shipTypeId).rig;
+  const base = speedKmPerDay(world, state);
+  const mv = helm.anchored
+    ? { ...motion(heading, 0, wind, null, rig, base), speed: 0, throughWater: 0 }
+    : motion(heading, helm.sail, wind, env.current, rig, base);
+  return {
+    wind,
+    current: env.current,
+    motion: mv,
+    rig,
+    noGo: NO_GO[rig],
+    windRel: angleDiff(wind.toward, heading),
+    angleOffWind: angleOffWind(heading, wind),
+  };
+}
+
+/** 調整航向、帆或下錨 */
+export function setHelm(state: GameState, patch: Partial<Omit<HelmState, 'blocked'>>): GameState {
+  if (!state.helm) return state;
+  const helm = { ...state.helm, ...patch };
+  if (patch.course !== undefined) helm.course = ((patch.course % 360) + 360) % 360;
+  // 升帆就自動起錨
+  if (patch.sail) helm.anchored = false;
+  return { ...state, helm };
+}
+
+// ---------------------------------------------------------------- 祈福
+
+export const PRAY_COST = 10;
+export const PRAY_MORALE = 15;
+
+/** 在天妃宮（媽祖廟）祈求航海平安：花一點香油錢，船員士氣回升 */
+export function pray(state: GameState): GameState {
+  if (!state.dockedAt || state.gold < PRAY_COST || state.condition.morale >= 100) return state;
+  return {
+    ...state,
+    gold: state.gold - PRAY_COST,
+    condition: {
+      ...state.condition,
+      morale: Math.min(100, state.condition.morale + PRAY_MORALE),
+    },
+  };
+}
+
+// ---------------------------------------------------------------- 貿易
+
+export function cargoCapacity(state: GameState): number {
+  return shipDef(state.shipTypeId).cargo;
+}
+
+export { cargoUsed };
+
+/** 港口市場的報價：這裡的特產可以買，所有貨物都可以賣 */
+export function marketQuotes(world: World, state: GameState, portId: string): Quote[] {
+  const port = world.ports.get(portId);
+  if (!port) return [];
+  return Object.keys(GOODS_PRICE)
+    .filter((g) => world.codex.has(g))
+    .map((g) => quote(world.content.ports, port, g, state.market, state.day));
+}
+
+export interface TradeResult {
+  state: GameState;
+  /** 成交數量 */
+  qty: number;
+  /** 買進花費或賣出收入 */
+  amount: number;
+  /** 賣出時這批貨的利潤 */
+  profit: number;
+}
+
+export function tradeBuy(world: World, state: GameState, good: string, qty: number): TradeResult {
+  const port = state.dockedAt ? world.ports.get(state.dockedAt) : null;
+  if (!port) return { state, qty: 0, amount: 0, profit: 0 };
+  const r = buyGoods(world.content.ports, port, state, good, qty, cargoCapacity(state), state.day);
+  if (!r.bought) return { state, qty: 0, amount: 0, profit: 0 };
+  return {
+    state: { ...state, gold: r.gold, cargo: r.cargo, market: r.market },
+    qty: r.bought,
+    amount: r.spent,
+    profit: 0,
+  };
+}
+
+export function tradeSell(world: World, state: GameState, good: string, qty: number): TradeResult {
+  const port = state.dockedAt ? world.ports.get(state.dockedAt) : null;
+  if (!port) return { state, qty: 0, amount: 0, profit: 0 };
+  const r = sellGoods(world.content.ports, port, state, good, qty, state.day);
+  if (!r.sold) return { state, qty: 0, amount: 0, profit: 0 };
+  return {
+    state: {
+      ...state,
+      gold: r.gold,
+      cargo: r.cargo,
+      market: r.market,
+      stats: { ...state.stats, tradeProfit: state.stats.tradeProfit + Math.max(0, r.profit) },
+    },
+    qty: r.sold,
+    amount: r.earned,
+    profit: r.profit,
+  };
+}
+
+// ---------------------------------------------------------------- 傳聞與調查
+
+/** 在這個港口可以聽到、還沒聽過也還沒發現的傳聞 */
+export function rumorsAt(world: World, state: GameState, portId: string): CodexEntry[] {
+  return world.rumors.filter(
+    (c) =>
+      c.rumor!.port === portId && !state.rumors.includes(c.id) && !state.discovered.includes(c.id),
+  );
+}
+
+export function hearRumor(world: World, state: GameState, id: string): GameState {
+  const c = world.codex.get(id);
+  if (!c?.rumor || state.rumors.includes(id) || state.dockedAt !== c.rumor.port) return state;
+  return { ...state, rumors: [...state.rumors, id] };
+}
+
+/** 聽過、還沒發現的傳聞 */
+export function openRumors(world: World, state: GameState): CodexEntry[] {
+  return state.rumors
+    .filter((id) => !state.discovered.includes(id))
+    .map((id) => world.codex.get(id)!)
+    .filter(Boolean);
+}
+
+/** 船附近可以調查的傳聞地點 */
+export function rumorInReach(world: World, state: GameState): string | null {
+  if (!state.helm) return null;
+  for (const c of openRumors(world, state)) {
+    if (distanceKm(state.ship.position, c.location!) <= c.rumor!.investigate_km) return c.id;
+  }
+  return null;
+}
+
+/** 調查發現傳聞中的地點：登錄圖鑑、獲得經驗與名聲 */
+export const INVESTIGATE_REWARD = { xp: 60, reputation: 5 };
+
+export function investigate(world: World, state: GameState, id: string): StepResult {
+  if (rumorInReach(world, state) !== id) return { state, events: [], fogChanged: [] };
+  const events: GameEvent[] = [{ type: 'discovered', codexId: id }];
+  const xp = gainXp(state, INVESTIGATE_REWARD.xp);
+  events.push(...xp.events);
+  const next: GameState = {
+    ...state,
+    discovered: [...state.discovered, id],
+    reputation: state.reputation + INVESTIGATE_REWARD.reputation,
+    captain: xp.captain,
+    skillPoints: xp.skillPoints,
+  };
+  const progressed = progressQuests(world, next);
+  return {
+    state: progressed.state,
+    events: [...events, ...progressed.events],
+    fogChanged: progressed.fogChanged,
+  };
+}
+
+/** 附近可以入港的港口（海圖上看得到、距離夠近） */
+export function portInReach(world: World, state: GameState): string | null {
+  if (!state.helm) return null;
+  let best: string | null = null;
+  let bestKm = Infinity;
+  for (const id of visiblePortIds(world, state)) {
+    const port = world.ports.get(id)!;
+    const reach = Math.max(PORT_REACH_KM, world.harbors.get(id)!.radiusKm);
+    const km = distanceKm(state.ship.position, port.location);
+    if (km <= reach && km < bestKm) {
+      best = id;
+      bestKm = km;
+    }
+  }
+  return best;
+}
+
+export function enterPort(world: World, state: GameState, portId: string): StepResult {
+  if (portInReach(world, state) !== portId || state.encounter) {
+    return { state, events: [], fogChanged: [] };
+  }
+  const arrived = arrive(world, { ...state, helm: null }, portId);
+  const next = {
+    ...arrived.state,
+    stats: { ...arrived.state.stats, voyages: arrived.state.stats.voyages + 1 },
+  };
+  const progressed = progressQuests(world, next);
+  return {
+    state: progressed.state,
+    events: [...arrived.events, ...progressed.events],
+    fogChanged: [...arrived.fogChanged, ...progressed.fogChanged],
   };
 }
 
@@ -697,11 +1034,14 @@ function shipwreck(world: World, state: GameState, cause: StormRisk, month: numb
       ...state,
       gold: state.gold - lostGold,
       voyage: null,
+      helm: null,
       encounter: null,
       dockedAt: port.id,
       ship: { position: port.location, heading: state.ship.heading },
       condition: afterShipwreck(shipType(state.shipTypeId)),
       shipwrecks: state.shipwrecks + 1,
+      // 貨物隨船沉沒
+      cargo: {},
     },
     events: [{ type: 'shipwreck', cause, lostGold, portId: port.id, month }],
     fogChanged: [],
@@ -755,6 +1095,7 @@ function arrive(world: World, state: GameState, portId: string): StepResult {
       ...state,
       gold: state.gold + gift,
       voyage: null,
+      helm: null,
       dockedAt: portId,
       lastPortId: portId,
       condition: rest(state.condition),

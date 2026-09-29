@@ -109,6 +109,14 @@ export type Profession = keyof typeof PROFESSIONS;
 
 // ---------------------------------------------------------------- 船隻
 
+/**
+ * 帆裝種類：
+ * - lug：中國帆船的竹條撐帆（硬帆），能相當接近逆風
+ * - lateen：三角帆，最能逆風
+ * - square：橫帆，順風快，但無法接近逆風
+ */
+export type Rig = 'lug' | 'lateen' | 'square';
+
 export interface ShipDef {
   id: string;
   name: string;
@@ -116,9 +124,13 @@ export interface ShipDef {
   /** 淡水、糧食各可存放的天數 */
   supplyDays: number;
   speed: number;
+  /** 帆裝：決定能多接近逆風航行（親手駕船） */
+  rig: Rig;
   /** 船體強度：風暴損傷除以此值 */
   sturdiness: number;
   crewSlots: number;
+  /** 貨艙容量（貨物單位） */
+  cargo: number;
   price: number;
   minLevel: number;
   /** 船隻小知識（企畫書 9.4） */
@@ -128,72 +140,84 @@ export interface ShipDef {
 export const SHIPS: Record<string, ShipDef> = {
   junk: {
     id: 'junk',
+    rig: 'lug',
     name: '戎克船',
     name_en: 'Junk',
     supplyDays: 40,
     speed: 1,
     sturdiness: 1,
     crewSlots: 2,
+    cargo: 20,
     price: 0,
     minLevel: 1,
     lore: '中國傳統帆船的統稱，船帆以竹條撐開、可分段收放，船艙以隔艙板分成許多水密隔艙，一艙進水不致全船沉沒。',
   },
   fuchuan: {
     id: 'fuchuan',
+    rig: 'lug',
     name: '福船',
     name_en: 'Fuchuan',
     supplyDays: 55,
     speed: 1.05,
     sturdiness: 1.25,
     crewSlots: 3,
+    cargo: 30,
     price: 600,
     minLevel: 3,
     lore: '福建沿海建造的尖底大船，吃水深、抗風浪，適合遠洋航行。明代許多遠航與海防船隻都屬於福船系統。',
   },
   baochuan: {
     id: 'baochuan',
+    rig: 'lug',
     name: '寶船',
     name_en: 'Treasure Ship',
     supplyDays: 75,
     speed: 0.95,
     sturdiness: 1.5,
     crewSlots: 4,
+    cargo: 60,
     price: 1500,
     minLevel: 6,
     lore: '鄭和船隊的主力大船。史書記載最大的寶船長約四十四丈，但現代學者對實際尺寸仍有爭論。大船載貨多、穩定，但轉向較慢。',
   },
   caravel: {
     id: 'caravel',
+    rig: 'lateen',
     name: '卡拉維爾帆船',
     name_en: 'Caravel',
     supplyDays: 35,
     speed: 1.15,
     sturdiness: 0.9,
     crewSlots: 2,
+    cargo: 25,
     price: 0,
     minLevel: 1,
     lore: '15 世紀葡萄牙與西班牙的輕快帆船，使用三角帆能逆風斜行，適合沿著陌生海岸探險。哥倫布的尼尼亞號就是卡拉維爾帆船。',
   },
   carrack: {
     id: 'carrack',
+    rig: 'square',
     name: '克拉克帆船',
     name_en: 'Carrack',
     supplyDays: 60,
     speed: 1,
     sturdiness: 1.2,
     crewSlots: 3,
+    cargo: 45,
     price: 700,
     minLevel: 3,
     lore: '有高聳船樓的大型遠洋帆船，載貨量大。達伽馬航向印度、麥哲倫環球航行的旗艦都是克拉克帆船。',
   },
   galleon: {
     id: 'galleon',
+    rig: 'square',
     name: '蓋倫帆船',
     name_en: 'Galleon',
     supplyDays: 70,
     speed: 1.05,
     sturdiness: 1.4,
     crewSlots: 4,
+    cargo: 60,
     price: 1600,
     minLevel: 6,
     lore: '16 世紀發展出的大型帆船，船身較長、較穩定。西班牙的馬尼拉大帆船每年橫渡太平洋，連接亞洲與美洲。',

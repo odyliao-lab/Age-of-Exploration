@@ -87,7 +87,27 @@ describe('fog', () => {
     expect(changed.length).toBeGreaterThan(20);
     expect(revealAround(fog, [118.67, 24.87], 300)).toEqual([]);
     expect(exploredFraction(fog)).toBeGreaterThan(0);
-    expect(decodeFog(encodeFog(fog))).toEqual(fog);
+    expect(Buffer.from(decodeFog(encodeFog(fog))).equals(Buffer.from(fog))).toBe(true);
+  });
+
+  it('compresses saves and keeps the explored count in sync', () => {
+    const fog = createFog();
+    expect(exploredFraction(fog)).toBe(0);
+    const changed = revealAround(fog, [118.67, 24.87], 450);
+    expect(exploredFraction(fog)).toBeCloseTo(changed.length / fog.length, 12);
+    expect(encodeFog(fog).length).toBeLessThan(2000);
+  });
+
+  it('upsamples legacy 0.5° saves', () => {
+    // 舊格網 720×360 位元陣列，只有北京附近一格（第 100 列、第 592 行）已探索
+    const bits = new Uint8Array((720 * 360) / 8);
+    const i = 100 * 720 + 592;
+    bits[i >> 3] |= 1 << (i & 7);
+    const fog = decodeFog(btoa(String.fromCharCode(...bits)));
+    expect(exploredFraction(fog) * fog.length).toBe(16);
+    expect(fog[400 * 2880 + 2368]).toBe(1);
+    expect(fog[403 * 2880 + 2371]).toBe(1);
+    expect(fog[404 * 2880 + 2368]).toBe(0);
   });
 
   it('wraps around the antimeridian', () => {
