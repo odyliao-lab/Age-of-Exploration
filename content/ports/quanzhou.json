@@ -1,0 +1,14 @@
+{
+  "id": "quanzhou",
+  "name": "泉州",
+  "name_en": "Quanzhou",
+  "historical_names": ["刺桐（Zayton）"],
+  "country": "中國",
+  "country_en": "China",
+  "region": "east-china-sea",
+  "location": [118.67, 24.87],
+  "kind": "hub",
+  "goods": ["silk", "porcelain"],
+  "climate": "副熱帶季風氣候",
+  "blurb": "宋元時期世界最大的港口之一，馬可波羅稱之為刺桐。城內至今保有清真寺、印度教石刻與媽祖廟，見證海上絲路的多元文化。"
+}

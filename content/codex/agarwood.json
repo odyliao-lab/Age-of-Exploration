@@ -1,0 +1,10 @@
+{
+  "id": "agarwood",
+  "category": "goods",
+  "name": "沉香",
+  "name_en": "Agarwood",
+  "domains": ["F", "C"],
+  "body": "沉香樹受傷後分泌樹脂形成的香木，燃燒時散發濃郁香氣。中南半島與馬來群島的熱帶雨林是主要產地，占城的沉香在中國與阿拉伯世界都極為珍貴。",
+  "source": "維基百科「沉香」條目",
+  "reviewed": false
+}

@@ -9,11 +9,43 @@
 
 ## 文件索引
 
-| 文件 | 內容 |
+| 文件                                                               | 內容                               |
+| ------------------------------------------------------------------ | ---------------------------------- |
+| [docs/01-game-design-document.md](docs/01-game-design-document.md) | 完整企畫書（遊戲設計文件，GDD）    |
+| [docs/02-open-questions.md](docs/02-open-questions.md)             | 動工前需要逐項討論、定案的問題清單 |
+| [docs/DEVLOG.md](docs/DEVLOG.md)                                   | 開發進度日誌                       |
+
+## 開發
+
+```bash
+npm install
+npm run dev              # 開發伺服器
+npm run check            # 型別、lint、內容驗證、單元測試（CI 也跑這個）
+npm run content:validate # 只驗證 content/ 下的資料檔
+npm run build            # 產出 dist/
+```
+
+### 目錄
+
+| 目錄 | 內容 |
 | --- | --- |
-| [docs/01-game-design-document.md](docs/01-game-design-document.md) | 完整企畫書（遊戲設計文件，GDD） |
-| [docs/02-open-questions.md](docs/02-open-questions.md) | 動工前需要逐項討論、定案的問題清單 |
-| [docs/DEVLOG.md](docs/DEVLOG.md) | 開發進度日誌 |
+| `content/` | 遊戲內容資料（劇本、海域區、港口、任務、知識卡），純 JSON，CC BY-SA 4.0 |
+| `src/data/` | 內容 schema（Zod）、交叉參照驗證、載入器 |
+| `src/app/` | React 介面 |
+| `tools/` | 命令列工具（內容驗證等） |
+| `docs/` | 企畫書、決策清單、開發日誌 |
+
+### 部署（Cloudflare Pages）
+
+在 Cloudflare Pages 建立專案並連接本 repo：
+
+| 設定 | 值 |
+| --- | --- |
+| Build command | `npm run build` |
+| Build output directory | `dist` |
+| Node version | 22（環境變數 `NODE_VERSION=22`） |
+
+每次推送到 production branch 會自動部署；其他分支會產生 preview 網址。
 
 ## 專案流程
 

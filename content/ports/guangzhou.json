@@ -1,0 +1,14 @@
+{
+  "id": "guangzhou",
+  "name": "廣州",
+  "name_en": "Guangzhou",
+  "historical_names": ["番禺", "Canton"],
+  "country": "中國",
+  "country_en": "China",
+  "region": "south-china-sea",
+  "location": [113.26, 23.13],
+  "kind": "port",
+  "goods": ["silk", "porcelain"],
+  "climate": "副熱帶季風氣候",
+  "blurb": "珠江三角洲頂端的千年商港，自唐代起便是中國對南海與印度洋貿易的門戶。"
+}

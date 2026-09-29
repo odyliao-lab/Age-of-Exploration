@@ -1,0 +1,10 @@
+{
+  "id": "porcelain",
+  "category": "goods",
+  "name": "瓷器",
+  "name_en": "Porcelain",
+  "domains": ["F"],
+  "body": "以高嶺土高溫燒製的器皿，堅硬、輕薄且不透水。明代的青花瓷經由泉州、廣州大量外銷，從東南亞到東非的港口遺址都曾出土中國瓷片。",
+  "source": "維基百科「瓷器」「青花瓷」條目",
+  "reviewed": false
+}

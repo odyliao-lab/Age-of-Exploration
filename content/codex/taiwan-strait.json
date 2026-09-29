@@ -1,0 +1,12 @@
+{
+  "id": "taiwan-strait",
+  "category": "landmark",
+  "name": "台灣海峽",
+  "name_en": "Taiwan Strait",
+  "location": [119.5, 24.5],
+  "discover_radius_km": 120,
+  "domains": ["B", "D"],
+  "body": "分隔台灣與中國大陸的海峽，最窄處約 130 公里，平均水深不到 100 公尺。冬季東北季風強勁，古人稱橫渡海峽為「過黑水溝」，形容其風浪險惡。",
+  "source": "維基百科「台灣海峽」條目",
+  "reviewed": false
+}

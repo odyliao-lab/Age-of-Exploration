@@ -1,0 +1,59 @@
+{
+  "id": "treasure-fleet",
+  "name": "東方寶船",
+  "name_en": "Treasure Fleet",
+  "tagline": "從泉州出發，追隨鄭和船隊的航跡，航向西洋。",
+  "description": "十五世紀初，明朝派出史上最龐大的船隊七次下西洋。你是泉州一位年輕的船主，受船隊徵召隨行，從家鄉的海域一路航向東南亞、印度洋與東非。",
+  "culture": "明朝中國",
+  "era": "15 世紀初",
+  "inspiration": "鄭和下西洋（1405–1433）",
+  "home_port": "quanzhou",
+  "home_region": "east-china-sea",
+  "region_tiers": {
+    "east-china-sea": 0,
+    "south-china-sea": 1,
+    "malacca-java": 1
+  },
+  "starting_ship": "junk",
+  "recommended": true,
+  "domains": ["A", "B", "D", "E", "F"],
+  "estimated_hours": 6,
+  "chapters": [
+    {
+      "index": 0,
+      "title": "泉州的少年",
+      "tier": 0,
+      "summary": "學會看海圖、辨方位，完成第一趟沿岸航行。"
+    },
+    {
+      "index": 1,
+      "title": "占城與麻六甲",
+      "tier": 1,
+      "summary": "乘冬季風南下南海，穿越麻六甲海峽。"
+    },
+    {
+      "index": 2,
+      "title": "錫蘭與古里",
+      "tier": 2,
+      "summary": "橫渡孟加拉灣，抵達印度洋貿易網的核心。"
+    },
+    {
+      "index": 3,
+      "title": "荷姆茲與麥加",
+      "tier": 2,
+      "summary": "進入波斯灣與紅海，認識伊斯蘭世界的商路。"
+    },
+    {
+      "index": 4,
+      "title": "麒麟之國",
+      "tier": 3,
+      "summary": "抵達東非海岸，帶回長頸鹿與非洲的物產。"
+    },
+    {
+      "index": 5,
+      "title": "海的盡頭",
+      "tier": 4,
+      "summary": "假設寶船繼續南行：繞過好望角的想像之旅。"
+    }
+  ]
+}

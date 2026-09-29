@@ -1,0 +1,33 @@
+{
+  "id": "tf-00-first-voyage",
+  "title": "第一趟航行：南下廣州",
+  "scenario": "treasure-fleet",
+  "chapter": 0,
+  "tier": 0,
+  "kind": "main",
+  "giver_port": "quanzhou",
+  "objectives": [
+    { "domain": "A", "text": "能在海圖上找到指定經緯度的港口。" },
+    { "domain": "B", "text": "能指出台灣海峽的位置。" }
+  ],
+  "prerequisites": [],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "船隊書記",
+      "lines": [
+        "船隊集結在南京，但我們泉州的船要先到廣州會合。",
+        "廣州在我們的西南方，大約北緯 23 度、東經 113 度。把航線畫出來吧。"
+      ]
+    },
+    { "type": "navigate", "target": "guangzhou", "hint_level": 1 },
+    {
+      "type": "quiz",
+      "question": "剛才出港時，船的右舷（東側）遠處那片海域，把中國大陸和哪座島隔開？",
+      "choices": ["海南島", "台灣", "琉球", "呂宋"],
+      "answer": 1,
+      "explanation": "泉州東側的海域就是台灣海峽，對岸是台灣。"
+    }
+  ],
+  "reward": { "xp": 50, "gold": 100, "reputation": 5, "unlock_ports": ["champa"] }
+}

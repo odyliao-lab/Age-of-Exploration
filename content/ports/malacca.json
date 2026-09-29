@@ -1,0 +1,14 @@
+{
+  "id": "malacca",
+  "name": "麻六甲",
+  "name_en": "Malacca",
+  "historical_names": ["滿剌加"],
+  "country": "馬來西亞",
+  "country_en": "Malaysia",
+  "region": "malacca-java",
+  "location": [102.25, 2.19],
+  "kind": "hub",
+  "goods": ["agarwood"],
+  "climate": "熱帶雨林氣候",
+  "blurb": "扼守麻六甲海峽的港市，15 世紀因鄭和船隊的支持而崛起為東西方貿易的轉運中心。"
+}

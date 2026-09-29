@@ -4,6 +4,18 @@
 
 ---
 
+## 2026-09-29 — M1 專案初始化與內容 schema（第一週切片第 1～2 小時）
+
+- 專案骨架：Vite ＋ React 19 ＋ TypeScript ＋ PixiJS 8（尚未使用）＋ Zustand ＋ Dexie ＋ Zod ＋ i18next。
+- 內容 schema（`src/data/schema.ts`）：海域區、港口、知識卡、任務（四種步驟）、劇本；
+  交叉參照驗證（`src/data/validate.ts`）強制企畫書規則：任務至少一個學習目標、傳說必附科學對照、家鄉海域 Tier 0。
+- 命令列驗證 `npm run content:validate`；`npm run check` 串起型別、lint、內容驗證與測試；GitHub Actions 每次推送執行。
+- 首批內容：東方寶船劇本（6 章）、3 個海域區、4 個港口（泉州、廣州、歸仁、麻六甲）、6 張知識卡、序章與第一章各 1 個任務。
+- 介面目前只有劇本選單，已在 Chromium 驗證可渲染、無錯誤。
+- 授權檔：根目錄 MIT、`content/LICENSE.md` CC BY-SA 4.0、`content/credits.md` 素材登錄。
+- README 新增開發指令與 Cloudflare Pages 設定值。
+- 下一步（第 3～4 小時）：Natural Earth GeoJSON 世界地圖、等距圓柱投影、縮放平移、港口標記。
+
 ## 2026-09-29 — 全部決策定案，企畫書 v1.0
 
 - Q14～Q25 定案：美術與內容規範、TypeScript 技術堆疊、Google 登入（Supabase Auth）、

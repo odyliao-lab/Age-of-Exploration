@@ -1,0 +1,8 @@
+{
+  "id": "east-china-sea",
+  "name": "東海與黃海",
+  "name_en": "East China Sea & Yellow Sea",
+  "description": "介於中國東岸、台灣、琉球與朝鮮半島之間的邊緣海；黑潮由南向北流經其東側。",
+  "center": [124, 29],
+  "bbox": [117, 21, 132, 41]
+}

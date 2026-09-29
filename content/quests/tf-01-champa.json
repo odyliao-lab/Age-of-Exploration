@@ -1,0 +1,40 @@
+{
+  "id": "tf-01-champa",
+  "title": "乘冬季風南下占城",
+  "scenario": "treasure-fleet",
+  "chapter": 1,
+  "tier": 1,
+  "kind": "main",
+  "giver_port": "guangzhou",
+  "objectives": [
+    { "domain": "D", "text": "能說明冬季東北季風如何幫助船隊南下。" },
+    { "domain": "B", "text": "能在地圖上辨識海南島。" },
+    { "domain": "E", "text": "知道占城位於今日的越南。" }
+  ],
+  "prerequisites": ["tf-00-first-voyage"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "老舵手",
+      "lines": [
+        "冬天到了，東北風一起，船就會被推著往西南走。這就是季風。",
+        "沿著海岸線走，繞過海南島，再往南就是占城的新州港。"
+      ]
+    },
+    { "type": "discover", "target": "hainan" },
+    { "type": "navigate", "target": "champa", "hint_level": 2 },
+    {
+      "type": "quiz",
+      "question": "船隊為什麼選在冬天出發南下？",
+      "choices": [
+        "冬天海水比較平靜",
+        "冬季東北季風順風推船向西南",
+        "冬天港口不收稅",
+        "夏天船員要回家種田"
+      ],
+      "answer": 1,
+      "explanation": "南海冬季吹東北季風，從中國南下正好順風；夏季西南季風則用來北返。"
+    }
+  ],
+  "reward": { "xp": 80, "gold": 150, "reputation": 8, "unlock_ports": ["malacca"] }
+}

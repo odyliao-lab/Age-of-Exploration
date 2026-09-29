@@ -1,0 +1,8 @@
+{
+  "id": "south-china-sea",
+  "name": "南海",
+  "name_en": "South China Sea",
+  "description": "西太平洋最大的邊緣海，被中國南岸、中南半島、婆羅洲與菲律賓群島環繞；夏季西南季風、冬季東北季風交替。",
+  "center": [113, 13],
+  "bbox": [99, 0, 122, 23]
+}

@@ -1,0 +1,8 @@
+{
+  "id": "malacca-java",
+  "name": "麻六甲與爪哇海",
+  "name_en": "Strait of Malacca & Java Sea",
+  "description": "連接南海與印度洋的關鍵水道；馬來半島、蘇門答臘與爪哇環繞的赤道海域。",
+  "center": [106, 0],
+  "bbox": [95, -9, 117, 8]
+}

@@ -1,0 +1,10 @@
+{
+  "id": "monsoon",
+  "category": "phenomenon",
+  "name": "季風",
+  "name_en": "Monsoon",
+  "domains": ["D", "A"],
+  "body": "因海陸溫差而隨季節反轉方向的風。在南海與印度洋，冬季吹東北風、夏季吹西南風。古代帆船「乘冬季風南下、乘夏季風北返」，鄭和船隊也必須在港口等待風向轉換才能啟程。",
+  "source": "維基百科「季風」條目",
+  "reviewed": false
+}

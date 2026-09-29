@@ -1,0 +1,99 @@
+:root {
+  --parchment: #f3e9d2;
+  --parchment-dark: #e2d3ae;
+  --ink: #2b2118;
+  --ink-soft: #5b4a3a;
+  --sea: #7fa7b8;
+  --accent: #b5482b;
+  --card: #fbf6ea;
+  font-family: 'Noto Sans TC', 'PingFang TC', 'Microsoft JhengHei', system-ui, sans-serif;
+  color: var(--ink);
+  background: var(--parchment);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background:
+    radial-gradient(ellipse at top, rgba(255, 255, 255, 0.35), transparent 60%), var(--parchment);
+}
+
+.page {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 32px 16px 64px;
+}
+
+h1 {
+  font-size: 2rem;
+  margin: 0 0 4px;
+  letter-spacing: 0.04em;
+}
+
+.subtitle {
+  color: var(--ink-soft);
+  margin: 0 0 32px;
+}
+
+.scenario-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+.scenario-card {
+  background: var(--card);
+  border: 1px solid var(--parchment-dark);
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 2px 6px rgba(43, 33, 24, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.scenario-card h2 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.badge {
+  display: inline-block;
+  font-size: 0.75rem;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #fff;
+  margin-left: 8px;
+  vertical-align: middle;
+}
+
+.meta {
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}
+
+.chapters {
+  margin: 8px 0 0;
+  padding-left: 18px;
+  font-size: 0.9rem;
+}
+
+.stats {
+  margin-top: 32px;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}
+
+.error {
+  background: #fde8e4;
+  border: 1px solid var(--accent);
+  padding: 16px;
+  border-radius: 8px;
+  white-space: pre-wrap;
+  font-family: ui-monospace, monospace;
+}

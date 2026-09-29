@@ -1,0 +1,181 @@
+/**
+ * 內容資料 schema（Zod）。
+ * 所有 content/ 下的 JSON 檔都必須通過這裡的驗證；
+ * 企畫書對應章節標註於各 schema 註解。
+ */
+import { z } from 'zod';
+
+/** 六大學習領域（企畫書 2.1） */
+export const LearningDomain = z.enum(['A', 'B', 'C', 'D', 'E', 'F']);
+export type LearningDomain = z.infer<typeof LearningDomain>;
+
+export const LEARNING_DOMAIN_LABELS: Record<LearningDomain, string> = {
+  A: '位置與座標',
+  B: '陸與海的形狀',
+  C: '地形與河流',
+  D: '氣候與環境',
+  E: '國家與城市',
+  F: '物產與文化',
+};
+
+/** 難度階梯 0～4（企畫書 2.4） */
+export const Tier = z.number().int().min(0).max(4);
+export type Tier = z.infer<typeof Tier>;
+
+const Id = z.string().regex(/^[a-z0-9-]+$/, 'id 只能包含小寫字母、數字與連字號');
+
+/** 經緯度：[lon, lat]，與 GeoJSON 一致 */
+export const LonLat = z.tuple([z.number().min(-180).max(180), z.number().min(-90).max(90)]);
+export type LonLat = z.infer<typeof LonLat>;
+
+/** 學習目標卡（企畫書 2.2） */
+export const LearningObjective = z.object({
+  domain: LearningDomain,
+  text: z.string().min(1),
+});
+
+/** 海域區（企畫書 4.3） */
+export const SeaRegion = z.object({
+  id: Id,
+  name: z.string(),
+  name_en: z.string(),
+  description: z.string().optional(),
+  /** 用來在地圖上標示區域中心與大致範圍 */
+  center: LonLat,
+  bbox: z.tuple([z.number(), z.number(), z.number(), z.number()]),
+});
+export type SeaRegion = z.infer<typeof SeaRegion>;
+
+/** 港口（企畫書 4.4） */
+export const Port = z.object({
+  id: Id,
+  name: z.string(),
+  name_en: z.string(),
+  historical_names: z.array(z.string()).default([]),
+  country: z.string(),
+  country_en: z.string(),
+  region: Id,
+  location: LonLat,
+  kind: z.enum(['hub', 'port', 'landmark']),
+  /** 特產（物產 codex id） */
+  goods: z.array(Id).default([]),
+  climate: z.string().optional(),
+  blurb: z.string().optional(),
+});
+export type Port = z.infer<typeof Port>;
+
+/** 圖鑑知識卡（企畫書 6.1） */
+export const CodexEntry = z.object({
+  id: Id,
+  category: z.enum([
+    'landmark',
+    'island',
+    'river',
+    'mountain',
+    'wildlife',
+    'culture',
+    'goods',
+    'phenomenon',
+    'legend',
+  ]),
+  name: z.string(),
+  name_en: z.string(),
+  location: LonLat.optional(),
+  /** 航行經過多少公里內自動發現（landmark 類常用） */
+  discover_radius_km: z.number().positive().optional(),
+  domains: z.array(LearningDomain).min(1),
+  body: z.string().min(20, '知識卡內容至少 20 字'),
+  source: z.string().min(1, '每張知識卡必須標註資料來源'),
+  /** 傳說類必附科學對照（企畫書 10.3） */
+  science_note: z.string().optional(),
+  reviewed: z.boolean().default(false),
+});
+export type CodexEntry = z.infer<typeof CodexEntry>;
+
+/** 任務步驟（企畫書 7.3） */
+export const QuestStep = z.discriminatedUnion('type', [
+  z.object({
+    type: z.literal('navigate'),
+    target: Id,
+    /** 提示等級 1～4，對應 Tier 的輔助程度 */
+    hint_level: z.number().int().min(1).max(4).default(1),
+    text: z.string().optional(),
+  }),
+  z.object({ type: z.literal('discover'), target: Id, text: z.string().optional() }),
+  z.object({
+    type: z.literal('quiz'),
+    question: z.string(),
+    choices: z.array(z.string()).min(2).max(4),
+    answer: z.number().int().min(0),
+    explanation: z.string().optional(),
+  }),
+  z.object({
+    type: z.literal('dialogue'),
+    speaker: z.string(),
+    lines: z.array(z.string()).min(1),
+  }),
+]);
+export type QuestStep = z.infer<typeof QuestStep>;
+
+export const Quest = z.object({
+  id: Id,
+  title: z.string(),
+  scenario: Id,
+  chapter: z.number().int().min(0),
+  tier: Tier,
+  kind: z.enum(['main', 'region', 'academy', 'daily', 'pack', 'hidden']),
+  giver_port: Id,
+  objectives: z.array(LearningObjective).min(1, '每個任務至少一個學習目標'),
+  prerequisites: z.array(Id).default([]),
+  steps: z.array(QuestStep).min(1),
+  reward: z
+    .object({
+      xp: z.number().int().nonnegative().default(0),
+      gold: z.number().int().nonnegative().default(0),
+      reputation: z.number().int().nonnegative().default(0),
+      unlock_ports: z.array(Id).default([]),
+    })
+    .default({ xp: 0, gold: 0, reputation: 0, unlock_ports: [] }),
+});
+export type Quest = z.infer<typeof Quest>;
+
+/** 劇本（企畫書 3.3） */
+export const Scenario = z.object({
+  id: Id,
+  name: z.string(),
+  name_en: z.string(),
+  tagline: z.string(),
+  description: z.string(),
+  culture: z.string(),
+  era: z.string(),
+  inspiration: z.string(),
+  home_port: Id,
+  home_region: Id,
+  /** 各海域區在此劇本中的 Tier */
+  region_tiers: z.record(Id, Tier),
+  starting_ship: z.string(),
+  recommended: z.boolean().default(false),
+  /** 涵蓋的學習領域 */
+  domains: z.array(LearningDomain).min(1),
+  estimated_hours: z.number().positive(),
+  chapters: z
+    .array(
+      z.object({
+        index: z.number().int().min(0),
+        title: z.string(),
+        tier: Tier,
+        summary: z.string(),
+      }),
+    )
+    .min(1),
+});
+export type Scenario = z.infer<typeof Scenario>;
+
+/** 整包內容，供載入後做交叉參照驗證 */
+export interface ContentBundle {
+  regions: SeaRegion[];
+  ports: Port[];
+  codex: CodexEntry[];
+  quests: Quest[];
+  scenarios: Scenario[];
+}
