@@ -65,7 +65,7 @@ export function HelmPanel() {
   const latText =
     latSpread < 0.15
       ? `${ns} ${Math.abs(lat).toFixed(1)}°`
-      : `${ns}約 ${Math.max(0, Math.abs(lat) - latSpread).toFixed(0)}°～${(Math.abs(lat) + latSpread).toFixed(0)}°`;
+      : `${ns}約 ${Math.max(0, Math.abs(lat) - latSpread).toFixed(1)}°～${(Math.abs(lat) + latSpread).toFixed(1)}°`;
   const starBlocked = starSightBlocked(game);
   const night = isNight(game.day);
   const kn = knots(st.motion.speed);

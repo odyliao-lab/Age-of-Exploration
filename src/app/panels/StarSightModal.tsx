@@ -66,14 +66,15 @@ export function StarSightModal() {
       }
       const py = HORIZON - trueZhi * PX_PER_ZHI + roll;
       // 北斗七星：斗口兩顆星（天樞、天璇）的連線延長指向北極星
+      // 天樞（dipper[0]）與天璇（dipper[1]）在同一條直線上指向北極星
       const dipper = [
-        [POLARIS_X + 70, py + 56],
-        [POLARIS_X + 92, py + 86],
-        [POLARIS_X + 124, py + 80],
-        [POLARIS_X + 118, py + 50],
-        [POLARIS_X + 142, py + 34],
-        [POLARIS_X + 166, py + 26],
-        [POLARIS_X + 190, py + 32],
+        [POLARIS_X + 42, py + 60],
+        [POLARIS_X + 56, py + 80],
+        [POLARIS_X + 90, py + 72],
+        [POLARIS_X + 78, py + 50],
+        [POLARIS_X + 100, py + 36],
+        [POLARIS_X + 124, py + 30],
+        [POLARIS_X + 146, py + 38],
       ];
       ctx.strokeStyle = 'rgba(160,190,230,0.35)';
       ctx.setLineDash([3, 4]);
@@ -106,7 +107,7 @@ export function StarSightModal() {
       ctx.shadowBlur = 0;
       ctx.font = '12px "Noto Sans TC", sans-serif';
       ctx.fillText('北辰星（北極星）', POLARIS_X + 8, py - 6);
-      ctx.fillText('北斗七星', POLARIS_X + 130, py + 104);
+      ctx.fillText('北斗七星', POLARIS_X + 96, py + 100);
       // 海
       ctx.fillStyle = '#0d1d33';
       ctx.fillRect(0, HORIZON + roll, W, H);
@@ -158,7 +159,9 @@ export function StarSightModal() {
               找不到北極星的話，把北斗七星斗口兩顆星連起來延長，就會指到它。
             </p>
             <label className="zhi-slider">
-              牽星板：<strong>{zhiText(zhi)}</strong>（約 {latitudeFromZhi(zhi).toFixed(1)}°）
+              <span>
+                牽星板：<strong>{zhiText(zhi)}</strong>（約 {latitudeFromZhi(zhi).toFixed(1)}°）
+              </span>
               <input
                 type="range"
                 min={1}
