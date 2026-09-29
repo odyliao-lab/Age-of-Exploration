@@ -194,6 +194,8 @@ interface GameStore {
   /** 書院的學者挑戰 */
   answerChallenge: (key: string, choice: number) => boolean;
   suggestRoute: (portId: string) => void;
+  /** 熟悉航線：從港口自動航行到去過的港口（企畫書 v2 4.1） */
+  fastTravel: (portId: string) => void;
 
   dismissModal: () => void;
   dismissToast: (id: number) => void;
@@ -787,6 +789,29 @@ export const useGame = create<GameStore>((set, get) => {
       return r.correct;
     },
 
+    fastTravel: (portId) => {
+      const { world, game } = get();
+      if (!world || !game || !game.dockedAt || game.dockedAt === portId) return;
+      if (!game.visitedPorts.includes(portId) || pendingInteraction(world, game)) return;
+      const port = world.ports.get(portId);
+      if (!port) return;
+      const path = findSeaPath(game.ship.position, port.location, harborsFor(world, game));
+      if (!path) {
+        toast({ text: '找不到可以抵達的海上航線。', kind: 'warn' });
+        return;
+      }
+      set({
+        game: startVoyage(game, path, portId),
+        planning: null,
+        selectedPortId: null,
+        building: null,
+        paused: false,
+        follow: true,
+      });
+      toast({ text: `沿著熟悉的航線前往${port.name}`, kind: 'info' });
+      play('depart');
+    },
+
     suggestRoute: (portId) => {
       const { world, game, planning } = get();
       if (!world || !game || !planning) return;
@@ -931,7 +956,9 @@ function playFor(e: GameEvent) {
     case 'warning':
       return play('warn');
     case 'encounter':
-      return play(e.encounter.kind === 'storm' ? 'storm' : 'warn');
+      if (e.encounter.kind === 'storm') return play('storm');
+      // 商船、使節船是友善的相遇
+      return play(e.encounter.id === 'merchant' || e.encounter.id === 'envoy' ? 'arrive' : 'warn');
     case 'shipwreck':
       return play('storm');
     default:

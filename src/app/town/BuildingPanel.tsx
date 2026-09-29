@@ -485,8 +485,36 @@ function Dock() {
       </div>
       <p className="meta">淡水每天份 1 金幣、糧食每天份 2 金幣；錢不夠時會先補淡水。</p>
       <button type="button" className="primary wide" onClick={depart}>
-        ⛵ 出港
+        ⛵ 出港，親手掌舵
       </button>
+      <FastTravel />
+    </>
+  );
+}
+
+/** 熟悉航線：去過的港口可以讓船隊自動航行過去 */
+function FastTravel() {
+  const { world, game, port } = usePort();
+  const fastTravel = useGame((s) => s.fastTravel);
+  const ports = game.visitedPorts
+    .filter((id) => id !== port.id)
+    .map((id) => world.ports.get(id)!)
+    .filter(Boolean)
+    .sort((a, b) => distanceKm(a.location, port.location) - distanceKm(b.location, port.location));
+  if (!ports.length) return null;
+  return (
+    <>
+      <h3>熟悉的航線</h3>
+      <p className="meta">
+        去過的港口可以交給舵手自動航行，路上仍可能遇到風暴或事件。第一次去的地方要自己開。
+      </p>
+      <div className="row">
+        {ports.map((p) => (
+          <button type="button" key={p.id} onClick={() => fastTravel(p.id)}>
+            {p.name}（約 {Math.round(distanceKm(p.location, port.location) / 10) * 10} 公里）
+          </button>
+        ))}
+      </div>
     </>
   );
 }
