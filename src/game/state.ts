@@ -54,6 +54,7 @@ import {
   flotsamEffect,
   resolveAnswer,
   resolveChoice,
+  type EventContext,
   type EventEffect,
   type EventId,
   type LocateResult,
@@ -94,6 +95,30 @@ import {
 import type { Rig } from './progression';
 import { isLand } from '@/geo/landmask';
 import type { World } from './world';
+import {
+  HAIL_KM,
+  MAX_FLEETS,
+  MERCHANT_CHANCE_PER_DAY,
+  insideStorm,
+  pirateChancePerDay,
+  spawnFleet,
+  spawnStorm,
+  stepFleet,
+  stepStorm,
+  stormHitChancePerDay,
+  stormSpawnChance,
+  type SeaFleet,
+  type StormCell,
+} from './encounters';
+import {
+  canSightPolaris,
+  isNight,
+  judgeSighting,
+  nightIndex,
+  positionError,
+  type NavFix,
+  type SightingResult,
+} from './navigation';
 import {
   GOODS_PRICE,
   buyGoods,
@@ -197,6 +222,14 @@ export interface GameState {
   cargo: Cargo;
   /** 各港各貨因買賣造成的價格波動 */
   market: Market;
+  /** 上次定位（航位推算的誤差從這裡累積） */
+  nav: NavFix;
+  /** 上次觀星是第幾個夜晚（每晚一次） */
+  starNight: number;
+  /** 海上看得見的船隊與風暴雲團 */
+  fleets: SeaFleet[];
+  storms: StormCell[];
+  nextEntityId: number;
 }
 
 export interface HelmState extends Helm {
@@ -299,6 +332,11 @@ export function newGame(world: World, scenarioId: string, seed = newSeed()): Ste
     rumors: [],
     cargo: {},
     market: {},
+    nav: { day: 0, errorKm: 2 },
+    starNight: -1,
+    fleets: [],
+    storms: [],
+    nextEntityId: 1,
   };
   return { state, events: [], fogChanged };
 }
@@ -506,9 +544,20 @@ export function tick(world: World, state: GameState, days: number): StepResult {
       for (const id of found) events.push({ type: 'discovered', codexId: id });
     }
 
-    // 風暴：依每天的機率換算這一小步的機率
+    // 親手駕船：看得見的船隊、風暴雲團與定位（取代隨機的海盜與風暴）
+    if (helm) {
+      const life = seaLife(world, { ...s, helm, discovered }, stepDays, usedDays);
+      s = { ...life.state, helm: s.helm, discovered: s.discovered };
+      events.push(...life.events);
+      if (life.encounter) {
+        encounter = life.encounter;
+        break;
+      }
+    }
+
+    // 風暴：依每天的機率換算這一小步的機率（自動航行）
     const storm = stormRiskAt(to, gameDate(s, usedDays).month);
-    const chance = 1 - Math.pow(1 - storm.chancePerDay, stepDays);
+    const chance = helm ? 0 : 1 - Math.pow(1 - storm.chancePerDay, stepDays);
     if (chance > 0) {
       const [r, seed] = nextRandom(s.seed);
       s = { ...s, seed };
@@ -525,7 +574,7 @@ export function tick(world: World, state: GameState, days: number): StepResult {
 
     // 隨機事件（有冷卻時間，避免太頻繁打斷航行）
     if (state.day + usedDays >= s.eventCooldownUntil) {
-      const rolled = rollEvent(world, s, to, heading, stepDays, usedDays);
+      const rolled = rollEvent(world, s, to, heading, stepDays, usedDays, !!helm);
       s = rolled.state;
       if (rolled.event) {
         encounter = rolled.event;
@@ -561,6 +610,251 @@ export function tick(world: World, state: GameState, days: number): StepResult {
   };
 }
 
+// ---------------------------------------------------------------- 海上的船隊、風暴與定位
+
+/** 離認得的港口這麼近時，看得到岸上的地標，可以重新定位 */
+const COAST_FIX_KM = 45;
+
+/** 目前的位置誤差（公里）：天文學與觀星相關技能會讓誤差累積得慢 */
+export function positionErrorKm(world: World, state: GameState): number {
+  return positionError(state.nav, state.day, Math.max(0.4, mods(world, state).lostChance));
+}
+
+/**
+ * 親手駕船的每一小步：看岸定位、船隊與風暴的出現與移動。
+ * 回傳需要玩家處理的遭遇（被海盜追上、進入風暴）。
+ */
+function seaLife(
+  world: World,
+  state: GameState,
+  stepDays: number,
+  usedDays: number,
+): { state: GameState; events: GameEvent[]; encounter: Encounter | null } {
+  const events: GameEvent[] = [];
+  const day = state.day + usedDays;
+  const pos = state.ship.position;
+  const month = gameDate(state, usedDays).month;
+  let seed = state.seed;
+  const rand = () => {
+    const [v, n] = nextRandom(seed);
+    seed = n;
+    return v;
+  };
+  const isLand = (p: LonLat) => landAt(world, p);
+  const perStep = (perDay: number) => 1 - Math.exp(-perDay * stepDays);
+  let { nav, fleets, storms, nextEntityId, stats } = state;
+
+  // 看岸定位：看得到去過的港口，就知道自己在哪裡
+  if (positionError(nav, day) > 5) {
+    const near = state.visitedPorts.some(
+      (id) => distanceKm(world.ports.get(id)!.location, pos) <= COAST_FIX_KM,
+    );
+    if (near) nav = { day, errorKm: 3 };
+  }
+
+  // 新船隊出現
+  const regionId = regionAt(world, pos);
+  if (fleets.length < MAX_FLEETS) {
+    const kind =
+      rand() < perStep(pirateChancePerDay(pos, !!regionId))
+        ? 'pirate'
+        : rand() < perStep(regionId ? MERCHANT_CHANCE_PER_DAY : 0)
+          ? 'merchant'
+          : null;
+    if (kind) {
+      const f = spawnFleet(kind, nextEntityId, pos, day, rand, isLand);
+      if (f) {
+        nextEntityId++;
+        fleets = [...fleets, f];
+        if (kind === 'pirate') {
+          events.push({
+            type: 'warning',
+            text: `瞭望員：${compass16(bearingDeg(pos, f.position))}方遠處有一艘陌生的快船！`,
+          });
+        }
+      }
+    }
+  }
+
+  // 船隊移動
+  let encounter: Encounter | null = null;
+  const moved: SeaFleet[] = [];
+  for (const f of fleets) {
+    const w = gustyWind(windAt(f.position, month), f.position, day);
+    const r = stepFleet(f, pos, w, stepDays, day, rand, isLand);
+    if (r.event?.type === 'pirateChase') {
+      events.push({ type: 'warning', text: '海盜船朝我們追來了！轉到順風的方向，拉開距離！' });
+    } else if (r.event?.type === 'pirateEscaped') {
+      events.push({ type: 'warning', text: '甩掉海盜了！懂得利用風向，就是最好的武器。' });
+      stats = { ...stats, piratesOutwitted: stats.piratesOutwitted + 1 };
+    } else if (r.event?.type === 'pirateContact' && !encounter) {
+      // 被追上：只能交涉或用知識化解（已經逃過一次了）
+      const ctx = eventContext(world, state, pos, state.ship.heading, usedDays);
+      const ev = createEvent('pirates', ctx, rand);
+      encounter = {
+        ...ev,
+        text: '海盜快船追上來了，鉤索搭上船舷，船上的人高聲喊話，要你們交出貨物。',
+        choices: ev.choices?.filter((c) => c.id !== 'flee'),
+      };
+    }
+    if (r.fleet) moved.push(r.fleet);
+  }
+  fleets = moved;
+
+  // 風暴雲團
+  if (storms.length === 0) {
+    const risk = stormRiskAt(pos, month);
+    if (rand() < perStep(stormSpawnChance(risk))) {
+      const w = windAt(pos, month);
+      storms = [spawnStorm(nextEntityId++, pos, risk, w, day, rand)];
+    }
+  }
+  storms = storms.map((c) => stepStorm(c, stepDays, day)).filter((c): c is StormCell => !!c);
+  const inStorm = insideStorm(storms, pos);
+  if (inStorm && !encounter && rand() < perStep(stormHitChancePerDay(inStorm, pos))) {
+    encounter = {
+      kind: 'storm',
+      risk: { kind: inStorm.kind, name: inStorm.name, chancePerDay: 1, lesson: inStorm.lesson },
+      position: pos,
+      month,
+    };
+    // 撐過之後雲團就過去了
+    storms = storms.filter((c) => c.id !== inStorm.id);
+  }
+
+  return {
+    state: { ...state, seed, nav, fleets, storms, nextEntityId, stats },
+    events,
+    encounter,
+  };
+}
+
+/** 附近可以打招呼的商船 */
+export function merchantInReach(state: GameState): SeaFleet | null {
+  if (!state.helm) return null;
+  return (
+    state.fleets.find(
+      (f) =>
+        f.kind === 'merchant' &&
+        !f.greeted &&
+        distanceKm(f.position, state.ship.position) <= HAIL_KM,
+    ) ?? null
+  );
+}
+
+export const MERCHANT_SUPPLY_COST = 20;
+
+export interface GreetResult {
+  state: GameState;
+  title: string;
+  text: string;
+  lesson?: string;
+}
+
+/**
+ * 和商船打招呼：
+ * - news：商人說出附近一個還沒去過的港口在哪裡（海圖上會出現），並透露那裡的特產；
+ * - supplies：用較高的價錢買一些淡水和糧食。
+ */
+export function greetMerchant(
+  world: World,
+  state: GameState,
+  fleetId: number,
+  choice: 'news' | 'supplies',
+): GreetResult | null {
+  const f = state.fleets.find((x) => x.id === fleetId);
+  if (!f || f.greeted || merchantInReach(state)?.id !== fleetId) return null;
+  const fleets = state.fleets.map((x) => (x.id === fleetId ? { ...x, greeted: true } : x));
+  if (choice === 'supplies') {
+    if (state.gold < MERCHANT_SUPPLY_COST) return null;
+    const cap = shipType(state.shipTypeId).supplyDays;
+    const add = (v: number) => Math.min(cap, v + 5);
+    return {
+      state: {
+        ...state,
+        fleets,
+        gold: state.gold - MERCHANT_SUPPLY_COST,
+        condition: {
+          ...state.condition,
+          supplies: {
+            water: add(state.condition.supplies.water),
+            food: add(state.condition.supplies.food),
+          },
+        },
+      },
+      title: '向商船買補給',
+      text: `商人賣給你 5 天份的淡水和糧食，收了 ${MERCHANT_SUPPLY_COST} 金幣。「海上的東西總是比較貴啦！」`,
+    };
+  }
+  const pos = state.ship.position;
+  const unknown = world.content.ports
+    .filter((p) => !state.unlockedPorts.includes(p.id) && !state.visitedPorts.includes(p.id))
+    .sort((a, b) => distanceKm(a.location, pos) - distanceKm(b.location, pos));
+  const target = unknown[0];
+  if (!target) {
+    return {
+      state: { ...state, fleets },
+      title: '和商船交換消息',
+      text: '商人笑著說：「這一帶的港口你都去過了，看來你比我還熟呢！」',
+    };
+  }
+  const km = Math.round(distanceKm(pos, target.location) / 10) * 10;
+  const dir = compass16(bearingDeg(pos, target.location));
+  const goods = target.goods
+    .map((g) => world.codex.get(g)?.name)
+    .filter(Boolean)
+    .join('、');
+  return {
+    state: {
+      ...state,
+      fleets,
+      unlockedPorts: [...state.unlockedPorts, target.id],
+    },
+    title: '和商船交換消息',
+    text: `商人說：「往${dir}方大約 ${km} 公里，有個港口叫${target.name}${goods ? `，那裡產${goods}` : ''}。」${target.name}已經標在海圖上了。`,
+    lesson:
+      '在沒有地圖和網路的年代，航海者靠彼此交換消息認識世界。港口、物產與航路的知識，都是一點一點累積起來的。',
+  };
+}
+
+export interface StarSighting {
+  state: GameState;
+  result: SightingResult;
+  events: GameEvent[];
+}
+
+/** 為什麼現在不能觀星（可以時回傳 null） */
+export function starSightBlocked(state: GameState): string | null {
+  if (!state.helm) return '要在海上才能觀星定位';
+  if (!isNight(state.day)) return '白天看不到星星，等天黑再觀星';
+  if (!canSightPolaris(state.ship.position[1])) return '北極星太低，貼在海平面上量不準';
+  if (state.starNight === nightIndex(state.day)) return '今晚已經觀星定位過了';
+  return null;
+}
+
+/** 牽星術：玩家量出北極星有幾指高，換算成緯度並重新定位 */
+export function sightStars(
+  world: World,
+  state: GameState,
+  measuredZhi: number,
+): StarSighting | null {
+  if (starSightBlocked(state)) return null;
+  const result = judgeSighting(state.ship.position[1], measuredZhi);
+  const events: GameEvent[] = [];
+  let next: GameState = { ...state, starNight: nightIndex(state.day) };
+  if (result.quality !== 'miss') {
+    const now = positionErrorKm(world, state);
+    next = { ...next, nav: { day: state.day, errorKm: Math.min(now, result.errorKm) } };
+    const xp = gainXp(next, result.quality === 'good' ? 20 : 10);
+    events.push(...xp.events);
+    next = { ...next, captain: xp.captain, skillPoints: xp.skillPoints };
+  }
+  if (result.quality === 'good') {
+    next = { ...next, stats: { ...next.stats, starsCorrect: next.stats.starsCorrect + 1 } };
+  }
+  return { state: next, result, events };
+}
+
 // ---------------------------------------------------------------- 親手駕船
 
 /** 從港口出海：找到港外最近的海面，升半帆，船頭朝向外海 */
@@ -575,6 +869,9 @@ export function departPort(world: World, state: GameState): GameState {
     dockedAt: null,
     ship: { position: start.point, heading },
     helm: { course: heading, sail: 1, anchored: false, blocked: false },
+    nav: { day: state.day, errorKm: 2 },
+    fleets: [],
+    storms: [],
   };
 }
 
@@ -754,11 +1051,24 @@ export function rumorInReach(world: World, state: GameState): string | null {
   return null;
 }
 
+/** 為什麼現在不能調查：位置誤差太大時，就算真的到了也無法確認 */
+export function investigateBlocked(world: World, state: GameState, id: string): string | null {
+  const c = world.codex.get(id);
+  if (!c?.rumor) return '沒有這個傳聞';
+  const err = positionErrorKm(world, state);
+  if (err > c.rumor.investigate_km * 1.5) {
+    return `位置誤差約 ±${Math.round(err)} 公里，無法確認是不是傳聞中的地方。先在夜裡觀星，或靠近認得的港口定位。`;
+  }
+  return null;
+}
+
 /** 調查發現傳聞中的地點：登錄圖鑑、獲得經驗與名聲 */
 export const INVESTIGATE_REWARD = { xp: 60, reputation: 5 };
 
 export function investigate(world: World, state: GameState, id: string): StepResult {
-  if (rumorInReach(world, state) !== id) return { state, events: [], fogChanged: [] };
+  if (rumorInReach(world, state) !== id || investigateBlocked(world, state, id)) {
+    return { state, events: [], fogChanged: [] };
+  }
   const events: GameEvent[] = [{ type: 'discovered', codexId: id }];
   const xp = gainXp(state, INVESTIGATE_REWARD.xp);
   events.push(...xp.events);
@@ -868,28 +1178,17 @@ function rollEvent(
   heading: number,
   stepDays: number,
   usedDays: number,
+  handsOn = false,
 ): { state: GameState; event: VoyageEvent | null } {
-  const month = gameDate(state, usedDays).month;
-  const env = environmentAt(state, position, heading, usedDays);
-  const lastPort = world.ports.get(state.lastPortId);
-  const regionId = regionAt(world, position);
-  const ctx = {
-    position,
-    heading,
-    month,
-    wind: env.wind,
-    daysAtSea: state.condition.daysAtSea,
-    lastPort: lastPort
-      ? { name: lastPort.name, location: lastPort.location }
-      : { name: '出發港', location: position },
-    regionName: regionId ? (world.regions.get(regionId)?.name ?? null) : null,
-    otherRegionNames: world.content.regions.filter((r) => r.id !== regionId).map((r) => r.name),
-    lostChance: mods(world, state).lostChance,
-    scurvyImmune: mods(world, state).scurvyImmune,
-  };
+  const ctx = eventContext(world, state, position, heading, usedDays);
   // 迷航題需要離開港口一段距離才有意義
   const farEnough = distanceKm(ctx.lastPort.location, position) > 150;
   const chances = eventChances(ctx);
+  // 親手駕船時海盜改成看得見的船；觀星改由玩家自己用牽星板
+  if (handsOn) {
+    delete chances.pirates;
+    delete chances.stargazing;
+  }
   let seed = state.seed;
   const rand = () => {
     const [v, n] = nextRandom(seed);
@@ -907,6 +1206,33 @@ function rollEvent(
     }
   }
   return { state: { ...state, seed }, event };
+}
+
+function eventContext(
+  world: World,
+  state: GameState,
+  position: LonLat,
+  heading: number,
+  usedDays: number,
+): EventContext {
+  const month = gameDate(state, usedDays).month;
+  const env = environmentAt(state, position, heading, usedDays);
+  const lastPort = world.ports.get(state.lastPortId);
+  const regionId = regionAt(world, position);
+  return {
+    position,
+    heading,
+    month,
+    wind: env.wind,
+    daysAtSea: state.condition.daysAtSea,
+    lastPort: lastPort
+      ? { name: lastPort.name, location: lastPort.location }
+      : { name: '出發港', location: position },
+    regionName: regionId ? (world.regions.get(regionId)?.name ?? null) : null,
+    otherRegionNames: world.content.regions.filter((r) => r.id !== regionId).map((r) => r.name),
+    lostChance: mods(world, state).lostChance,
+    scurvyImmune: mods(world, state).scurvyImmune,
+  };
 }
 
 /** 處理隨機事件：選擇行動（choiceId）或回答問題（answer） */
@@ -1096,6 +1422,9 @@ function arrive(world: World, state: GameState, portId: string): StepResult {
       gold: state.gold + gift,
       voyage: null,
       helm: null,
+      nav: { day: state.day, errorKm: 2 },
+      fleets: [],
+      storms: [],
       dockedAt: portId,
       lastPortId: portId,
       condition: rest(state.condition),
