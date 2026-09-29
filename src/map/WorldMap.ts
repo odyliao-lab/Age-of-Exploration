@@ -104,6 +104,8 @@ export class WorldMap {
   private fogDisplayCtx: CanvasRenderingContext2D;
   private fogFlushPending = false;
   private destroyed = false;
+  /** 容器大小改變（例如手機版港口面板開關）時重新調整畫布 */
+  private resizeObserver: ResizeObserver | null = null;
   private fogImage: ImageData;
   private fogTexture: Texture;
   private markers: MarkerView[] = [];
@@ -181,6 +183,12 @@ export class WorldMap {
     stage.on('pointerleave', () => this.opts.onPointerLonLat(null));
     this.app.canvas.addEventListener('wheel', this.onWheel, { passive: false });
     this.app.renderer.on('resize', () => this.applyView(this.view));
+    if (typeof ResizeObserver !== 'undefined') {
+      this.resizeObserver = new ResizeObserver(() => {
+        if (!this.destroyed) this.app.resize();
+      });
+      this.resizeObserver.observe(this.host);
+    }
     this.app.canvas.style.touchAction = 'none';
 
     this.applyView(centerOn({ x: WORLD_WIDTH / 2, y: WORLD_HEIGHT / 2 }, 0, this.size));
@@ -464,6 +472,7 @@ export class WorldMap {
 
   destroy() {
     this.destroyed = true;
+    this.resizeObserver?.disconnect();
     this.app.canvas.removeEventListener('wheel', this.onWheel);
     this.app.destroy({ removeView: true }, { children: true, texture: true });
     this.host.replaceChildren();

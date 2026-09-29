@@ -65,7 +65,15 @@ export function QuizModal({
   step: Extract<QuestStep, { type: 'quiz' }>;
 }) {
   const answer = useGame((s) => s.answer);
+  const canEliminate = useGame((s) => s.game!.skills.includes('deduction'));
   const [wrong, setWrong] = useState<number[]>([]);
+  const [eliminated, setEliminated] = useState<number | null>(null);
+  const eliminate = () => {
+    const candidates = step.choices
+      .map((_, i) => i)
+      .filter((i) => i !== step.answer && !wrong.includes(i));
+    if (candidates.length) setEliminated(candidates[0]);
+  };
   return (
     <ModalFrame title="航海學院的提問" label="問答">
       <p className="question">{step.question}</p>
@@ -74,8 +82,8 @@ export function QuizModal({
           <button
             type="button"
             key={i}
-            className={wrong.includes(i) ? 'choice wrong' : 'choice'}
-            disabled={wrong.includes(i)}
+            className={wrong.includes(i) || eliminated === i ? 'choice wrong' : 'choice'}
+            disabled={wrong.includes(i) || eliminated === i}
             onClick={() => {
               if (!answer(questId, i)) setWrong([...wrong, i]);
             }}
@@ -84,6 +92,13 @@ export function QuizModal({
           </button>
         ))}
       </div>
+      {canEliminate && eliminated === null && (
+        <div className="row">
+          <button type="button" onClick={eliminate}>
+            推理：排除一個錯誤選項
+          </button>
+        </div>
+      )}
       {wrong.length > 0 && (
         <p className="warn" role="alert">
           不對喔，再想想看。

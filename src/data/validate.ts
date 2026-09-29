@@ -2,6 +2,7 @@
  * 交叉參照驗證：確認各資料檔引用的 id 都存在，
  * 以及企畫書規定的內容規則（傳說必附科學對照、任務至少一個學習目標等）。
  */
+import { SHIPS } from '../game/progression';
 import type { ContentBundle } from './schema';
 
 export interface ContentIssue {
@@ -94,12 +95,25 @@ export function crossValidate(bundle: ContentBundle): ContentIssue[] {
     });
   }
 
+  dup(
+    'crew',
+    bundle.crew.map((c) => c.id),
+  );
+  for (const c of bundle.crew) {
+    if (!portIds.has(c.home_port))
+      issues.push({ file: `crew/${c.id}`, message: `未知的招募港口：${c.home_port}` });
+  }
+
   for (const s of bundle.scenarios) {
     const f = `scenarios/${s.id}`;
     if (!portIds.has(s.home_port))
       issues.push({ file: f, message: `未知的家鄉港口：${s.home_port}` });
     if (!regionIds.has(s.home_region))
       issues.push({ file: f, message: `未知的家鄉海域區：${s.home_region}` });
+    for (const ship of [s.starting_ship, ...s.ships])
+      if (!SHIPS[ship]) issues.push({ file: f, message: `未知的船型：${ship}` });
+    if (s.ships.length && s.ships[0] !== s.starting_ship)
+      issues.push({ file: f, message: 'ships 的第一個必須是 starting_ship' });
     for (const sp of s.starting_ports)
       if (!portIds.has(sp)) issues.push({ file: f, message: `未知的起始港口：${sp}` });
     for (const rid of Object.keys(s.region_tiers))

@@ -27,6 +27,7 @@ const base = (): ContentBundle => ({
     },
   ],
   codex: [],
+  crew: [],
   quests: [],
   scenarios: [
     {
@@ -41,6 +42,7 @@ const base = (): ContentBundle => ({
       home_port: 'quanzhou',
       home_region: 'east-china-sea',
       starting_ports: [],
+      ships: [],
       region_tiers: { 'east-china-sea': 0 },
       starting_ship: 'junk',
       start_date: '1405-12-15',

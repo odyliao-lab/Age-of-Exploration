@@ -64,6 +64,10 @@ export interface EventContext {
   /** 目前所在海域名稱與其他海域名稱（海盜知識挑戰用） */
   regionName: string | null;
   otherRegionNames: string[];
+  /** 迷航機率倍率（天文學、牽星術） */
+  lostChance?: number;
+  /** 有船醫時不會得壞血病 */
+  scurvyImmune?: boolean;
 }
 
 /** 海盜出沒的海域：麻六甲海峽、南海南部、蘇祿海、亞丁灣、加勒比海 */
@@ -82,11 +86,12 @@ export function eventChances(ctx: EventContext): Partial<Record<EventId, number>
   const chances: Partial<Record<EventId, number>> = {
     flotsam: 0.03,
     stargazing: 0.05,
-    lost: 0.025,
   };
+  const lost = 0.025 * (ctx.lostChance ?? 1);
+  if (lost > 0) chances.lost = lost;
   if (ctx.wind.strength < 0.2) chances.doldrums = 0.35;
   if (PIRATE_ZONES.some((b) => inBox(ctx.position, b))) chances.pirates = 0.08;
-  if (ctx.daysAtSea > 20) chances.scurvy = 0.1;
+  if (ctx.daysAtSea > 20 && !ctx.scurvyImmune) chances.scurvy = 0.1;
   return chances;
 }
 
@@ -249,7 +254,7 @@ export function resolveChoice(
   ev: VoyageEvent,
   choiceId: string,
   roll: number,
-  attrs: { navigation: number; diplomacy: number },
+  mods: { pirateToll: number; fleeBonus: number },
   gold: number,
 ): EventEffect {
   switch (ev.id) {
@@ -268,8 +273,7 @@ export function resolveChoice(
     }
     case 'pirates': {
       if (choiceId === 'negotiate') {
-        const pct = Math.max(0.05, 0.25 - 0.03 * (attrs.diplomacy - 1));
-        const paid = Math.floor(gold * pct);
+        const paid = Math.floor(gold * 0.25 * mods.pirateToll);
         return {
           title: '談判成功',
           text: `你交出 ${paid} 金幣，海盜收下後讓出航道。`,
@@ -278,7 +282,7 @@ export function resolveChoice(
         };
       }
       if (choiceId === 'flee') {
-        const chance = Math.min(0.9, 0.5 + 0.08 * (attrs.navigation - 1));
+        const chance = Math.min(0.9, 0.5 + mods.fleeBonus);
         if (roll < chance) {
           return {
             title: '成功脫逃',
@@ -320,7 +324,12 @@ export function resolveChoice(
 }
 
 /** 結算問答型事件 */
-export function resolveAnswer(ev: VoyageEvent, correct: boolean, gold: number): EventEffect {
+export function resolveAnswer(
+  ev: VoyageEvent,
+  correct: boolean,
+  gold: number,
+  starXp = 1,
+): EventEffect {
   const q = ev.question!;
   switch (ev.id) {
     case 'stargazing':
@@ -328,7 +337,7 @@ export function resolveAnswer(ev: VoyageEvent, correct: boolean, gold: number): 
         ? {
             title: '觀星高手',
             text: '老舵手點點頭：「好眼力！」',
-            xp: 15,
+            xp: Math.round(15 * starXp),
             correct,
             lesson: q.explanation,
           }

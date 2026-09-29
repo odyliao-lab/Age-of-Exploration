@@ -7,6 +7,7 @@ import { join } from 'node:path';
 import type { ZodType } from 'zod';
 import {
   CodexEntry,
+  CrewMember,
   Port,
   Quest,
   Scenario,
@@ -47,6 +48,7 @@ const bundle: ContentBundle = {
   codex: loadDir('codex', CodexEntry),
   quests: loadDir('quests', Quest),
   scenarios: loadDir('scenarios', Scenario),
+  crew: loadDir('crew', CrewMember),
 };
 issues.push(...crossValidate(bundle));
 

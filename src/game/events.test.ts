@@ -101,8 +101,8 @@ describe('event outcomes', () => {
   const pirates = createEvent('pirates', ctx({ position: [101, 3] }), rng());
 
   it('lets diplomacy lower the pirate toll', () => {
-    const low = resolveChoice(pirates, 'negotiate', 0.5, { navigation: 1, diplomacy: 1 }, 1000);
-    const high = resolveChoice(pirates, 'negotiate', 0.5, { navigation: 1, diplomacy: 5 }, 1000);
+    const low = resolveChoice(pirates, 'negotiate', 0.5, { pirateToll: 1, fleeBonus: 0 }, 1000);
+    const high = resolveChoice(pirates, 'negotiate', 0.5, { pirateToll: 0.52, fleeBonus: 0 }, 1000);
     expect(low.gold).toBe(-250);
     expect(high.gold!).toBeGreaterThan(low.gold!);
   });
@@ -110,22 +110,22 @@ describe('event outcomes', () => {
   it('rewards knowledge and seamanship without any fighting', () => {
     expect(resolveAnswer(pirates, true, 500).gold).toBe(20);
     expect(resolveAnswer(pirates, false, 500).gold).toBe(-150);
-    expect(resolveChoice(pirates, 'flee', 0.1, { navigation: 1, diplomacy: 1 }, 500).title).toBe(
+    expect(resolveChoice(pirates, 'flee', 0.1, { pirateToll: 1, fleeBonus: 0 }, 500).title).toBe(
       '成功脫逃',
     );
-    expect(resolveChoice(pirates, 'flee', 0.99, { navigation: 1, diplomacy: 1 }, 500).gold).toBe(
+    expect(resolveChoice(pirates, 'flee', 0.99, { pirateToll: 1, fleeBonus: 0 }, 500).gold).toBe(
       -175,
     );
   });
 
   it('trades time against morale in the doldrums', () => {
     const ev = createEvent('doldrums', ctx(), rng());
-    expect(resolveChoice(ev, 'row', 0.5, { navigation: 1, diplomacy: 1 }, 0)).toMatchObject({
+    expect(resolveChoice(ev, 'row', 0.5, { pirateToll: 1, fleeBonus: 0 }, 0)).toMatchObject({
       days: 1,
       morale: -10,
     });
     expect(
-      resolveChoice(ev, 'wait', 0.5, { navigation: 1, diplomacy: 1 }, 0).days,
+      resolveChoice(ev, 'wait', 0.5, { pirateToll: 1, fleeBonus: 0 }, 0).days,
     ).toBeGreaterThanOrEqual(2);
   });
 });

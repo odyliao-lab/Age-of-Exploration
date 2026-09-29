@@ -149,6 +149,20 @@ export const Quest = z.object({
 });
 export type Quest = z.infer<typeof Quest>;
 
+/** 船員（企畫書 9.3）：虛構人物，各有職業與家鄉港口 */
+export const CrewMember = z.object({
+  id: Id,
+  name: z.string(),
+  profession: z.enum(['helmsman', 'lookout', 'cook', 'naturalist', 'interpreter', 'doctor']),
+  /** 在這個港口的酒館招募 */
+  home_port: Id,
+  hire_cost: z.number().int().nonnegative(),
+  bio: z.string().min(10),
+  /** 會說的語言或專長，顯示在招募卡上 */
+  specialty: z.string().optional(),
+});
+export type CrewMember = z.infer<typeof CrewMember>;
+
 /** 劇本（企畫書 3.3） */
 export const Scenario = z.object({
   id: Id,
@@ -161,6 +175,8 @@ export const Scenario = z.object({
   inspiration: z.string(),
   home_port: Id,
   home_region: Id,
+  /** 這個劇本可購買的船型（第一個是起始船） */
+  ships: z.array(z.string()).default([]),
   /** 開局即解鎖、顯示在海圖上的港口（家鄉港口一定包含在內） */
   starting_ports: z.array(Id).default([]),
   /** 各海域區在此劇本中的 Tier */
@@ -192,4 +208,5 @@ export interface ContentBundle {
   codex: CodexEntry[];
   quests: Quest[];
   scenarios: Scenario[];
+  crew: CrewMember[];
 }

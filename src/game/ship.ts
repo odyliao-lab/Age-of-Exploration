@@ -4,24 +4,18 @@
  */
 import type { LonLat } from '@/data/schema';
 import type { StormRisk } from './environment';
+import { shipDef, type ShipDef } from './progression';
 
-/** 船隻規格（第 4 週會擴充成可升級的船型） */
-export interface ShipType {
-  id: string;
-  name: string;
-  /** 淡水、糧食各可存放的天數 */
-  supplyDays: number;
-  /** 速度倍率 */
-  speed: number;
+export type ShipType = ShipDef;
+export const shipType = shipDef;
+
+/** 影響船況變化的加成（由 modifiers.ts 計算） */
+export interface ConditionMods {
+  supplyUse: number;
+  moraleDecay: number;
 }
 
-export const SHIP_TYPES: Record<string, ShipType> = {
-  junk: { id: 'junk', name: '戎克船', supplyDays: 40, speed: 1 },
-};
-
-export function shipType(id: string): ShipType {
-  return SHIP_TYPES[id] ?? SHIP_TYPES.junk;
-}
+export const NO_MODS: ConditionMods = { supplyUse: 1, moraleDecay: 1 };
 
 export interface Supplies {
   water: number;
@@ -54,15 +48,20 @@ export function fullCondition(type: ShipType): ShipCondition {
   };
 }
 
-/** 海上經過 dt 天：消耗補給、影響士氣。領導每點減少 5% 士氣流失。 */
-export function passTime(c: ShipCondition, dt: number, leadership: number): ShipCondition {
-  const water = Math.max(0, c.supplies.water - dt);
-  const food = Math.max(0, c.supplies.food - dt);
+/** 海上經過 dt 天：消耗補給、影響士氣（廚師減少消耗；領導與船醫減緩士氣流失） */
+export function passTime(
+  c: ShipCondition,
+  dt: number,
+  mods: ConditionMods = NO_MODS,
+): ShipCondition {
+  const use = dt * mods.supplyUse;
+  const water = Math.max(0, c.supplies.water - use);
+  const food = Math.max(0, c.supplies.food - use);
   const daysAtSea = c.daysAtSea + dt;
   let decay = 0;
   if (daysAtSea > 10) decay += 1.5 * dt;
   if (water === 0 || food === 0) decay += 6 * dt;
-  decay *= Math.max(0.5, 1 - 0.05 * (leadership - 1));
+  decay *= mods.moraleDecay;
   return {
     ...c,
     supplies: { water, food },
@@ -81,10 +80,13 @@ export function conditionSpeedFactor(c: ShipCondition): number {
 
 // ---------------------------------------------------------------- 港口服務
 
-export function resupplyCost(c: ShipCondition, type: ShipType): number {
-  return (
-    Math.ceil(type.supplyDays - c.supplies.water) * WATER_PRICE +
-    Math.ceil(type.supplyDays - c.supplies.food) * FOOD_PRICE
+/** 單價依交涉、技能與翻譯官折扣（price 為倍率），最低 1 金幣的 1/2 */
+const unit = (base: number, price: number) => Math.max(0.5, base * price);
+
+export function resupplyCost(c: ShipCondition, type: ShipType, price = 1): number {
+  return Math.ceil(
+    Math.ceil(type.supplyDays - c.supplies.water) * unit(WATER_PRICE, price) +
+      Math.ceil(type.supplyDays - c.supplies.food) * unit(FOOD_PRICE, price),
   );
 }
 
@@ -93,14 +95,17 @@ export function resupply(
   c: ShipCondition,
   type: ShipType,
   gold: number,
+  price = 1,
 ): { condition: ShipCondition; cost: number } {
+  const wp = unit(WATER_PRICE, price);
+  const fp = unit(FOOD_PRICE, price);
   let budget = gold;
-  const waterNeed = Math.ceil(type.supplyDays - c.supplies.water);
-  const waterBuy = Math.min(waterNeed, Math.floor(budget / WATER_PRICE));
-  budget -= waterBuy * WATER_PRICE;
-  const foodNeed = Math.ceil(type.supplyDays - c.supplies.food);
-  const foodBuy = Math.min(foodNeed, Math.floor(budget / FOOD_PRICE));
-  budget -= foodBuy * FOOD_PRICE;
+  const waterNeed = Math.max(0, Math.ceil(type.supplyDays - c.supplies.water));
+  const waterBuy = Math.min(waterNeed, Math.floor(budget / wp));
+  budget -= waterBuy * wp;
+  const foodNeed = Math.max(0, Math.ceil(type.supplyDays - c.supplies.food));
+  const foodBuy = Math.min(foodNeed, Math.floor(budget / fp));
+  budget -= foodBuy * fp;
   return {
     condition: {
       ...c,
@@ -109,19 +114,24 @@ export function resupply(
         food: Math.min(type.supplyDays, c.supplies.food + foodBuy),
       },
     },
-    cost: gold - budget,
+    cost: Math.ceil(gold - budget),
   };
 }
 
-export function repairCost(c: ShipCondition): number {
-  return Math.ceil(100 - c.hull) * REPAIR_PRICE;
+export function repairCost(c: ShipCondition, price = 1): number {
+  return Math.ceil(Math.ceil(100 - c.hull) * unit(REPAIR_PRICE, price));
 }
 
-export function repair(c: ShipCondition, gold: number): { condition: ShipCondition; cost: number } {
-  const points = Math.min(Math.ceil(100 - c.hull), Math.floor(gold / REPAIR_PRICE));
+export function repair(
+  c: ShipCondition,
+  gold: number,
+  price = 1,
+): { condition: ShipCondition; cost: number } {
+  const rp = unit(REPAIR_PRICE, price);
+  const points = Math.min(Math.ceil(100 - c.hull), Math.floor(gold / rp));
   return {
     condition: { ...c, hull: Math.min(100, c.hull + points) },
-    cost: points * REPAIR_PRICE,
+    cost: Math.ceil(points * rp),
   };
 }
 
@@ -155,13 +165,14 @@ export const STORM_CHOICES: Record<StormChoice, { label: string; hint: string }>
   wait: { label: '下錨等待風暴過去', hint: '多花約 2.5 天、消耗補給，但最安全' },
 };
 
-/** roll 是 0–1 的亂數，決定損傷落在範圍內的哪裡；領導每點減少 3% 損傷 */
+/** roll 是 0–1 的亂數，決定損傷落在範圍內的哪裡；damage 為領導與船體強度的損傷倍率 */
 export function resolveStormChoice(
   c: ShipCondition,
   choice: StormChoice,
   roll: number,
-  leadership: number,
+  damage: number,
   severity: number,
+  mods: ConditionMods = NO_MODS,
 ): StormOutcome {
   const range: Record<StormChoice, [number, number, number, number]> = {
     // [最低船損, 最高船損, 士氣損失, 耗費天數]
@@ -170,9 +181,8 @@ export function resolveStormChoice(
     wait: [0, 5, 3, 2.5],
   };
   const [lo, hi, morale, days] = range[choice];
-  const reduce = Math.max(0.6, 1 - 0.03 * (leadership - 1));
-  const hullLoss = Math.round((lo + (hi - lo) * roll) * severity * reduce);
-  const next = passTime({ ...c, hull: Math.max(0, c.hull - hullLoss) }, days, leadership);
+  const hullLoss = Math.round((lo + (hi - lo) * roll) * severity * damage);
+  const next = passTime({ ...c, hull: Math.max(0, c.hull - hullLoss) }, days, mods);
   return {
     condition: { ...next, morale: Math.max(0, next.morale - morale) },
     days,

@@ -1,6 +1,7 @@
 import { xpToNext } from '@/game/captain';
 import { SEASON_OF_MONTH } from '@/game/calendar';
 import { gameDate } from '@/game/state';
+import { ACHIEVEMENT_MAP } from '@/game/achievements';
 import { useGame } from '../store';
 
 export function StatusBar(props: {
@@ -27,18 +28,29 @@ export function StatusBar(props: {
           {d.year}/{d.month}/{d.day}（{SEASON_OF_MONTH[d.month]}）
         </span>
         <span title="金幣">💰 {game.gold}</span>
-        <span title={`經驗 ${c.xp}/${xpToNext(c.level)}`}>Lv {c.level}</span>
+        <span title={`經驗 ${c.xp}/${xpToNext(c.level)}`}>
+          Lv {c.level}
+          {game.title && (
+            <span className="title-tag">{ACHIEVEMENT_MAP.get(game.title)?.title}</span>
+          )}
+        </span>
       </div>
       <div className="map-actions">
         <button type="button" onClick={() => openPanel('codex')}>
           圖鑑
+        </button>
+        <button type="button" onClick={() => openPanel('fleet')}>
+          船隊
         </button>
         <button
           type="button"
           onClick={() => openPanel('captain')}
           className={c.points ? 'has-badge' : ''}
         >
-          船長{c.points ? <span className="badge-dot">{c.points}</span> : null}
+          船長
+          {c.points + game.skillPoints ? (
+            <span className="badge-dot">{c.points + game.skillPoints}</span>
+          ) : null}
         </button>
         <button type="button" className="zoom" aria-label="縮小" onClick={props.onZoomOut}>
           −

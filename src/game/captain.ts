@@ -16,9 +16,9 @@ export type Attributes = Record<AttributeKey, number>;
 export const ATTRIBUTE_INFO: Record<AttributeKey, { name: string; effect: string }> = {
   navigation: { name: '航海術', effect: '每點航速 +5%' },
   geography: { name: '地理學', effect: '每點瞭望與地標發現範圍 +10%' },
-  astronomy: { name: '天文學', effect: '夜間航行與緯度判斷（後續版本開放）' },
-  diplomacy: { name: '交涉', effect: '交易價格與港口名聲（後續版本開放）' },
-  leadership: { name: '領導', effect: '船員士氣與事件成功率（後續版本開放）' },
+  astronomy: { name: '天文學', effect: '每點迷航機率 -15%、觀星答對經驗 +20%' },
+  diplomacy: { name: '交涉', effect: '每點補給修船 -3%、海盜談判付出 -12%' },
+  leadership: { name: '領導', effect: '每點士氣流失 -5%、風暴損傷 -3%' },
 };
 
 export interface Captain {

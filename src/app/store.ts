@@ -13,6 +13,12 @@ import { spendPoint, type AttributeKey } from '@/game/captain';
 import { deleteSave, listSaves, loadSave, writeSave } from '@/game/save';
 import {
   acceptQuest,
+  buyShip,
+  checkAchievements,
+  dismissCrew,
+  hireCrew,
+  learnSkill,
+  setTitle,
   answerLocate,
   answerQuiz,
   pendingInteraction,
@@ -34,6 +40,8 @@ import {
 } from '@/game/state';
 import { checkLeg } from '@/game/voyage';
 import type { EventEffect } from '@/game/events';
+import { ACHIEVEMENT_MAP } from '@/game/achievements';
+import { SKILLS } from '@/game/progression';
 import type { World } from '@/game/world';
 
 /** 1 倍速時，現實 1.2 秒 = 遊戲 1 天 */
@@ -41,7 +49,7 @@ export const SECONDS_PER_DAY = 1.2;
 const AUTOSAVE_MS = 4000;
 
 type Screen = 'menu' | 'map';
-export type Panel = 'codex' | 'captain' | null;
+export type Panel = 'codex' | 'captain' | 'fleet' | null;
 
 export interface Toast {
   id: number;
@@ -120,6 +128,11 @@ interface GameStore {
   locate: (p: LonLat) => void;
   resupply: () => void;
   repair: () => void;
+  learn: (skillId: string) => void;
+  hire: (crewId: string) => void;
+  dismiss: (crewId: string) => void;
+  buy: (shipId: string) => void;
+  chooseTitle: (achievementId: string | null) => void;
 
   dismissModal: () => void;
   dismissToast: (id: number) => void;
@@ -142,7 +155,7 @@ let saveTimer: ReturnType<typeof setTimeout> | null = null;
 let lastSave = 0;
 
 export function planSummary(world: World, game: GameState, planning: Planning) {
-  const est = estimateVoyage(game, planning.waypoints);
+  const est = estimateVoyage(world, game, planning.waypoints);
   const supplyDays = Math.min(game.condition.supplies.water, game.condition.supplies.food);
   return {
     km: Math.round(est.km),
@@ -161,9 +174,16 @@ export function planSummary(world: World, game: GameState, planning: Planning) {
 
 export const useGame = create<GameStore>((set, get) => {
   /** 套用引擎結果：更新狀態、轉換事件、通知迷霧、排程存檔 */
-  function apply(result: StepResult) {
+  function apply(input: StepResult) {
     const { world } = get();
     if (!world) return;
+    // 每次狀態變化後檢查成就
+    const ach = checkAchievements(world, input.state);
+    const result: StepResult = {
+      state: ach.state,
+      events: [...input.events, ...ach.events],
+      fogChanged: input.fogChanged,
+    };
     emitFog(result.fogChanged);
     const toasts: Toast[] = [];
     const modals: Modal[] = [];
@@ -193,6 +213,12 @@ export const useGame = create<GameStore>((set, get) => {
       },
       soon ? 300 : 0,
     );
+  }
+
+  /** 直接更新狀態（港口服務、招募、學技能等），同樣檢查成就並存檔 */
+  function commit(state: GameState) {
+    apply({ state, events: [], fogChanged: [] });
+    scheduleSave(true);
   }
 
   function toast(t: Omit<Toast, 'id'>) {
@@ -418,24 +444,60 @@ export const useGame = create<GameStore>((set, get) => {
     resupply: () => {
       const g = get().game;
       if (!g) return;
-      set({ game: portResupply(g) });
+      commit(portResupply(get().world!, g));
       toast({ text: '補給完成：淡水與糧食已裝滿', kind: 'info' });
-      scheduleSave(true);
     },
 
     repair: () => {
       const g = get().game;
       if (!g) return;
-      set({ game: portRepair(g) });
+      commit(portRepair(get().world!, g));
       toast({ text: '船體修理完成', kind: 'info' });
-      scheduleSave(true);
+    },
+
+    learn: (id) => {
+      const g = get().game;
+      if (!g) return;
+      const next = learnSkill(g, id);
+      if (next === g) return;
+      commit(next);
+      toast({ text: `學會技能：${SKILLS.find((s) => s.id === id)?.name}`, kind: 'success' });
+    },
+
+    hire: (id) => {
+      const { world, game } = get();
+      if (!world || !game) return;
+      const next = hireCrew(world, game, id);
+      if (next === game) return;
+      commit(next);
+      toast({ text: `${world.crew.get(id)?.name} 加入船隊！`, kind: 'success' });
+    },
+
+    dismiss: (id) => {
+      const { world, game } = get();
+      if (!world || !game) return;
+      commit(dismissCrew(game, id));
+      toast({ text: `${world.crew.get(id)?.name} 回到家鄉港口`, kind: 'info' });
+    },
+
+    buy: (id) => {
+      const { world, game } = get();
+      if (!world || !game) return;
+      const next = buyShip(world, game, id);
+      if (next === game) return;
+      commit(next);
+      toast({ text: '新船下水！', kind: 'success' });
+    },
+
+    chooseTitle: (id) => {
+      const g = get().game;
+      if (g) commit(setTitle(g, id));
     },
 
     spend: (key) => {
       const g = get().game;
       if (!g) return;
-      set({ game: { ...g, captain: spendPoint(g.captain, key) } });
-      scheduleSave(true);
+      commit({ ...g, captain: spendPoint(g.captain, key) });
     },
 
     dismissModal: () =>
@@ -487,6 +549,17 @@ function handleEvent(
       push({ text: e.text, kind: 'warn' });
       break;
     case 'encounter':
+      break;
+    case 'achievement': {
+      const a = ACHIEVEMENT_MAP.get(e.id);
+      push({
+        text: `🏆 成就解鎖：${a?.name}${a?.title ? `（稱號：${a.title}）` : ''}`,
+        kind: 'success',
+      });
+      break;
+    }
+    case 'skillPoint':
+      push({ text: '獲得 1 技能點！到「船長」面板學習新技能', kind: 'success' });
       break;
     case 'eventResolved':
       modals.push({

@@ -2,7 +2,15 @@
  * 遊戲用的內容索引：把 ContentBundle 轉成以 id 查詢的表，
  * 並預先計算每個港口的港區半徑。
  */
-import type { CodexEntry, ContentBundle, Port, Quest, Scenario, SeaRegion } from '@/data/schema';
+import type {
+  CodexEntry,
+  ContentBundle,
+  CrewMember,
+  Port,
+  Quest,
+  Scenario,
+  SeaRegion,
+} from '@/data/schema';
 import { distanceKm } from '@/geo/geo';
 import { isLand, MASK_RES } from '@/geo/landmask';
 import type { Harbor } from './voyage';
@@ -14,6 +22,7 @@ export interface World {
   codex: Map<string, CodexEntry>;
   quests: Map<string, Quest>;
   scenarios: Map<string, Scenario>;
+  crew: Map<string, CrewMember>;
   /** 航經時可自動發現的地標 */
   landmarks: CodexEntry[];
   harbors: Map<string, Harbor>;
@@ -48,6 +57,7 @@ export function buildWorld(content: ContentBundle): World {
     codex: byId(content.codex),
     quests: byId(content.quests),
     scenarios: byId(content.scenarios),
+    crew: byId(content.crew),
     landmarks: content.codex.filter((c) => c.location && c.discover_radius_km),
     harbors: new Map(content.ports.map((p) => [p.id, harborFor(p)])),
   };

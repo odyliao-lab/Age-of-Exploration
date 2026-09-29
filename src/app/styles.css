@@ -229,10 +229,11 @@ button.primary:hover {
 
 .port-panel {
   position: absolute;
-  top: 12px;
+  /* 相對於整個畫面：工具列下方 */
+  top: 64px;
   right: 12px;
   width: min(320px, calc(100vw - 24px));
-  max-height: calc(100% - 24px);
+  max-height: calc(100% - 76px);
   overflow: auto;
   background: var(--card);
   border: 1px solid var(--parchment-dark);
@@ -292,14 +293,17 @@ button.primary:hover {
     min-width: 6em;
   }
 
+  /* 手機版：港口面板排在海圖下方（分割畫面），不疊在畫布上 */
   .port-panel {
+    position: relative;
     top: auto;
-    bottom: 12px;
-    z-index: 4;
-    left: 12px;
-    right: 12px;
+    right: auto;
     width: auto;
-    max-height: 45%;
+    flex: none;
+    max-height: 45vh;
+    border-radius: 12px 12px 0 0;
+    border-bottom: none;
+    z-index: 4;
   }
 
   .map-legend {
@@ -1016,4 +1020,156 @@ button.wide {
 
 .map-screen.locating .toasts {
   top: 170px;
+}
+
+/* ---- 第 4 週：成長、船員、船隻、成就 ---- */
+
+.tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid var(--parchment-dark);
+  margin: 8px 0 12px;
+}
+
+.tab {
+  border: none;
+  border-bottom: 3px solid transparent;
+  border-radius: 0;
+  background: none;
+  padding: 6px 12px;
+}
+
+.tab.active {
+  border-bottom-color: var(--accent);
+  font-weight: 700;
+}
+
+.badge-dot.inline {
+  position: static;
+  display: inline-block;
+  margin-left: 4px;
+}
+
+.skill-tree {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.skill-path h3 {
+  margin: 0 0 6px;
+}
+
+.skill {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border: 1px solid var(--parchment-dark);
+  border-radius: 8px;
+  padding: 8px;
+  margin-bottom: 8px;
+  background: #fff;
+}
+
+.skill.learned {
+  border-color: #2f7d4a;
+  background: #eef6ef;
+}
+
+.skill.locked {
+  opacity: 0.65;
+}
+
+.learned-tag {
+  color: #2f7d4a;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.achievement-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 8px;
+}
+
+.achievement {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  border: 1px solid var(--parchment-dark);
+  border-radius: 8px;
+  padding: 8px;
+  background: var(--parchment);
+  opacity: 0.75;
+}
+
+.achievement.done {
+  background: #fff8e6;
+  border-color: #d9a441;
+  opacity: 1;
+}
+
+.trophy {
+  font-size: 1.4rem;
+}
+
+.title-select select {
+  font: inherit;
+  margin-left: 6px;
+}
+
+.title-tag {
+  margin-left: 6px;
+  font-size: 0.75rem;
+  background: #d9a441;
+  color: #2b2118;
+  border-radius: 999px;
+  padding: 0 6px;
+}
+
+.ship-card h3,
+.crew-card h4 {
+  margin: 0 0 4px;
+}
+
+.ship-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  padding: 0;
+  list-style: none;
+  font-size: 0.9rem;
+}
+
+.crew-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 10px;
+}
+
+.crew-card {
+  border: 1px solid var(--parchment-dark);
+  border-radius: 8px;
+  padding: 10px;
+  background: #fff;
+  margin-bottom: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.9rem;
+}
+
+.crew-card p {
+  margin: 2px 0;
+  line-height: 1.55;
+}
+
+.crew-card button {
+  align-self: flex-start;
+}
+
+@media (max-width: 600px) {
+  .skill-tree {
+    grid-template-columns: 1fr;
+  }
 }

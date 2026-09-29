@@ -7,6 +7,9 @@
 import type { LonLat, Quest, QuestStep } from '@/data/schema';
 import { bearingDeg, compass16, distanceKm } from '@/geo/geo';
 import { addXp, newCaptain, type Captain } from './captain';
+import { ACHIEVEMENT_MAP, EMPTY_STATS, newlyUnlocked, type AchievementStats } from './achievements';
+import { modifiersFor, type Modifiers } from './modifiers';
+import { SKILLS, shipDef, skillPointsEarned, type Profession } from './progression';
 import { dateOf, type GameDate } from './calendar';
 import {
   currentAt,
@@ -52,7 +55,7 @@ import {
 import { createVoyage, isFinished, positionAt, type Harbor, type Voyage } from './voyage';
 import type { World } from './world';
 
-export const SAVE_VERSION = 3;
+export const SAVE_VERSION = 4;
 
 /** 航行中需要玩家處理的狀況：風暴或隨機事件 */
 export type Encounter = StormEncounter | VoyageEvent;
@@ -114,6 +117,17 @@ export interface GameState {
   seed: number;
   /** 下一次隨機事件最早可發生的遊戲天數 */
   eventCooldownUntil: number;
+  /** 已學會的技能 */
+  skills: string[];
+  /** 尚未使用的技能點 */
+  skillPoints: number;
+  /** 已招募的船員 id */
+  crew: string[];
+  /** 已解鎖的成就 id */
+  achievements: string[];
+  /** 目前顯示的稱號（成就 id） */
+  title: string | null;
+  stats: AchievementStats;
 }
 
 export interface QuestReward {
@@ -136,6 +150,8 @@ export type GameEvent =
   | { type: 'encounter'; encounter: Encounter }
   | { type: 'stormResolved'; choice: StormChoice; hullLoss: number; days: number }
   | { type: 'eventResolved'; effect: EventEffect }
+  | { type: 'achievement'; id: string }
+  | { type: 'skillPoint' }
   | {
       type: 'shipwreck';
       cause: StormRisk;
@@ -187,20 +203,33 @@ export function newGame(world: World, scenarioId: string, seed = newSeed()): Ste
     shipwrecks: 0,
     seed,
     eventCooldownUntil: 2,
+    skills: [],
+    skillPoints: 0,
+    crew: [],
+    achievements: [],
+    title: null,
+    stats: { ...EMPTY_STATS },
   };
   return { state, events: [], fogChanged };
 }
 
 // ---------------------------------------------------------------- 航行
 
-/** 不含風與洋流的基礎航速（船型、航海術、船況） */
-export function speedKmPerDay(state: GameState): number {
-  return (
-    BASE_SPEED_KM_PER_DAY *
-    shipType(state.shipTypeId).speed *
-    (1 + 0.05 * (state.captain.attrs.navigation - 1)) *
-    conditionSpeedFactor(state.condition)
-  );
+/** 屬性、技能、船員、船隻的加成總和 */
+export function mods(world: World, state: GameState): Modifiers {
+  return modifiersFor({
+    captain: state.captain,
+    skills: state.skills,
+    crewProfessions: state.crew
+      .map((id) => world.crew.get(id)?.profession)
+      .filter((p): p is Profession => !!p),
+    shipTypeId: state.shipTypeId,
+  });
+}
+
+/** 不含風與洋流的基礎航速（船型、航海術、技能、船員、船況） */
+export function speedKmPerDay(world: World, state: GameState): number {
+  return BASE_SPEED_KM_PER_DAY * mods(world, state).speed * conditionSpeedFactor(state.condition);
 }
 
 export function gameDate(state: GameState, extraDays = 0): GameDate {
@@ -232,9 +261,9 @@ export function environmentAt(
 }
 
 /** 依目前月份的風與洋流估算航程天數（規劃航線時顯示） */
-export function estimateVoyage(state: GameState, waypoints: LonLat[]) {
+export function estimateVoyage(world: World, state: GameState, waypoints: LonLat[]) {
   const v = createVoyage(waypoints, null);
-  const base = speedKmPerDay(state);
+  const base = speedKmPerDay(world, state);
   let days = 0;
   let tailwind = 0;
   let headwind = 0;
@@ -265,8 +294,8 @@ export function regionAt(world: World, [lon, lat]: LonLat): string | null {
   return r?.id ?? null;
 }
 
-export function sightKm(state: GameState): number {
-  return SIGHT_KM * (1 + 0.1 * (state.captain.attrs.geography - 1));
+export function sightKm(world: World, state: GameState): number {
+  return SIGHT_KM * mods(world, state).sight;
 }
 
 /** 規劃航線時可以使用的港區（所有海圖上顯示的港口） */
@@ -313,11 +342,14 @@ export function tick(world: World, state: GameState, days: number): StepResult {
   let discovered = state.discovered;
   let usedDays = 0;
   let encounter: Encounter | null = null;
+  const m = mods(world, state);
+  const sight = SIGHT_KM * m.sight;
 
   for (let i = 0; i < steps && !isFinished(voyage); i++) {
     const here = positionAt(voyage, voyage.traveledKm);
     const env = environmentAt(s, here.position, here.heading, usedDays);
-    const speed = speedKmPerDay(s) * env.factors.total;
+    const speed =
+      BASE_SPEED_KM_PER_DAY * m.speed * conditionSpeedFactor(s.condition) * env.factors.total;
     const remaining = voyage.totalKm - voyage.traveledKm;
     const km = Math.min(remaining, speed * dt);
     const stepDays = speed > 0 ? km / speed : dt;
@@ -326,12 +358,13 @@ export function tick(world: World, state: GameState, days: number): StepResult {
 
     const pos = positionAt(voyage, voyage.traveledKm);
     const before = s.condition;
-    const condition = passTime(before, stepDays, s.captain.attrs.leadership);
-    s = { ...s, ship: { position: pos.position, heading: pos.heading }, condition };
+    const condition = passTime(before, stepDays, m);
+    const stats = trackCrossings(s.stats, s.ship.position[1], pos.position[1]);
+    s = { ...s, ship: { position: pos.position, heading: pos.heading }, condition, stats };
     warnConditionChanges(before, condition, events);
 
-    fogChanged.push(...revealAround(state.fog, pos.position, sightKm(s)));
-    const found = landmarksInSight(world, discovered, pos.position, s);
+    fogChanged.push(...revealAround(state.fog, pos.position, sight));
+    const found = landmarksInSight(world, discovered, pos.position, m.discovery);
     if (found.length) {
       discovered = [...discovered, ...found];
       for (const id of found) events.push({ type: 'discovered', codexId: id });
@@ -370,6 +403,7 @@ export function tick(world: World, state: GameState, days: number): StepResult {
     next = { ...next, encounter };
     events.push({ type: 'encounter', encounter });
   } else if (isFinished(voyage)) {
+    next = { ...next, stats: { ...next.stats, voyages: next.stats.voyages + 1 } };
     const dest = voyage.destinationPortId;
     if (dest) {
       const arrived = arrive(world, next, dest);
@@ -388,6 +422,16 @@ export function tick(world: World, state: GameState, days: number): StepResult {
     events: [...events, ...progressed.events],
     fogChanged: [...fogChanged, ...progressed.fogChanged],
   };
+}
+
+/** 記錄是否航行穿越赤道或回歸線（成就用） */
+function trackCrossings(stats: AchievementStats, fromLat: number, toLat: number): AchievementStats {
+  const crossed = (line: number) => (fromLat - line) * (toLat - line) < 0;
+  const equator = stats.crossedEquator || crossed(0);
+  const tropic = stats.crossedTropic || crossed(23.44) || crossed(-23.44);
+  return equator === stats.crossedEquator && tropic === stats.crossedTropic
+    ? stats
+    : { ...stats, crossedEquator: equator, crossedTropic: tropic };
 }
 
 function warnConditionChanges(before: ShipCondition, after: ShipCondition, events: GameEvent[]) {
@@ -434,6 +478,8 @@ function rollEvent(
       : { name: '出發港', location: position },
     regionName: regionId ? (world.regions.get(regionId)?.name ?? null) : null,
     otherRegionNames: world.content.regions.filter((r) => r.id !== regionId).map((r) => r.name),
+    lostChance: mods(world, state).lostChance,
+    scurvyImmune: mods(world, state).scurvyImmune,
   };
   // 迷航題需要離開港口一段距離才有意義
   const farEnough = distanceKm(ctx.lastPort.location, position) > 150;
@@ -459,18 +505,25 @@ function rollEvent(
 
 /** 處理隨機事件：選擇行動（choiceId）或回答問題（answer） */
 export function resolveEvent(
-  _world: World,
+  world: World,
   state: GameState,
   response: { choiceId?: string; answer?: number },
 ): StepResult {
   const ev = state.encounter;
   if (!ev || ev.kind !== 'event') return { state, events: [], fogChanged: [] };
   const [roll, seed] = nextRandom(state.seed);
+  const m = mods(world, state);
   let effect: EventEffect;
   let quizLog = state.quizLog;
+  let stats = state.stats;
   if (response.answer !== undefined && ev.question) {
     const correct = response.answer === ev.question.answer;
-    effect = resolveAnswer(ev, correct, state.gold);
+    effect = resolveAnswer(ev, correct, state.gold, m.starXp);
+    if (correct && ev.id === 'stargazing')
+      stats = { ...stats, starsCorrect: stats.starsCorrect + 1 };
+    if (correct && ev.id === 'pirates') {
+      stats = { ...stats, piratesOutwitted: stats.piratesOutwitted + 1 };
+    }
     quizLog = [
       ...quizLog,
       {
@@ -485,12 +538,12 @@ export function resolveEvent(
   } else if (ev.id === 'flotsam') {
     effect = flotsamEffect(ev, roll);
   } else {
-    effect = resolveChoice(ev, response.choiceId ?? '', roll, state.captain.attrs, state.gold);
+    effect = resolveChoice(ev, response.choiceId ?? '', roll, m, state.gold);
   }
 
   const events: GameEvent[] = [{ type: 'eventResolved', effect }];
   let condition = state.condition;
-  if (effect.days) condition = passTime(condition, effect.days, state.captain.attrs.leadership);
+  if (effect.days) condition = passTime(condition, effect.days, m);
   condition = {
     ...condition,
     morale: Math.max(0, Math.min(100, condition.morale + (effect.morale ?? 0))),
@@ -499,21 +552,17 @@ export function resolveEvent(
       food: Math.max(0, condition.supplies.food + (effect.food ?? 0)),
     },
   };
-  let captain = state.captain;
-  if (effect.xp) {
-    const r = addXp(captain, effect.xp);
-    captain = r.captain;
-    for (let i = 1; i <= r.levelsGained; i++) {
-      events.push({ type: 'levelUp', level: state.captain.level + i });
-    }
-  }
+  const xp = effect.xp ? gainXp(state, effect.xp) : null;
+  if (xp) events.push(...xp.events);
   return {
     state: {
       ...state,
       seed,
       encounter: null,
       quizLog,
-      captain,
+      stats,
+      captain: xp?.captain ?? state.captain,
+      skillPoints: xp?.skillPoints ?? state.skillPoints,
       condition,
       gold: Math.max(0, state.gold + (effect.gold ?? 0)),
       day: state.day + (effect.days ?? 0),
@@ -529,13 +578,8 @@ export function resolveEncounter(world: World, state: GameState, choice: StormCh
   if (!enc || enc.kind !== 'storm') return { state, events: [], fogChanged: [] };
   const [roll, seed] = nextRandom(state.seed);
   const severity = enc.risk.kind === 'gale' ? 0.8 : 1;
-  const out = resolveStormChoice(
-    state.condition,
-    choice,
-    roll,
-    state.captain.attrs.leadership,
-    severity,
-  );
+  const m = mods(world, state);
+  const out = resolveStormChoice(state.condition, choice, roll, m.stormDamage, severity, m);
   let next: GameState = {
     ...state,
     seed,
@@ -547,6 +591,7 @@ export function resolveEncounter(world: World, state: GameState, choice: StormCh
     { type: 'stormResolved', choice, hullLoss: out.hullLoss, days: out.days },
   ];
   if (next.condition.hull <= 0) return shipwreck(world, next, enc.risk, enc.month);
+  next = { ...next, stats: { ...next.stats, stormsSurvived: next.stats.stormsSurvived + 1 } };
   if (next.voyage && isFinished(next.voyage)) {
     const r = tick(world, next, 0.001);
     next = r.state;
@@ -579,15 +624,20 @@ function shipwreck(world: World, state: GameState, cause: StormRisk, month: numb
 
 // ---------------------------------------------------------------- 港口服務
 
-export function portResupply(state: GameState): GameState {
+export function portResupply(world: World, state: GameState): GameState {
   if (!state.dockedAt) return state;
-  const { condition, cost } = resupply(state.condition, shipType(state.shipTypeId), state.gold);
+  const { condition, cost } = resupply(
+    state.condition,
+    shipType(state.shipTypeId),
+    state.gold,
+    mods(world, state).price,
+  );
   return { ...state, condition, gold: state.gold - cost };
 }
 
-export function portRepair(state: GameState): GameState {
+export function portRepair(world: World, state: GameState): GameState {
   if (!state.dockedAt) return state;
-  const { condition, cost } = repair(state.condition, state.gold);
+  const { condition, cost } = repair(state.condition, state.gold, mods(world, state).price);
   return { ...state, condition, gold: state.gold - cost };
 }
 
@@ -595,14 +645,13 @@ function landmarksInSight(
   world: World,
   discovered: string[],
   pos: LonLat,
-  state: GameState,
+  discovery: number,
 ): string[] {
-  const bonus = 1 + 0.1 * (state.captain.attrs.geography - 1);
   return world.landmarks
     .filter(
       (c) =>
         !discovered.includes(c.id) &&
-        distanceKm(pos, c.location!) <= (c.discover_radius_km ?? 0) * bonus,
+        distanceKm(pos, c.location!) <= (c.discover_radius_km ?? 0) * discovery,
     )
     .map((c) => c.id);
 }
@@ -614,9 +663,11 @@ function arrive(world: World, state: GameState, portId: string): StepResult {
   const newGoods = port.goods.filter((g) => !state.discovered.includes(g));
   for (const g of newGoods) events.push({ type: 'discovered', codexId: g });
   const fogChanged = revealAround(state.fog, port.location, PORT_REVEAL_KM);
+  const gift = firstVisit ? mods(world, state).firstVisitGold : 0;
   return {
     state: {
       ...state,
+      gold: state.gold + gift,
       voyage: null,
       dockedAt: portId,
       lastPortId: portId,
@@ -872,12 +923,11 @@ function completeQuest(world: World, state: GameState, quest: Quest): StepResult
   const quizzes = state.quizLog.filter((q) => q.questId === quest.id);
   const perfect = quizzes.length > 0 && quizzes.every((q) => q.firstTry);
   if (perfect) reward.xp += 10;
+  reward.xp = Math.round(reward.xp * mods(world, state).questXp);
 
-  const { captain, levelsGained } = addXp(state.captain, reward.xp);
-  const events: GameEvent[] = [{ type: 'questCompleted', questId: quest.id, reward }];
-  for (let i = 1; i <= levelsGained; i++) {
-    events.push({ type: 'levelUp', level: state.captain.level + i });
-  }
+  const xp = gainXp(state, reward.xp);
+  const captain = xp.captain;
+  const events: GameEvent[] = [{ type: 'questCompleted', questId: quest.id, reward }, ...xp.events];
   const fogChanged: number[] = [];
   for (const id of reward.unlockPorts) {
     events.push({ type: 'portUnlocked', portId: id });
@@ -888,6 +938,7 @@ function completeQuest(world: World, state: GameState, quest: Quest): StepResult
     state: {
       ...state,
       captain,
+      skillPoints: xp.skillPoints,
       gold: state.gold + reward.gold,
       reputation: state.reputation + reward.reputation,
       unlockedPorts: [...state.unlockedPorts, ...reward.unlockPorts],
@@ -903,4 +954,131 @@ function completeQuest(world: World, state: GameState, quest: Quest): StepResult
 
 export function explorationPercent(state: GameState): number {
   return Math.round(exploredFraction(state.fog) * 1000) / 10;
+}
+
+// ---------------------------------------------------------------- 成長：經驗、技能、船員、船隻、成就
+
+/** 加經驗：處理升級事件與技能點（3 級起每升 2 級 1 點） */
+function gainXp(
+  state: GameState,
+  amount: number,
+): { captain: Captain; skillPoints: number; events: GameEvent[] } {
+  const { captain, levelsGained } = addXp(state.captain, amount);
+  const events: GameEvent[] = [];
+  for (let i = 1; i <= levelsGained; i++) {
+    events.push({ type: 'levelUp', level: state.captain.level + i });
+  }
+  const newPoints = skillPointsEarned(captain.level) - skillPointsEarned(state.captain.level);
+  if (newPoints > 0) events.push({ type: 'skillPoint' });
+  return { captain, skillPoints: state.skillPoints + newPoints, events };
+}
+
+export type SkillStatus = 'learned' | 'available' | 'locked';
+
+export function skillStatus(state: GameState, id: string): SkillStatus {
+  const def = SKILLS.find((s) => s.id === id);
+  if (!def) return 'locked';
+  if (state.skills.includes(id)) return 'learned';
+  const ok =
+    state.captain.level >= def.minLevel && (!def.requires || state.skills.includes(def.requires));
+  return ok ? 'available' : 'locked';
+}
+
+export function learnSkill(state: GameState, id: string): GameState {
+  if (state.skillPoints <= 0 || skillStatus(state, id) !== 'available') return state;
+  return { ...state, skills: [...state.skills, id], skillPoints: state.skillPoints - 1 };
+}
+
+export function crewSlots(state: GameState): number {
+  return shipDef(state.shipTypeId).crewSlots;
+}
+
+/** 目前停泊港口的酒館裡可以招募的船員 */
+export function availableCrew(world: World, state: GameState) {
+  if (!state.dockedAt) return [];
+  return world.content.crew.filter(
+    (c) => c.home_port === state.dockedAt && !state.crew.includes(c.id),
+  );
+}
+
+export function hireCrew(world: World, state: GameState, id: string): GameState {
+  const c = world.crew.get(id);
+  if (
+    !c ||
+    state.dockedAt !== c.home_port ||
+    state.crew.includes(id) ||
+    state.crew.length >= crewSlots(state) ||
+    state.gold < c.hire_cost
+  ) {
+    return state;
+  }
+  return { ...state, crew: [...state.crew, id], gold: state.gold - c.hire_cost };
+}
+
+/** 解散船員：他會回到家鄉港口，之後可以再招募 */
+export function dismissCrew(state: GameState, id: string): GameState {
+  return { ...state, crew: state.crew.filter((c) => c !== id) };
+}
+
+/** 主港的造船廠可以買新船；舊船折價一半 */
+export function shipyardOffers(world: World, state: GameState) {
+  const port = state.dockedAt ? world.ports.get(state.dockedAt) : null;
+  if (port?.kind !== 'hub') return [];
+  const scenario = world.scenarios.get(state.scenarioId)!;
+  const tradeIn = Math.floor(shipDef(state.shipTypeId).price / 2);
+  return scenario.ships
+    .filter((id) => id !== state.shipTypeId)
+    .map((id) => {
+      const def = shipDef(id);
+      const cost = Math.max(0, def.price - tradeIn);
+      const reason =
+        state.captain.level < def.minLevel
+          ? `需要船長等級 ${def.minLevel}`
+          : state.crew.length > def.crewSlots
+            ? `船員太多（最多 ${def.crewSlots} 人）`
+            : state.gold < cost
+              ? '金幣不足'
+              : null;
+      return { def, cost, reason };
+    });
+}
+
+export function buyShip(world: World, state: GameState, id: string): GameState {
+  const offer = shipyardOffers(world, state).find((o) => o.def.id === id);
+  if (!offer || offer.reason) return state;
+  const cap = offer.def.supplyDays;
+  return {
+    ...state,
+    shipTypeId: id,
+    gold: state.gold - offer.cost,
+    condition: {
+      ...state.condition,
+      hull: 100,
+      supplies: {
+        water: Math.min(cap, state.condition.supplies.water),
+        food: Math.min(cap, state.condition.supplies.food),
+      },
+    },
+  };
+}
+
+export function setTitle(state: GameState, achievementId: string | null): GameState {
+  if (achievementId && !state.achievements.includes(achievementId)) return state;
+  if (achievementId && !ACHIEVEMENT_MAP.get(achievementId)?.title) return state;
+  return { ...state, title: achievementId };
+}
+
+/** 檢查並解鎖新成就（每次狀態變化後呼叫） */
+export function checkAchievements(world: World, state: GameState): StepResult {
+  const scenario = world.scenarios.get(state.scenarioId);
+  const ids = newlyUnlocked(
+    { ...state, startingShip: scenario?.starting_ship ?? state.shipTypeId },
+    state.achievements,
+  );
+  if (!ids.length) return { state, events: [], fogChanged: [] };
+  return {
+    state: { ...state, achievements: [...state.achievements, ...ids] },
+    events: ids.map((id) => ({ type: 'achievement' as const, id })),
+    fogChanged: [],
+  };
 }

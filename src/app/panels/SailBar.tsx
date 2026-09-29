@@ -15,7 +15,7 @@ export function SailBar() {
   const pct = Math.round((voyage.traveledKm / voyage.totalKm) * 100);
   const dest = voyage.destinationPortId ? world.ports.get(voyage.destinationPortId) : null;
   const env = environmentAt(game, game.ship.position, game.ship.heading);
-  const kmPerDay = Math.round(speedKmPerDay(game) * env.factors.total);
+  const kmPerDay = Math.round(speedKmPerDay(world, game) * env.factors.total);
 
   return (
     <section className="bottom-panel sailbar" aria-label="航行控制">

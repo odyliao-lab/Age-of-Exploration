@@ -122,23 +122,24 @@ describe('storm seasons', () => {
 describe('ship condition', () => {
   it('consumes supplies and loses morale on long voyages', () => {
     let c = fullCondition(junk);
-    c = passTime(c, 10, 1);
+    c = passTime(c, 10);
     expect(c.supplies.water).toBe(30);
     expect(c.morale).toBe(100);
-    c = passTime(c, 10, 1);
+    c = passTime(c, 10);
     expect(c.morale).toBe(85);
-    c = passTime(c, 25, 1);
+    c = passTime(c, 25);
     expect(c.supplies.water).toBe(0);
     expect(c.morale).toBeLessThan(60);
   });
 
   it('good leadership slows morale loss', () => {
     const base = { ...fullCondition(junk), daysAtSea: 20 };
-    expect(passTime(base, 10, 5).morale).toBeGreaterThan(passTime(base, 10, 1).morale);
+    const leader = { supplyUse: 1, moraleDecay: 0.8 };
+    expect(passTime(base, 10, leader).morale).toBeGreaterThan(passTime(base, 10).morale);
   });
 
   it('charges for resupply and repair and stays within budget', () => {
-    const worn = { ...passTime(fullCondition(junk), 10, 1), hull: 70 };
+    const worn = { ...passTime(fullCondition(junk), 10), hull: 70 };
     expect(resupplyCost(worn, junk)).toBe(10 * 1 + 10 * 2);
     expect(repairCost(worn)).toBe(60);
     const full = resupply(worn, junk, 1000);
@@ -209,8 +210,8 @@ describe('sailing with weather', () => {
       [116, 22],
       [110, 12],
     ];
-    const winter = estimateVoyage(state, south);
-    const inSummer = estimateVoyage(summer(state), south);
+    const winter = estimateVoyage(world, state, south);
+    const inSummer = estimateVoyage(world, summer(state), south);
     expect(winter.days).toBeLessThan(inSummer.days);
     expect(winter.tailwindShare).toBeGreaterThan(0.9);
     expect(inSummer.headwindShare).toBeGreaterThan(0.9);
@@ -267,12 +268,12 @@ describe('sailing with weather', () => {
       gold: 100,
       condition: { supplies: { water: 5, food: 5 }, morale: 20, hull: 50, daysAtSea: 30 },
     };
-    s = portResupply(s);
+    s = portResupply(world, s);
     // 淡水 35 天 × 1 = 35；剩 65 金幣可買 32 天糧食（每天 2），剩 1 金幣
     expect(s.condition.supplies).toEqual({ water: 40, food: 37 });
     expect(s.gold).toBe(1);
-    s = portRepair({ ...s, gold: 40 });
+    s = portRepair(world, { ...s, gold: 40 });
     expect(s.condition.hull).toBe(70);
-    expect(portResupply({ ...s, dockedAt: null })).toEqual({ ...s, dockedAt: null });
+    expect(portResupply(world, { ...s, dockedAt: null })).toEqual({ ...s, dockedAt: null });
   });
 });

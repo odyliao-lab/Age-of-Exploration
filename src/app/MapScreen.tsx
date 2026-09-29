@@ -20,6 +20,7 @@ import { LocateBanner } from './panels/LocateBanner';
 import { WindCompass } from './panels/WindCompass';
 import { CodexPanel } from './panels/CodexPanel';
 import { CaptainPanel } from './panels/CaptainPanel';
+import { FleetPanel } from './panels/FleetPanel';
 import { StatusBar } from './panels/StatusBar';
 
 const HOME_ZOOM = 5;
@@ -212,15 +213,18 @@ export function MapScreen() {
         </div>
 
         {planning ? <PlanningPanel /> : game.voyage ? <SailBar /> : null}
-        {!planning && selectedPortId && <PortPanel portId={selectedPortId} />}
 
         <WindCompass />
         {interaction?.data.type === 'locate' && <LocateBanner step={interaction.data} />}
         <Toasts />
       </div>
 
+      {/* 港口面板放在海圖區塊之外：手機版排在海圖下方，避免可捲動面板疊在 WebGL 畫布上造成空白 */}
+      {!planning && selectedPortId && <PortPanel portId={selectedPortId} />}
+
       {panel === 'codex' && <CodexPanel />}
       {panel === 'captain' && <CaptainPanel />}
+      {panel === 'fleet' && <FleetPanel />}
 
       {modals[0] && <RewardModal modal={modals[0]} />}
       {!modals[0] && game.encounter?.kind === 'storm' && <StormModal encounter={game.encounter} />}

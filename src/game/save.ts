@@ -7,6 +7,8 @@ import { newCaptain } from './captain';
 import { decodeFog, encodeFog } from './fog';
 import { newSeed } from './rng';
 import { fullCondition, shipType } from './ship';
+import { skillPointsEarned } from './progression';
+import { EMPTY_STATS } from './achievements';
 import { SAVE_VERSION, type GameState } from './state';
 
 export interface SerializedSave extends Omit<GameState, 'fog'> {
@@ -45,6 +47,15 @@ export function deserialize(data: SerializedSave): GameState {
     seed: data.seed ?? newSeed(),
     // 第 3 版新增：隨機事件冷卻
     eventCooldownUntil: data.eventCooldownUntil ?? 0,
+    // 第 4 版新增：技能、船員、成就
+    skills: data.skills ?? [],
+    skillPoints:
+      data.skillPoints ??
+      Math.max(0, skillPointsEarned(data.captain?.level ?? 1) - (data.skills?.length ?? 0)),
+    crew: data.crew ?? [],
+    achievements: data.achievements ?? [],
+    title: data.title ?? null,
+    stats: { ...EMPTY_STATS, ...data.stats },
   };
 }
 
