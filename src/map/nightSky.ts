@@ -1,5 +1,5 @@
 /**
- * 畫面層（不跟著地圖移動）：夜晚變暗與星空、船上的燈、暴風雨的雨絲。
+ * 畫面層（不跟著地圖移動）：夜晚變暗與星空、船上的燈、暴風雨的雨絲、海霧。
  */
 import { Container, Graphics } from 'pixi.js';
 
@@ -12,6 +12,10 @@ export class NightSky {
   private stars = new Graphics();
   private lantern = new Graphics();
   private rainGfx = new Graphics();
+  private mistGfx = new Graphics();
+  /** 霧的濃度 0–1，進出霧區時漸變 */
+  private mist = 0;
+  private misty = false;
   private darkness = 0;
   private raining = false;
   private size = { width: 1, height: 1 };
@@ -21,7 +25,7 @@ export class NightSky {
   private time = 0;
 
   constructor() {
-    this.container.addChild(this.dark, this.lantern, this.stars, this.rainGfx);
+    this.container.addChild(this.dark, this.lantern, this.stars, this.rainGfx, this.mistGfx);
     this.container.eventMode = 'none';
     for (let i = 0; i < STARS; i++) {
       this.starPts.push({
@@ -46,6 +50,10 @@ export class NightSky {
 
   setRain(on: boolean) {
     this.raining = on;
+  }
+
+  setMist(on: boolean) {
+    this.misty = on;
   }
 
   setShipScreen(p: { x: number; y: number } | null) {
@@ -73,11 +81,31 @@ export class NightSky {
     }
 
     this.stars.clear();
-    if (d > 0.5 && !this.raining) {
-      const a = (d - 0.5) * 2;
+    if (d > 0.5 && !this.raining && this.mist < 0.9) {
+      const a = (d - 0.5) * 2 * (1 - this.mist);
       for (const s of this.starPts) {
         const tw = 0.6 + 0.4 * Math.sin(this.time * 2 + s.tw);
         this.stars.circle(s.x * w, s.y * h, s.r).fill({ color: 0xfffbe8, alpha: 0.7 * a * tw });
+      }
+    }
+
+    // 霧：畫面慢慢蒙上一層白，船附近稍微看得清楚
+    this.mist += ((this.misty ? 1 : 0) - this.mist) * Math.min(1, dt * 1.5);
+    this.mistGfx.clear();
+    if (this.mist > 0.01) {
+      const m = this.mist;
+      this.mistGfx.rect(0, 0, w, h).fill({ color: 0xe6ebee, alpha: 0.38 * m });
+      if (this.shipScreen) {
+        const { x, y } = this.shipScreen;
+        const R = Math.max(w, h);
+        for (let k = 1; k <= 10; k++) {
+          const r = R * (0.15 + k * 0.07);
+          this.mistGfx.circle(x, y, r).stroke({
+            width: R * 0.075,
+            color: 0xf1f4f5,
+            alpha: 0.045 * m,
+          });
+        }
       }
     }
 

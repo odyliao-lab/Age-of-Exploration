@@ -12,7 +12,7 @@ import {
   visiblePortIds,
 } from '@/game/state';
 import { darkness } from '@/game/navigation';
-import { insideStorm } from '@/game/encounters';
+import { insideMist, insideStorm } from '@/game/encounters';
 import { bearingDeg } from '@/geo/geo';
 import { positionAt } from '@/game/voyage';
 import { isDebug } from './debug';
@@ -236,8 +236,15 @@ export function MapScreen() {
         ? g.storms.map((c) => ({ id: c.id, center: c.center, radiusKm: c.radiusKm, name: c.name }))
         : [],
     );
+    m.setMists(
+      g.helm ? g.mists.map((c) => ({ id: c.id, center: c.center, radiusKm: c.radiusKm })) : [],
+    );
     m.setPositionError(g.helm ? g.ship.position : null, g.helm ? positionErrorKm(world, g) : 0);
-    m.setSky(g.helm ? darkness(g.day) : 0, !!g.helm && !!insideStorm(g.storms, g.ship.position));
+    m.setSky(
+      g.helm ? darkness(g.day) : 0,
+      !!g.helm && !!insideStorm(g.storms, g.ship.position),
+      !!g.helm && !!insideMist(g.mists, g.ship.position),
+    );
   }, [ready, world, game]);
 
   // ---- 出港時拉近鏡頭跟著船，入港時拉遠一些看港口周邊

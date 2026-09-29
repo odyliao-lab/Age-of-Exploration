@@ -110,6 +110,14 @@ import {
   stormSpawnChance,
   type SeaFleet,
   type StormCell,
+  type MistBank,
+  insideMist,
+  mistZoneAt,
+  spawnMist,
+  stepMist,
+  MIST_DRIFT_KM_PER_DAY,
+  MIST_PIRATE_SPOT_KM,
+  MIST_SIGHT_KM,
 } from './encounters';
 import {
   canSightPolaris,
@@ -239,6 +247,8 @@ export interface GameState {
   /** 海上看得見的船隊與風暴雲團 */
   fleets: SeaFleet[];
   storms: StormCell[];
+  /** 看得見的海霧 */
+  mists: MistBank[];
   nextEntityId: number;
   /** 熟悉航線：「出發港>抵達港」→ 親手開過的航跡 */
   routes: Record<string, LonLat[]>;
@@ -357,6 +367,7 @@ export function newGame(world: World, scenarioId: string, seed = newSeed()): Ste
     coastDay: -1,
     fleets: [],
     storms: [],
+    mists: [],
     nextEntityId: 1,
     talkDay: 0.5,
     lastRegionId: null,
@@ -580,7 +591,8 @@ export function tick(world: World, state: GameState, days: number): StepResult {
     }
     warnConditionChanges(before, condition, events);
 
-    fogChanged.push(...revealAround(state.fog, to, sight));
+    const seeKm = insideMist(s.mists, to) ? Math.min(sight, MIST_SIGHT_KM) : sight;
+    fogChanged.push(...revealAround(state.fog, to, seeKm));
     const found = landmarksInSight(world, discovered, to, m.discovery);
     if (found.length) {
       discovered = [...discovered, ...found];
@@ -685,7 +697,8 @@ function seaLife(
   };
   const isLand = (p: LonLat) => landAt(world, p);
   const perStep = (perDay: number) => 1 - Math.exp(-perDay * stepDays);
-  let { nav, fleets, storms, nextEntityId, stats } = state;
+  let { nav, fleets, storms, mists, nextEntityId, stats } = state;
+  const misty = !!insideMist(mists, pos);
 
   // 看岸定位：看得到去過的港口，就知道自己在哪裡
   if (positionError(nav, day) > 5) {
@@ -724,7 +737,16 @@ function seaLife(
   const moved: SeaFleet[] = [];
   for (const f of fleets) {
     const w = gustyWind(windAt(f.position, month), f.position, day);
-    const r = stepFleet(f, pos, w, stepDays, day, rand, isLand);
+    const r = stepFleet(
+      f,
+      pos,
+      w,
+      stepDays,
+      day,
+      rand,
+      isLand,
+      misty ? MIST_PIRATE_SPOT_KM : undefined,
+    );
     if (r.event?.type === 'pirateChase') {
       events.push({ type: 'warning', text: '海盜船朝我們追來了！轉到順風的方向，拉開距離！' });
     } else if (r.event?.type === 'pirateEscaped') {
@@ -776,6 +798,28 @@ function seaLife(
     storms = storms.filter((c) => c.id !== inStorm.id);
   }
 
+  // 海霧：跟著風飄；進到霧裡看不遠，推算誤差累積更快
+  if (mists.length === 0) {
+    const zone = mistZoneAt(pos, month);
+    if (zone && rand() < perStep(zone.chancePerDay)) {
+      mists = [spawnMist(nextEntityId++, pos, zone, windAt(pos, month), day, rand)];
+    }
+  }
+  mists = mists.map((c) => stepMist(c, stepDays, day)).filter((c): c is MistBank => !!c);
+  const mistNow = insideMist(mists, pos);
+  if (mistNow) {
+    nav = { ...nav, errorKm: nav.errorKm + MIST_DRIFT_KM_PER_DAY * stepDays };
+    if (!misty) {
+      events.push({
+        type: 'warning',
+        text: '起霧了！四周白茫茫一片，看不到岸也看不到星星。放慢一點，用測深探探水深吧。',
+      });
+      events.push({ type: 'talk', speaker: '水手長', text: mistNow.lesson });
+    }
+  } else if (misty) {
+    events.push({ type: 'warning', text: '霧散了，視野又清楚起來。' });
+  }
+
   // 夥伴說話
   let { talkDay, lastRegionId, hinted } = state;
   if (!encounter) {
@@ -811,6 +855,7 @@ function seaLife(
       nav,
       fleets,
       storms,
+      mists,
       nextEntityId,
       stats,
       talkDay,
@@ -924,6 +969,7 @@ function coastNearby(world: World, p: LonLat): boolean {
 export function coastSightBlocked(world: World, state: GameState): string | null {
   if (!state.helm) return '要在海上才能看岸形';
   if (isNight(state.day)) return '天黑了看不清海岸，改用牽星術吧';
+  if (insideMist(state.mists, state.ship.position)) return '霧太濃，看不到海岸';
   if (state.coastDay === Math.floor(state.day)) return '今天已經看過岸形了';
   if (!coastNearby(world, state.ship.position)) return '附近看不到海岸';
   return null;
@@ -1005,6 +1051,7 @@ export interface StarSighting {
 export function starSightBlocked(state: GameState): string | null {
   if (!state.helm) return '要在海上才能觀星定位';
   if (!isNight(state.day)) return '白天看不到星星，等天黑再觀星';
+  if (insideMist(state.mists, state.ship.position)) return '霧太濃，看不到星星';
   if (!canSightPolaris(state.ship.position[1])) return '北極星太低，貼在海平面上量不準';
   if (state.starNight === nightIndex(state.day)) return '今晚已經觀星定位過了';
   return null;
@@ -1089,6 +1136,7 @@ export function departPort(world: World, state: GameState): GameState {
     nav: { day: state.day, errorKm: 2 },
     fleets: [],
     storms: [],
+    mists: [],
     trail: [start.point],
   };
 }
@@ -1803,6 +1851,7 @@ function arrive(world: World, state: GameState, portId: string): StepResult {
       nav: { day: state.day, errorKm: 2 },
       fleets: [],
       storms: [],
+      mists: [],
       dockedAt: portId,
       lastPortId: portId,
       condition: rest(state.condition),

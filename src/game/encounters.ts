@@ -124,6 +124,7 @@ export function stepFleet(
   day: number,
   rand: Rand,
   isLand: IsLand,
+  spotKm = PIRATE_SPOT_KM,
 ): { fleet: SeaFleet | null; event: FleetEvent | null } {
   const dist = distanceKm(f.position, player);
   let mode = f.mode;
@@ -131,7 +132,7 @@ export function stepFleet(
   let event: FleetEvent | null = null;
 
   if (f.kind === 'pirate') {
-    if (mode === 'roam' && dist < PIRATE_SPOT_KM) {
+    if (mode === 'roam' && dist < spotKm) {
       mode = 'chase';
       event = { type: 'pirateChase', fleet: f };
     } else if (mode === 'chase' && dist > PIRATE_GIVE_UP_KM) {
@@ -212,4 +213,103 @@ export function insideStorm(storms: StormCell[], p: LonLat): StormCell | null {
 export function stormHitChancePerDay(s: StormCell, p: LonLat): number {
   const k = 1 - distanceKm(s.center, p) / s.radiusKm;
   return 1.5 + 4 * Math.max(0, k);
+}
+
+// ---------------------------------------------------------------- 海霧
+
+/**
+ * 看得見的海霧：暖濕的空氣吹過冷的海面，水氣凝結成霧（平流霧）。
+ * 待在霧裡看不遠（地圖開得少）、看不到岸形與星星、推算誤差累積更快，
+ * 但海盜也不容易發現你。這時可以測深確認離岸遠近。
+ */
+export interface MistBank {
+  id: number;
+  center: LonLat;
+  radiusKm: number;
+  toward: number;
+  speed: number;
+  endDay: number;
+  lesson: string;
+}
+
+interface MistZone {
+  box: [number, number, number, number];
+  /** 起霧的月份（含） */
+  months: number[];
+  chancePerDay: number;
+  lesson: string;
+}
+
+const MIST_ZONES: MistZone[] = [
+  {
+    box: [117, 23, 127, 36],
+    months: [3, 4, 5, 6, 7],
+    chancePerDay: 0.35,
+    lesson:
+      '春天到初夏，溫暖潮濕的南風吹過東海與臺灣海峽還很冷的海面，空氣冷卻、水氣凝結，就形成濃濃的海霧（平流霧）。',
+  },
+  {
+    box: [52, 14.5, 60, 20],
+    months: [6, 7, 8, 9],
+    chancePerDay: 0.45,
+    lesson:
+      '夏季西南季風把阿拉伯半島南岸的表層海水吹走，底下的冷水湧上來（湧升流）；潮濕的季風吹過冷水面就起霧，佐法兒沿岸的山也因此變得一片翠綠。',
+  },
+  {
+    box: [8, -35, 19, -15],
+    months: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+    chancePerDay: 0.3,
+    lesson:
+      '非洲西南岸外有從南極方向北上的寒冷本格拉洋流，海面很冷，吹過的空氣冷卻成霧，岸上則是乾燥的納米比沙漠。',
+  },
+];
+
+export function mistZoneAt([lon, lat]: LonLat, month: number): MistZone | null {
+  return (
+    MIST_ZONES.find(
+      (z) =>
+        z.months.includes(month) &&
+        lon >= z.box[0] &&
+        lat >= z.box[1] &&
+        lon <= z.box[2] &&
+        lat <= z.box[3],
+    ) ?? null
+  );
+}
+
+/** 在霧裡，每天多累積的位置誤差（公里） */
+export const MIST_DRIFT_KM_PER_DAY = 20;
+/** 在霧裡，海盜只有這麼近才看得到你 */
+export const MIST_PIRATE_SPOT_KM = 12;
+/** 在霧裡的瞭望距離（公里） */
+export const MIST_SIGHT_KM = 18;
+
+export function spawnMist(
+  id: number,
+  player: LonLat,
+  zone: MistZone,
+  wind: Wind,
+  day: number,
+  rand: Rand,
+): MistBank {
+  // 霧跟著風慢慢飄，出現在玩家上風處 40–110 公里
+  const from = normDeg(wind.toward + 180 + (rand() - 0.5) * 90);
+  return {
+    id,
+    center: destinationPoint(player, from, 40 + rand() * 70),
+    radiusKm: 45 + rand() * 30,
+    toward: wind.toward,
+    speed: 25 + rand() * 25,
+    endDay: day + 1.5 + rand() * 1.5,
+    lesson: zone.lesson,
+  };
+}
+
+export function stepMist(m: MistBank, dt: number, day: number): MistBank | null {
+  if (day > m.endDay) return null;
+  return { ...m, center: destinationPoint(m.center, m.toward, m.speed * dt) };
+}
+
+export function insideMist(mists: MistBank[], p: LonLat): MistBank | null {
+  return mists.find((m) => distanceKm(m.center, p) <= m.radiusKm) ?? null;
 }

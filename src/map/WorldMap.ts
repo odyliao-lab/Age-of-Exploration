@@ -14,7 +14,7 @@ import { getDetailedLand, getLandRings } from './land';
 import { SeaFx } from './seaFx';
 import { ShipSprite } from './shipSprite';
 import { NightSky } from './nightSky';
-import { SeaEntities, type FleetView, type StormView } from './seaEntities';
+import { SeaEntities, type FleetView, type MistView, type StormView } from './seaEntities';
 import { PlaceLabels, type PlaceLabel } from './placeLabels';
 import {
   DEG_PX,
@@ -294,6 +294,11 @@ export class WorldMap {
     this.entities.setFleets(list);
   }
 
+  /** 看得見的海霧 */
+  setMists(list: MistView[]) {
+    this.entities.setMists(list);
+  }
+
   /** 看得見的風暴雲團 */
   setStorms(list: StormView[]) {
     this.entities.setStorms(list);
@@ -304,10 +309,11 @@ export class WorldMap {
     this.entities.setError(center, km);
   }
 
-  /** 日夜：0 白天到 1 深夜；rain 為船在風暴雲團裡 */
-  setSky(darkness: number, rain: boolean) {
+  /** 日夜：0 白天到 1 深夜；rain 為船在風暴雲團裡，mist 為船在霧裡 */
+  setSky(darkness: number, rain: boolean, mist = false) {
     this.sky.setDarkness(darkness);
     this.sky.setRain(rain);
+    this.sky.setMist(mist);
   }
 
   /** 親手駕船的風與帆狀態；null 表示停在港口或自動航行 */

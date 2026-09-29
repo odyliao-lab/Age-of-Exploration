@@ -16,6 +16,12 @@ export interface FleetView {
   chasing: boolean;
 }
 
+export interface MistView {
+  id: number;
+  center: LonLat;
+  radiusKm: number;
+}
+
 export interface StormView {
   id: number;
   center: LonLat;
@@ -39,6 +45,9 @@ interface FleetSprite {
 export class SeaEntities {
   readonly container = new Container();
   private stormGfx = new Graphics();
+  private mistGfx = new Graphics();
+  private mistLabels = new Container();
+  private mists: MistView[] = [];
   private stormLabels = new Container();
   private errorGfx = new Graphics();
   private fleetLayer = new Container();
@@ -49,7 +58,14 @@ export class SeaEntities {
   private error: { center: LonLat; km: number } | null = null;
 
   constructor() {
-    this.container.addChild(this.errorGfx, this.stormGfx, this.stormLabels, this.fleetLayer);
+    this.container.addChild(
+      this.errorGfx,
+      this.stormGfx,
+      this.stormLabels,
+      this.fleetLayer,
+      this.mistGfx,
+      this.mistLabels,
+    );
   }
 
   setView(view: View) {
@@ -60,6 +76,7 @@ export class SeaEntities {
       f.label.visible = view.scale >= 4;
     }
     for (const l of this.stormLabels.children) l.scale.set(inv);
+    for (const l of this.mistLabels.children) l.scale.set(inv);
     this.drawError();
   }
 
@@ -126,6 +143,29 @@ export class SeaEntities {
     this.setView(this.view);
   }
 
+  setMists(list: MistView[]) {
+    this.mists = list;
+    this.mistLabels.removeChildren().forEach((c) => c.destroy());
+    for (const m of list) {
+      const t = new Text({
+        text: '海霧',
+        style: {
+          fontFamily: 'Noto Sans TC, PingFang TC, sans-serif',
+          fontSize: 13,
+          fontWeight: '700',
+          fill: 0x4a5560,
+          stroke: { color: 0xfbf6ea, width: 3 },
+        },
+        resolution: 2,
+      });
+      t.anchor.set(0.5);
+      const p = lonLatToWorld(m.center);
+      t.position.set(p.x, p.y);
+      this.mistLabels.addChild(t);
+    }
+    this.setView(this.view);
+  }
+
   /** 位置誤差圈：船「大概」在這個範圍內 */
   setError(center: LonLat | null, km: number) {
     this.error = center && km > 8 ? { center, km } : null;
@@ -154,6 +194,23 @@ export class SeaEntities {
   update(dt: number) {
     this.time += dt;
     for (const f of this.fleets.values()) f.ship.drawRig(this.time);
+    // 海霧：一團團慢慢起伏的白霧，蓋在船隊上面
+    const mg = this.mistGfx;
+    mg.clear();
+    for (const m of this.mists) {
+      const p = lonLatToWorld(m.center);
+      const r = (m.radiusKm / KM_PER_DEG) * DEG_PX;
+      mg.circle(p.x, p.y, r).fill({ color: 0xeef1f3, alpha: 0.35 });
+      for (let k = 0; k < 18; k++) {
+        const a = (k / 18) * Math.PI * 2 + Math.sin(this.time * 0.3 + k) * 0.15;
+        const rr = r * (0.35 + (0.5 * ((k * 7) % 5)) / 5);
+        const puff = r * (0.28 + 0.06 * Math.sin(this.time * 0.7 + k * 1.3));
+        mg.circle(p.x + Math.cos(a) * rr, p.y + Math.sin(a) * rr, puff).fill({
+          color: 0xf7f8f8,
+          alpha: 0.16,
+        });
+      }
+    }
     // 風暴：旋轉的雲帶
     const g = this.stormGfx;
     g.clear();

@@ -7,6 +7,10 @@ import {
   PIRATE_SPOT_KM,
   insideStorm,
   spawnStorm,
+  insideMist,
+  mistZoneAt,
+  spawnMist,
+  MIST_PIRATE_SPOT_KM,
   stepFleet,
   stepStorm,
   type SeaFleet,
@@ -265,5 +269,45 @@ describe('測深', () => {
     expect(r.lesson).toContain('大陸棚');
     // 第二次不再附小教室
     expect(takeSounding(world, r.state)!.lesson).toBeNull();
+  });
+});
+
+describe('海霧', () => {
+  it('rolls in over cold seas in the right season only', () => {
+    expect(mistZoneAt([122, 29], 4)).not.toBeNull();
+    expect(mistZoneAt([122, 29], 11)).toBeNull();
+    expect(mistZoneAt([54.5, 16.5], 7)).not.toBeNull();
+    expect(mistZoneAt([90, 10], 7)).toBeNull();
+  });
+
+  it('drifts in from upwind, and inside it you cannot see coast or stars', () => {
+    const zone = mistZoneAt([122, 29], 4)!;
+    const m = spawnMist(1, [122, 29], zone, ne, 0, () => 0.5);
+    // 東北季風往西南吹：霧從東北方飄過來
+    expect(distanceKm(m.center, [122, 29])).toBeGreaterThan(40);
+    expect(m.lesson).toContain('霧');
+
+    let s: GameState = departPort(world, newGame(world, 'treasure-fleet', 5).state);
+    s = { ...s, nav: { day: s.day, errorKm: 2 } };
+    const fogged = { ...s, mists: [{ ...m, center: s.ship.position, endDay: 99 }] };
+    expect(insideMist(fogged.mists, s.ship.position)).not.toBeNull();
+    expect(coastSightBlocked(world, fogged)).toContain('霧');
+    expect(starSightBlocked({ ...fogged, day: 14 / 24 })).toContain('霧');
+  });
+
+  it('hides you from pirates until they are very close', () => {
+    const pirate: SeaFleet = {
+      id: 1,
+      kind: 'pirate',
+      position: [120.3, 20],
+      heading: 0,
+      mode: 'roam',
+      spawnDay: 0,
+      greeted: false,
+    };
+    const clear = stepFleet(pirate, [120, 20], ne, 0.01, 0, () => 0.5, sea);
+    const misty = stepFleet(pirate, [120, 20], ne, 0.01, 0, () => 0.5, sea, MIST_PIRATE_SPOT_KM);
+    expect(clear.fleet?.mode).toBe('chase');
+    expect(misty.fleet?.mode).toBe('roam');
   });
 });
