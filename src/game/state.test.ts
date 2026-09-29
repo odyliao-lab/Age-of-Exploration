@@ -45,18 +45,9 @@ const ROUTES: Record<string, LonLat[]> = {
     [109.8, 16.5],
     [109.22, 13.78],
   ],
-  toMalacca: [
-    [109.22, 13.78],
-    [109.6, 11.5],
-    [106.5, 6.5],
-    [104.6, 1.4],
-    [103.9, 1.12],
-    [102.9, 1.12],
-    [102.25, 2.19],
-  ],
 };
 
-function sail(state: GameState, route: LonLat[], dest: string) {
+function sail(state: GameState, route: LonLat[], dest: string | null) {
   const harbors = harborsFor(world, state);
   for (let i = 1; i < route.length; i++) {
     expect(checkLeg(route[i - 1], route[i], harbors), `leg ${i} of ${dest}`).toEqual({ ok: true });
@@ -112,7 +103,10 @@ describe('Treasure Fleet prologue and chapter 1', () => {
     let s = newGame(world, 'treasure-fleet', 1).state;
 
     // 泉州任務板
-    expect(availableQuests(world, s, 'quanzhou').map((q) => q.id)).toEqual(['tf-00-first-voyage']);
+    expect(availableQuests(world, s, 'quanzhou').map((q) => q.id)).toEqual([
+      'tf-00-first-voyage',
+      'tf-r1-changle',
+    ]);
     s = acceptQuest(world, s, 'tf-00-first-voyage').state;
     expect(pendingInteraction(world, s)?.data.type).toBe('dialogue');
     s = finishDialogue(world, s, 'tf-00-first-voyage').state;
@@ -162,31 +156,34 @@ describe('Treasure Fleet prologue and chapter 1', () => {
     expect(right.events.map((e) => e.type)).toEqual(
       expect.arrayContaining(['questCompleted', 'portUnlocked']),
     );
-    expect(s.unlockedPorts).toContain('champa');
+    expect(s.unlockedPorts).toContain('fuzhou');
     expect(s.quizLog.find((q) => q.step === 3)).toMatchObject({ attempts: 2, firstTry: false });
 
     // 第一章：廣州 → 占城，途經海南島
-    expect(availableQuests(world, s, 'guangzhou').map((q) => q.id)).toEqual(['tf-01-champa']);
+    expect(availableQuests(world, s, 'guangzhou').map((q) => q.id)).toEqual([
+      'tf-01-champa',
+      'tf-r6-luzon',
+    ]);
     s = acceptQuest(world, s, 'tf-01-champa').state;
     s = finishDialogue(world, s, 'tf-01-champa').state;
-    const leg2 = sail(s, ROUTES.toChampa, 'champa');
-    s = leg2.state;
+    // 先找到海南島（任務的「發現」步驟），占城這個目的地才會出現在海圖上
+    expect(visiblePortIds(world, s)).not.toContain('champa');
+    const leg2 = sail(s, ROUTES.toChampa.slice(0, 4), null);
     expect(leg2.events).toContainEqual({ type: 'discovered', codexId: 'hainan' });
+    expect(visiblePortIds(world, leg2.state)).toContain('champa');
+    s = sail(leg2.state, [leg2.state.ship.position, ...ROUTES.toChampa.slice(4)], 'champa').state;
     expect(s.dockedAt).toBe('champa');
     expect(s.discovered).toContain('agarwood');
     const done = answerQuiz(world, s, 'tf-01-champa', 1);
     s = done.state;
     expect(s.quests['tf-01-champa'].status).toBe('completed');
     expect(s.discovered).toContain('monsoon');
-    expect(s.unlockedPorts).toContain('malacca');
+    // 下一站用提示等級 2（只給經緯度），完成畫面不能先揭露港名
+    expect(done.events.some((e) => e.type === 'portUnlocked')).toBe(false);
     expect(s.captain.level).toBe(2);
     // 一次答對的額外經驗
     const reward = done.events.find((e) => e.type === 'questCompleted');
     expect(reward && reward.type === 'questCompleted' && reward.reward.xp).toBe(90);
-
-    // 通過新加坡海峽抵達麻六甲
-    s = sail(s, ROUTES.toMalacca, 'malacca').state;
-    expect(s.dockedAt).toBe('malacca');
   });
 
   it('hides the name of a hint-level-2 destination until visited', () => {

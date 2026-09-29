@@ -1,0 +1,12 @@
+{
+  "id": "malay-peninsula",
+  "category": "landmark",
+  "name": "馬來半島",
+  "name_en": "Malay Peninsula",
+  "location": [102.5, 4.0],
+  "discover_radius_km": 300,
+  "domains": ["B"],
+  "body": "馬來半島是亞洲大陸向南延伸最遠的部分，南端隔著新加坡海峽與新加坡相望，西側隔著麻六甲海峽與蘇門答臘相對。",
+  "source": "維基百科「馬來半島」條目",
+  "reviewed": false
+}

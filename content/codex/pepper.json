@@ -1,0 +1,10 @@
+{
+  "id": "pepper",
+  "category": "goods",
+  "name": "胡椒",
+  "name_en": "Black Pepper",
+  "domains": ["F"],
+  "body": "胡椒原產印度西南的馬拉巴爾海岸，後來在蘇門答臘、爪哇大量種植。胡椒是明代海外貿易的大宗商品，還曾被用來折抵官員的薪俸。",
+  "source": "維基百科「胡椒」條目；《明史》",
+  "reviewed": false
+}

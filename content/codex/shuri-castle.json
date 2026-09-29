@@ -1,0 +1,10 @@
+{
+  "id": "shuri-castle",
+  "category": "culture",
+  "name": "首里城",
+  "name_en": "Shuri Castle",
+  "domains": ["F", "E"],
+  "body": "首里城是琉球王國的王宮，融合中國與日本的建築風格。琉球 1429 年由尚巴志統一後，以首里為都城。首里城 2019 年遭大火焚毀後進行重建。",
+  "source": "維基百科「首里城」「琉球國」條目",
+  "reviewed": false
+}

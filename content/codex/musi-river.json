@@ -1,0 +1,12 @@
+{
+  "id": "musi-river",
+  "category": "river",
+  "name": "穆西河",
+  "name_en": "Musi River",
+  "location": [104.8, -2.4],
+  "discover_radius_km": 100,
+  "domains": ["C", "E"],
+  "body": "穆西河流經蘇門答臘東南部，巨港就位在河的下游。古代的室利佛逝王國以巨港為中心，掌控麻六甲海峽的貿易。",
+  "source": "維基百科「穆西河」「室利佛逝」條目",
+  "reviewed": false
+}

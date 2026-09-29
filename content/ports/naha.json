@@ -1,0 +1,15 @@
+{
+  "id": "naha",
+  "name": "那霸",
+  "name_en": "Naha",
+  "historical_names": ["琉球中山國"],
+  "country": "日本",
+  "country_en": "Japan",
+  "region": "east-china-sea",
+  "location": [127.68, 26.21],
+  "kind": "port",
+  "goods": ["sulfur"],
+  "sights": ["shuri-castle"],
+  "climate": "副熱帶海洋性氣候",
+  "blurb": "琉球王國的港口。琉球位於中國、日本與東南亞之間，靠著轉口貿易繁榮，被稱為「萬國津梁」。"
+}

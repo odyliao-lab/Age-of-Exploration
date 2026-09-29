@@ -1,0 +1,12 @@
+{
+  "id": "kinabalu",
+  "category": "mountain",
+  "name": "京那巴魯山",
+  "name_en": "Mount Kinabalu",
+  "location": [116.56, 6.07],
+  "discover_radius_km": 180,
+  "domains": ["C"],
+  "body": "京那巴魯山海拔約 4095 公尺，是婆羅洲最高峰，位於馬來西亞沙巴。從山腳的熱帶雨林到山頂，可以看到不同高度的植物分布。",
+  "source": "維基百科「京那巴魯山」條目",
+  "reviewed": false
+}

@@ -1,0 +1,12 @@
+{
+  "id": "sumatra",
+  "category": "island",
+  "name": "蘇門答臘",
+  "name_en": "Sumatra",
+  "location": [101.5, -0.5],
+  "discover_radius_km": 550,
+  "domains": ["B"],
+  "body": "蘇門答臘是世界第六大島，屬於印尼，赤道從島中央穿過。島的西側有一連串火山，東側則是大河沖積的低地。",
+  "source": "維基百科「蘇門答臘島」條目",
+  "reviewed": false
+}

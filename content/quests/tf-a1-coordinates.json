@@ -1,0 +1,58 @@
+{
+  "id": "tf-a1-coordinates",
+  "title": "航海學院：經緯度",
+  "scenario": "treasure-fleet",
+  "chapter": 0,
+  "tier": 0,
+  "kind": "academy",
+  "giver_port": "quanzhou",
+  "objectives": [
+    {
+      "domain": "A",
+      "text": "能分辨經線與緯線。"
+    },
+    {
+      "domain": "A",
+      "text": "能在海圖上依經緯度找到位置。"
+    }
+  ],
+  "prerequisites": ["tf-00-first-voyage"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "航海學院講師",
+      "lines": [
+        "海圖上橫的線叫緯線，表示南北；直的線叫經線，表示東西。",
+        "讀懂經緯度，就能在茫茫大海中說出自己在哪裡。"
+      ]
+    },
+    {
+      "type": "locate",
+      "prompt": "在海圖上點出北緯 20°、東經 115° 的位置。它在海南島的東方、南海的北部。",
+      "target": [115.0, 20.0],
+      "tolerance_km": 120,
+      "explanation": "先找到北緯 20° 的緯線，再沿著它找到東經 115° 的經線，兩線交會處就是答案。"
+    },
+    {
+      "type": "quiz",
+      "question": "把緯度相同的地點連起來，形成的線叫做什麼？",
+      "choices": ["經線", "緯線", "子午線", "換日線"],
+      "answer": 1,
+      "explanation": "緯度相同的點連成的是緯線，緯線彼此平行；經線則是連接南北極的線，又叫子午線。"
+    },
+    {
+      "type": "quiz",
+      "question": "本初子午線的經度是幾度？",
+      "choices": ["0°", "90°", "180°", "23.5°"],
+      "answer": 0,
+      "explanation": "本初子午線是經度 0° 的經線，通過英國倫敦的格林威治天文台。"
+    }
+  ],
+  "reward": {
+    "xp": 60,
+    "gold": 50,
+    "reputation": 5,
+    "unlock_ports": [],
+    "codex": ["tropic-of-cancer"]
+  }
+}

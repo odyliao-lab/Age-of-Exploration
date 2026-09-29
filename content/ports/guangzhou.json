@@ -8,7 +8,7 @@
   "region": "south-china-sea",
   "location": [113.26, 23.13],
   "kind": "port",
-  "goods": ["silk", "porcelain"],
+  "goods": ["silk", "porcelain", "sappanwood"],
   "climate": "副熱帶季風氣候",
   "blurb": "珠江三角洲頂端的千年商港，自唐代起便是中國對南海與印度洋貿易的門戶。"
 }

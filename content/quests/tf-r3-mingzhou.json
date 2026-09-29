@@ -1,0 +1,53 @@
+{
+  "id": "tf-r3-mingzhou",
+  "title": "明州的茶與瓷",
+  "scenario": "treasure-fleet",
+  "chapter": 0,
+  "tier": 0,
+  "kind": "region",
+  "giver_port": "taicang",
+  "objectives": [
+    {
+      "domain": "B",
+      "text": "能在海圖上找到舟山群島。"
+    },
+    {
+      "domain": "F",
+      "text": "知道寧波（明州）輸出茶葉與瓷器。"
+    }
+  ],
+  "prerequisites": [],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "太倉商人",
+      "lines": [
+        "南邊的明州港有上好的茶葉和瓷器，是送往日本、朝鮮的貨。",
+        "明州外海有一大片群島，航行時小心暗礁。"
+      ]
+    },
+    {
+      "type": "navigate",
+      "target": "ningbo",
+      "hint_level": 1
+    },
+    {
+      "type": "discover",
+      "target": "zhoushan"
+    },
+    {
+      "type": "quiz",
+      "question": "寧波外海由上千座島嶼組成、中國最大的群島是？",
+      "choices": ["澎湖群島", "舟山群島", "琉球群島", "千島群島"],
+      "answer": 1,
+      "explanation": "舟山群島位於杭州灣外，是中國最大的群島，附近的舟山漁場漁產豐富。"
+    }
+  ],
+  "reward": {
+    "xp": 70,
+    "gold": 100,
+    "reputation": 5,
+    "unlock_ports": ["naha"],
+    "codex": []
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "id": "tf-03-palembang",
+  "title": "舊港的海盜",
+  "scenario": "treasure-fleet",
+  "chapter": 1,
+  "tier": 1,
+  "kind": "main",
+  "giver_port": "semarang",
+  "objectives": [
+    {
+      "domain": "E",
+      "text": "知道巨港（舊港）位於蘇門答臘島。"
+    },
+    {
+      "domain": "C",
+      "text": "能說出巨港建在穆西河畔。"
+    }
+  ],
+  "prerequisites": ["tf-02-java"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "爪哇商人",
+      "lines": [
+        "聽說舊港一帶海盜猖獗，常常劫掠往來的商船。",
+        "舊港的百姓託人送信給船隊，希望船隊能去看看。",
+        "舊港在蘇門答臘島東南，要沿著河口往上游走一段。"
+      ]
+    },
+    {
+      "type": "navigate",
+      "target": "palembang",
+      "hint_level": 2
+    },
+    {
+      "type": "discover",
+      "target": "musi-river"
+    },
+    {
+      "type": "quiz",
+      "question": "巨港（舊港）位在哪一座大島上？",
+      "choices": ["爪哇島", "婆羅洲", "蘇門答臘", "呂宋島"],
+      "answer": 2,
+      "explanation": "巨港位於蘇門答臘島東南部的穆西河畔。明朝在此設立舊港宣慰司，管理當地華人社群。"
+    }
+  ],
+  "reward": {
+    "xp": 110,
+    "gold": 220,
+    "reputation": 10,
+    "unlock_ports": [],
+    "codex": []
+  }
+}

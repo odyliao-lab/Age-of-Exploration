@@ -1,0 +1,10 @@
+{
+  "id": "birds-nest",
+  "category": "goods",
+  "name": "燕窩",
+  "name_en": "Edible Bird's Nest",
+  "domains": ["F", "C"],
+  "body": "燕窩是金絲燕用唾液築成的巢，多見於婆羅洲等地的石灰岩洞穴。自明代起就是從南洋輸入中國的高價食材。",
+  "source": "維基百科「燕窩」「金絲燕」條目",
+  "reviewed": false
+}

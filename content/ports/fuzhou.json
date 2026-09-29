@@ -1,0 +1,15 @@
+{
+  "id": "fuzhou",
+  "name": "福州",
+  "name_en": "Fuzhou",
+  "historical_names": ["長樂太平港"],
+  "country": "中國",
+  "country_en": "China",
+  "region": "east-china-sea",
+  "location": [119.63, 25.95],
+  "kind": "port",
+  "goods": ["tea"],
+  "sights": ["changle-stele"],
+  "climate": "副熱帶季風氣候",
+  "blurb": "閩江出海口的港口。鄭和船隊在長樂太平港停泊，等候冬季東北季風吹起才揚帆出海。"
+}

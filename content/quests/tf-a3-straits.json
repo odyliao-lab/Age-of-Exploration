@@ -1,0 +1,55 @@
+{
+  "id": "tf-a3-straits",
+  "title": "航海學院：海峽與島嶼",
+  "scenario": "treasure-fleet",
+  "chapter": 1,
+  "tier": 1,
+  "kind": "academy",
+  "giver_port": "malacca",
+  "objectives": [
+    {
+      "domain": "B",
+      "text": "能說出巽他海峽位在爪哇與蘇門答臘之間。"
+    },
+    {
+      "domain": "B",
+      "text": "能說出東南亞的大島。"
+    }
+  ],
+  "prerequisites": ["tf-04-malacca"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "滿剌加的老航海家",
+      "lines": ["從南海到印度洋，不只有麻六甲一條路。", "爪哇和蘇門答臘之間，還有另一道海峽。"]
+    },
+    {
+      "type": "locate",
+      "prompt": "在海圖上點出巽他海峽：它位在爪哇島西端與蘇門答臘島南端之間（約南緯 6°、東經 106°）。",
+      "target": [105.8, -6.0],
+      "tolerance_km": 150,
+      "explanation": "巽他海峽連接爪哇海與印度洋。海峽中的喀拉喀托火山在 1883 年大爆發，火山灰甚至影響了全球氣候。"
+    },
+    {
+      "type": "quiz",
+      "question": "巽他海峽位在哪兩座島之間？",
+      "choices": ["爪哇島與蘇門答臘", "婆羅洲與爪哇島", "呂宋島與台灣", "蘇門答臘與馬來半島"],
+      "answer": 0,
+      "explanation": "巽他海峽在爪哇島與蘇門答臘之間；蘇門答臘與馬來半島之間的則是麻六甲海峽。"
+    },
+    {
+      "type": "quiz",
+      "question": "下列哪一座島是世界上人口最多的島嶼？",
+      "choices": ["婆羅洲", "爪哇島", "蘇門答臘", "呂宋島"],
+      "answer": 1,
+      "explanation": "爪哇島面積不是最大，但肥沃的火山土壤養活了大量人口，是世界上人口最多的島嶼。"
+    }
+  ],
+  "reward": {
+    "xp": 90,
+    "gold": 80,
+    "reputation": 5,
+    "unlock_ports": [],
+    "codex": ["dugong"]
+  }
+}

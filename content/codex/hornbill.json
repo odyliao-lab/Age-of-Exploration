@@ -1,0 +1,10 @@
+{
+  "id": "hornbill",
+  "category": "wildlife",
+  "name": "犀鳥",
+  "name_en": "Rhinoceros Hornbill",
+  "domains": ["C"],
+  "body": "犀鳥的嘴上長著像犀牛角的盔突，生活在婆羅洲、蘇門答臘的熱帶雨林。馬來西亞砂拉越州以「犀鳥之鄉」自稱。",
+  "source": "維基百科「馬來犀鳥」條目",
+  "reviewed": false
+}

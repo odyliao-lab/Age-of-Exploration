@@ -1,0 +1,11 @@
+{
+  "id": "tropic-of-cancer",
+  "category": "phenomenon",
+  "name": "北回歸線",
+  "name_en": "Tropic of Cancer",
+  "line": "tropic-of-cancer",
+  "domains": ["A", "D"],
+  "body": "北回歸線約在北緯 23.5°，是夏至時太陽直射的最北界線。北回歸線以南到南回歸線之間是熱帶。台灣的嘉義與花蓮都有北回歸線標誌。",
+  "source": "維基百科「北回歸線」條目",
+  "reviewed": false
+}

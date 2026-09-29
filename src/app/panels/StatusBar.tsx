@@ -1,8 +1,10 @@
 import { xpToNext } from '@/game/captain';
 import { SEASON_OF_MONTH } from '@/game/calendar';
 import { gameDate } from '@/game/state';
+import { dailyComplete, dueReviews } from '@/game/learning';
 import { ACHIEVEMENT_MAP } from '@/game/achievements';
 import { useGame } from '../store';
+import { useNow } from '../useNow';
 
 export function StatusBar(props: {
   onZoomIn: () => void;
@@ -15,7 +17,11 @@ export function StatusBar(props: {
   const openPanel = useGame((s) => s.openPanel);
   const scenario = world.scenarios.get(game.scenarioId)!;
   const c = game.captain;
+  const now = useNow();
   const d = gameDate(game);
+  const logBadge =
+    dueReviews(game.reviews, now).length +
+    (game.daily && !game.daily.claimed && dailyComplete(game.daily) ? 1 : 0);
 
   return (
     <header className="map-toolbar">
@@ -36,6 +42,13 @@ export function StatusBar(props: {
         </span>
       </div>
       <div className="map-actions">
+        <button
+          type="button"
+          onClick={() => openPanel('logbook')}
+          className={logBadge ? 'has-badge' : ''}
+        >
+          日誌{logBadge ? <span className="badge-dot">{logBadge}</span> : null}
+        </button>
         <button type="button" onClick={() => openPanel('codex')}>
           圖鑑
         </button>

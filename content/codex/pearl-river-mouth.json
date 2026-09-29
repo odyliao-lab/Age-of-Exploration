@@ -1,0 +1,12 @@
+{
+  "id": "pearl-river-mouth",
+  "category": "river",
+  "name": "珠江口",
+  "name_en": "Pearl River Estuary",
+  "location": [113.7, 22.3],
+  "discover_radius_km": 90,
+  "domains": ["C", "B"],
+  "body": "西江、北江、東江匯流形成珠江三角洲，在珠江口注入南海。廣州位於三角洲頂端，河海交通便利，自古就是重要商港。",
+  "source": "維基百科「珠江」「珠江三角洲」條目",
+  "reviewed": false
+}

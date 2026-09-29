@@ -51,6 +51,8 @@ export function crossValidate(bundle: ContentBundle): ContentIssue[] {
     if (!regionIds.has(p.region)) issues.push({ file: f, message: `未知的海域區：${p.region}` });
     for (const g of p.goods)
       if (!codexIds.has(g)) issues.push({ file: f, message: `未知的物產 codex：${g}` });
+    for (const g of p.sights)
+      if (!codexIds.has(g)) issues.push({ file: f, message: `未知的名勝 codex：${g}` });
   }
 
   for (const c of bundle.codex) {
@@ -63,8 +65,8 @@ export function crossValidate(bundle: ContentBundle): ContentIssue[] {
 
   // 可以在遊戲中被發現的知識卡：航經地標、港口特產、任務獎勵
   const discoverable = new Set<string>([
-    ...bundle.codex.filter((c) => c.location && c.discover_radius_km).map((c) => c.id),
-    ...bundle.ports.flatMap((p) => p.goods),
+    ...bundle.codex.filter((c) => (c.location && c.discover_radius_km) || c.line).map((c) => c.id),
+    ...bundle.ports.flatMap((p) => [...p.goods, ...p.sights]),
     ...bundle.quests.flatMap((q) => q.reward.codex),
   ]);
 

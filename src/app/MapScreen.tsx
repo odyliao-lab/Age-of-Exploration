@@ -21,6 +21,7 @@ import { WindCompass } from './panels/WindCompass';
 import { CodexPanel } from './panels/CodexPanel';
 import { CaptainPanel } from './panels/CaptainPanel';
 import { FleetPanel } from './panels/FleetPanel';
+import { LogbookPanel } from './panels/LogbookPanel';
 import { StatusBar } from './panels/StatusBar';
 
 const HOME_ZOOM = 5;
@@ -225,6 +226,7 @@ export function MapScreen() {
       {panel === 'codex' && <CodexPanel />}
       {panel === 'captain' && <CaptainPanel />}
       {panel === 'fleet' && <FleetPanel />}
+      {panel === 'logbook' && <LogbookPanel />}
 
       {modals[0] && <RewardModal modal={modals[0]} />}
       {!modals[0] && game.encounter?.kind === 'storm' && <StormModal encounter={game.encounter} />}

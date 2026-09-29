@@ -1,3 +1,4 @@
+import { activeNavigateTargets } from '@/game/state';
 import { planSummary, useGame } from '../store';
 
 export function PlanningPanel() {
@@ -8,7 +9,12 @@ export function PlanningPanel() {
   const cancel = useGame((s) => s.cancelPlanning);
   const setSail = useGame((s) => s.setSail);
 
+  const suggest = useGame((s) => s.suggestRoute);
   const legs = planning.waypoints.length - 1;
+  // 新手鷹架：提示等級 1 的任務目的地提供建議航線（企畫書 2.4）
+  const easyTargets = activeNavigateTargets(world, game).filter(
+    (t) => t.hintLevel <= 1 && t.portId !== game.dockedAt,
+  );
   const sum = planSummary(world, game, planning);
 
   return (
@@ -44,6 +50,15 @@ export function PlanningPanel() {
         <p className="warn" role="alert">
           {planning.error}
         </p>
+      )}
+      {easyTargets.length > 0 && (
+        <div className="row">
+          {easyTargets.map((t) => (
+            <button type="button" key={t.portId} onClick={() => suggest(t.portId)}>
+              🧭 建議航線：前往{world.ports.get(t.portId)?.name}
+            </button>
+          ))}
+        </div>
       )}
       <div className="row">
         <button type="button" onClick={undo} disabled={legs === 0}>

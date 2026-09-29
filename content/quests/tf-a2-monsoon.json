@@ -1,0 +1,67 @@
+{
+  "id": "tf-a2-monsoon",
+  "title": "航海學院：季風與洋流",
+  "scenario": "treasure-fleet",
+  "chapter": 1,
+  "tier": 1,
+  "kind": "academy",
+  "giver_port": "guangzhou",
+  "objectives": [
+    {
+      "domain": "D",
+      "text": "能說出南海冬夏季風的風向。"
+    },
+    {
+      "domain": "D",
+      "text": "能分辨暖流與寒流。"
+    }
+  ],
+  "prerequisites": ["tf-01-champa"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "航海學院講師",
+      "lines": ["帆船靠風前進，懂得風和洋流，就懂得怎麼航海。", "我來考考你這一路學到的知識。"]
+    },
+    {
+      "type": "quiz",
+      "question": "夏季的南海主要吹什麼風？",
+      "choices": ["東北季風", "西南季風", "西風", "北風"],
+      "answer": 1,
+      "explanation": "夏季陸地比海洋熱，風從海洋吹向陸地，南海一帶吹西南季風；冬季則相反，吹東北季風。"
+    },
+    {
+      "type": "quiz",
+      "question": "從台灣東部北上流向日本的黑潮，是暖流還是寒流？",
+      "choices": ["暖流", "寒流"],
+      "answer": 0,
+      "explanation": "黑潮從低緯度的熱帶海域往高緯度流，水溫比周圍海水高，所以是暖流。"
+    },
+    {
+      "type": "quiz",
+      "question": "西北太平洋的颱風多發生在什麼季節？",
+      "choices": ["冬季與春季", "夏季與秋季", "只有冬季", "一年四季都一樣多"],
+      "answer": 1,
+      "explanation": "夏秋兩季海水溫度高，最容易生成颱風，7 到 9 月是颱風最多的時候。"
+    },
+    {
+      "type": "quiz",
+      "question": "海面上出現的「海市蜃樓」是怎麼形成的？",
+      "choices": [
+        "海中大蛤吐氣",
+        "光線經過溫度不同的空氣層時發生折射",
+        "海水反射月光",
+        "颱風把城市吹到海上"
+      ],
+      "answer": 1,
+      "explanation": "海市蜃樓是光學現象：光線穿過溫度不同、密度不同的空氣層時會彎曲，把遠方景物投射到海面上方。"
+    }
+  ],
+  "reward": {
+    "xp": 80,
+    "gold": 60,
+    "reputation": 5,
+    "unlock_ports": [],
+    "codex": ["typhoon", "mirage"]
+  }
+}

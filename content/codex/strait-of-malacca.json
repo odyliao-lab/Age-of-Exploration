@@ -1,0 +1,12 @@
+{
+  "id": "strait-of-malacca",
+  "category": "landmark",
+  "name": "麻六甲海峽",
+  "name_en": "Strait of Malacca",
+  "location": [101.5, 2.6],
+  "discover_radius_km": 200,
+  "domains": ["B", "D"],
+  "body": "麻六甲海峽位於馬來半島與蘇門答臘之間，長約 800 公里，連接南海與印度洋。它是東西方航運的咽喉，至今仍是世界最繁忙的航道之一。",
+  "source": "維基百科「馬六甲海峽」條目",
+  "reviewed": false
+}

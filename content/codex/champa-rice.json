@@ -1,0 +1,10 @@
+{
+  "id": "champa-rice",
+  "category": "goods",
+  "name": "占城稻",
+  "name_en": "Champa Rice",
+  "domains": ["F", "D"],
+  "body": "原產占城的稻米品種，耐旱、生長期短。北宋時引進福建並推廣到長江流域，讓一年可以多收一季，對中國南方的糧食生產影響很大。",
+  "source": "維基百科「占城稻」條目",
+  "reviewed": false
+}

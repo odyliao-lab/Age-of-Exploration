@@ -1,0 +1,15 @@
+{
+  "id": "semarang",
+  "name": "三寶壟",
+  "name_en": "Semarang",
+  "historical_names": [],
+  "country": "印尼",
+  "country_en": "Indonesia",
+  "region": "malacca-java",
+  "location": [110.42, -6.96],
+  "kind": "port",
+  "goods": ["pepper", "sandalwood", "cloves"],
+  "sights": ["sam-poo-kong"],
+  "climate": "熱帶季風氣候",
+  "blurb": "爪哇島北岸的港口。當時爪哇的滿者伯夷王國控制香料貿易，東部群島的丁香、檀香都在爪哇北岸集散。"
+}

@@ -1,0 +1,53 @@
+{
+  "id": "tf-r6-luzon",
+  "title": "呂宋的商船",
+  "scenario": "treasure-fleet",
+  "chapter": 1,
+  "tier": 1,
+  "kind": "region",
+  "giver_port": "guangzhou",
+  "objectives": [
+    {
+      "domain": "E",
+      "text": "能說出呂宋島屬於今天的菲律賓。"
+    },
+    {
+      "domain": "D",
+      "text": "知道呂宋附近是颱風經常經過的海域。"
+    }
+  ],
+  "prerequisites": ["tf-00-first-voyage"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "福建商人",
+      "lines": [
+        "我們的貨船要去呂宋做生意，可是最近那一帶風浪大。",
+        "呂宋在南海東側，你能先幫我們探探路嗎？"
+      ]
+    },
+    {
+      "type": "navigate",
+      "target": "manila",
+      "hint_level": 2
+    },
+    {
+      "type": "discover",
+      "target": "luzon"
+    },
+    {
+      "type": "quiz",
+      "question": "呂宋島屬於今天的哪一個國家？",
+      "choices": ["越南", "印尼", "菲律賓", "馬來西亞"],
+      "answer": 2,
+      "explanation": "呂宋島是菲律賓最大的島嶼，首都馬尼拉就在島的西岸。"
+    }
+  ],
+  "reward": {
+    "xp": 90,
+    "gold": 150,
+    "reputation": 10,
+    "unlock_ports": ["brunei"],
+    "codex": []
+  }
+}

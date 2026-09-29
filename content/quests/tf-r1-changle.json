@@ -1,0 +1,49 @@
+{
+  "id": "tf-r1-changle",
+  "title": "長樂等風",
+  "scenario": "treasure-fleet",
+  "chapter": 0,
+  "tier": 0,
+  "kind": "region",
+  "giver_port": "quanzhou",
+  "objectives": [
+    {
+      "domain": "D",
+      "text": "能說明古代船隊等待季風出航的原因。"
+    },
+    {
+      "domain": "E",
+      "text": "知道鄭和船隊在福建長樂停泊候風。"
+    }
+  ],
+  "prerequisites": [],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "老船工",
+      "lines": [
+        "寶船都在北邊的長樂太平港停泊，等冬天的東北季風一起就出海。",
+        "你先去長樂看看，順便把這批木料送過去。"
+      ]
+    },
+    {
+      "type": "navigate",
+      "target": "fuzhou",
+      "hint_level": 1
+    },
+    {
+      "type": "quiz",
+      "question": "鄭和船隊為什麼要在福建長樂一直等到冬天才出海南下？",
+      "choices": ["等東北季風吹起，順風南下", "等颱風季節來臨", "等海水結冰", "等西南季風吹起"],
+      "answer": 0,
+      "explanation": "冬季的東北季風會把帆船推向西南方，正好適合從福建南下南海。"
+    }
+  ],
+  "reward": {
+    "xp": 60,
+    "gold": 80,
+    "reputation": 5,
+    "unlock_ports": ["taicang"],
+    "codex": []
+  }
+}

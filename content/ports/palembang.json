@@ -1,0 +1,15 @@
+{
+  "id": "palembang",
+  "name": "巨港",
+  "name_en": "Palembang",
+  "historical_names": ["舊港", "三佛齊"],
+  "country": "印尼",
+  "country_en": "Indonesia",
+  "region": "malacca-java",
+  "location": [104.75, -2.98],
+  "kind": "port",
+  "goods": ["pepper"],
+  "sights": ["sumatran-tiger"],
+  "climate": "熱帶雨林氣候",
+  "blurb": "蘇門答臘東南部、穆西河畔的古城，曾是室利佛逝王國的中心。明朝稱為舊港，並在此設立舊港宣慰司。"
+}

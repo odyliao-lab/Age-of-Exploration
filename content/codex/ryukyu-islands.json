@@ -1,0 +1,12 @@
+{
+  "id": "ryukyu-islands",
+  "category": "island",
+  "name": "琉球群島",
+  "name_en": "Ryukyu Islands",
+  "location": [127.8, 26.3],
+  "discover_radius_km": 200,
+  "domains": ["B", "E"],
+  "body": "琉球群島從九州南方一路延伸到台灣東北方，呈弧形排列，把東海和太平洋分開。群島地處亞洲海上航路的中繼點。",
+  "source": "維基百科「琉球群島」條目",
+  "reviewed": false
+}

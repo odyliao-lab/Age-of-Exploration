@@ -9,6 +9,19 @@ import { bearingDeg, compass16, distanceKm } from '@/geo/geo';
 import { addXp, newCaptain, type Captain } from './captain';
 import { ACHIEVEMENT_MAP, EMPTY_STATS, newlyUnlocked, type AchievementStats } from './achievements';
 import { modifiersFor, type Modifiers } from './modifiers';
+import {
+  DAILY_REWARD,
+  answerReview,
+  bumpDaily,
+  dailyComplete,
+  dueReviews,
+  localDate,
+  newDailyVoyage,
+  scheduleReview,
+  type DailyVoyage,
+  type ReviewItem,
+} from './learning';
+import type { LearningDomain } from '@/data/schema';
 import { SKILLS, shipDef, skillPointsEarned, type Profession } from './progression';
 import { dateOf, type GameDate } from './calendar';
 import {
@@ -55,7 +68,7 @@ import {
 import { createVoyage, isFinished, positionAt, type Harbor, type Voyage } from './voyage';
 import type { World } from './world';
 
-export const SAVE_VERSION = 4;
+export const SAVE_VERSION = 5;
 
 /** 航行中需要玩家處理的狀況：風暴或隨機事件 */
 export type Encounter = StormEncounter | VoyageEvent;
@@ -128,6 +141,18 @@ export interface GameState {
   /** 目前顯示的稱號（成就 id） */
   title: string | null;
   stats: AchievementStats;
+  /** 錯題回流（間隔重複） */
+  reviews: ReviewItem[];
+  /** 今日航程 */
+  daily: DailyVoyage | null;
+  /** 航海紀錄（最近的事件） */
+  log: LogEntry[];
+}
+
+export interface LogEntry {
+  day: number;
+  text: string;
+  kind: 'arrive' | 'discover' | 'quest' | 'storm' | 'event' | 'level' | 'achievement';
 }
 
 export interface QuestReward {
@@ -187,7 +212,7 @@ export function newGame(world: World, scenarioId: string, seed = newSeed()): Ste
     dockedAt: home.id,
     voyage: null,
     fog,
-    discovered: [...home.goods],
+    discovered: [...home.goods, ...home.sights],
     visitedPorts: [home.id],
     unlockedPorts: unlocked,
     quests: {},
@@ -209,6 +234,9 @@ export function newGame(world: World, scenarioId: string, seed = newSeed()): Ste
     achievements: [],
     title: null,
     stats: { ...EMPTY_STATS },
+    reviews: [],
+    daily: null,
+    log: [{ day: 0, text: `從${home.name}出發，展開航海生涯`, kind: 'arrive' }],
   };
   return { state, events: [], fogChanged };
 }
@@ -361,6 +389,12 @@ export function tick(world: World, state: GameState, days: number): StepResult {
     const condition = passTime(before, stepDays, m);
     const stats = trackCrossings(s.stats, s.ship.position[1], pos.position[1]);
     s = { ...s, ship: { position: pos.position, heading: pos.heading }, condition, stats };
+    for (const id of linesCrossed(world, here.position[1], pos.position[1])) {
+      if (!discovered.includes(id)) {
+        discovered = [...discovered, id];
+        events.push({ type: 'discovered', codexId: id });
+      }
+    }
     warnConditionChanges(before, condition, events);
 
     fogChanged.push(...revealAround(state.fog, pos.position, sight));
@@ -422,6 +456,25 @@ export function tick(world: World, state: GameState, days: number): StepResult {
     events: [...events, ...progressed.events],
     fogChanged: [...fogChanged, ...progressed.fogChanged],
   };
+}
+
+const LINE_LATITUDES = {
+  equator: 0,
+  'tropic-of-cancer': 23.44,
+  'tropic-of-capricorn': -23.44,
+  'arctic-circle': 66.56,
+  'antarctic-circle': -66.56,
+} as const;
+
+/** 這一小步穿越的緯線所對應的知識卡 */
+function linesCrossed(world: World, fromLat: number, toLat: number): string[] {
+  return world.content.codex
+    .filter((c) => {
+      if (!c.line) return false;
+      const line = LINE_LATITUDES[c.line];
+      return (fromLat - line) * (toLat - line) < 0;
+    })
+    .map((c) => c.id);
 }
 
 /** 記錄是否航行穿越赤道或回歸線（成就用） */
@@ -508,6 +561,7 @@ export function resolveEvent(
   world: World,
   state: GameState,
   response: { choiceId?: string; answer?: number },
+  now = Date.now(),
 ): StepResult {
   const ev = state.encounter;
   if (!ev || ev.kind !== 'event') return { state, events: [], fogChanged: [] };
@@ -516,8 +570,23 @@ export function resolveEvent(
   let effect: EventEffect;
   let quizLog = state.quizLog;
   let stats = state.stats;
+  let reviews = state.reviews;
   if (response.answer !== undefined && ev.question) {
     const correct = response.answer === ev.question.answer;
+    if (!correct) {
+      reviews = scheduleReview(
+        reviews,
+        `event:${ev.id}:${Math.floor(state.day)}`,
+        {
+          prompt: ev.question.prompt,
+          choices: ev.question.choices,
+          answer: ev.question.answer,
+          explanation: ev.question.explanation,
+        },
+        ev.id === 'pirates' ? ['B'] : ['A'],
+        now,
+      );
+    }
     effect = resolveAnswer(ev, correct, state.gold, m.starXp);
     if (correct && ev.id === 'stargazing')
       stats = { ...stats, starsCorrect: stats.starsCorrect + 1 };
@@ -560,6 +629,7 @@ export function resolveEvent(
       seed,
       encounter: null,
       quizLog,
+      reviews,
       stats,
       captain: xp?.captain ?? state.captain,
       skillPoints: xp?.skillPoints ?? state.skillPoints,
@@ -660,7 +730,7 @@ function arrive(world: World, state: GameState, portId: string): StepResult {
   const port = world.ports.get(portId)!;
   const firstVisit = !state.visitedPorts.includes(portId);
   const events: GameEvent[] = [{ type: 'arrived', portId, firstVisit }];
-  const newGoods = port.goods.filter((g) => !state.discovered.includes(g));
+  const newGoods = [...port.goods, ...port.sights].filter((g) => !state.discovered.includes(g));
   for (const g of newGoods) events.push({ type: 'discovered', codexId: g });
   const fogChanged = revealAround(state.fog, port.location, PORT_REVEAL_KM);
   const gift = firstVisit ? mods(world, state).firstVisitGold : 0;
@@ -843,6 +913,7 @@ export function answerQuiz(
   state: GameState,
   questId: string,
   choice: number,
+  now = Date.now(),
 ): StepResult & { correct: boolean } {
   const p = state.quests[questId];
   const quest = world.quests.get(questId);
@@ -863,7 +934,25 @@ export function answerQuiz(
         day: state.day,
       };
   const quizLog = [...state.quizLog.filter((r) => r !== existing), record];
-  const next = { ...state, quizLog };
+  let next = { ...state, quizLog };
+  // 第一次就答錯的題目加入錯題回流
+  if (!correct && !existing) {
+    next = {
+      ...next,
+      reviews: scheduleReview(
+        next.reviews,
+        `${questId}#${p.step}`,
+        {
+          prompt: step.question,
+          choices: step.choices,
+          answer: step.answer,
+          explanation: step.explanation,
+        },
+        quest.objectives.map((o) => o.domain),
+        now,
+      ),
+    };
+  }
   if (!correct) return { state: next, events: [], fogChanged: [], correct };
   return { ...advanceStep(world, next, questId), correct };
 }
@@ -1082,3 +1171,128 @@ export function checkAchievements(world: World, state: GameState): StepResult {
     fogChanged: [],
   };
 }
+
+// ---------------------------------------------------------------- 自學：今日航程、錯題回流、航海紀錄
+
+/** 換日時產生新的今日航程 */
+export function ensureDaily(state: GameState, now: number): GameState {
+  if (state.daily?.date === localDate(now)) return state;
+  return { ...state, daily: newDailyVoyage(now, dueReviews(state.reviews, now).length) };
+}
+
+/** 依狀態變化推進今日航程：發現圖鑑、任務步驟前進、問答答對 */
+export function trackDaily(prev: GameState, next: GameState, events: GameEvent[]): GameState {
+  let daily = next.daily;
+  const found = events.filter((e) => e.type === 'discovered').length;
+  if (found) daily = bumpDaily(daily, 'explore', found);
+  const steps = Object.entries(next.quests).reduce((n, [id, q]) => {
+    const before = prev.quests[id];
+    return n + Math.max(0, q.step - (before?.step ?? 0));
+  }, 0);
+  if (steps) daily = bumpDaily(daily, 'story', steps);
+  const newCorrect =
+    next.quizLog.filter((q) => q.firstTry).length - prev.quizLog.filter((q) => q.firstTry).length;
+  // 沒有錯題可複習時，「答對一題問答」也算複習目標
+  if (
+    newCorrect > 0 &&
+    daily?.goals.some((g) => g.kind === 'review' && g.label.startsWith('答對'))
+  ) {
+    daily = bumpDaily(daily, 'review', newCorrect);
+  }
+  return daily === next.daily ? next : { ...next, daily };
+}
+
+export function claimDaily(state: GameState): StepResult {
+  if (!state.daily || state.daily.claimed || !dailyComplete(state.daily)) {
+    return { state, events: [], fogChanged: [] };
+  }
+  const xp = gainXp(state, DAILY_REWARD.xp);
+  return {
+    state: {
+      ...state,
+      daily: { ...state.daily, claimed: true },
+      captain: xp.captain,
+      skillPoints: xp.skillPoints,
+      gold: state.gold + DAILY_REWARD.gold,
+    },
+    events: xp.events,
+    fogChanged: [],
+  };
+}
+
+/** 回答一題錯題複習；答對加 5 經驗 */
+export function answerReviewItem(
+  state: GameState,
+  key: string,
+  choice: number,
+  now: number,
+): StepResult & { correct: boolean } {
+  const item = state.reviews.find((r) => r.key === key);
+  if (!item) return { state, events: [], fogChanged: [], correct: false };
+  const correct = choice === item.question.answer;
+  let next: GameState = { ...state, reviews: answerReview(state.reviews, key, correct, now) };
+  let events: GameEvent[] = [];
+  if (correct) {
+    const xp = gainXp(next, 5);
+    next = {
+      ...next,
+      captain: xp.captain,
+      skillPoints: xp.skillPoints,
+      daily: bumpDaily(next.daily, 'review'),
+    };
+    events = xp.events;
+  }
+  return { state: next, events, fogChanged: [], correct };
+}
+
+const LOG_LIMIT = 200;
+
+/** 把重要事件寫進航海紀錄 */
+export function appendLog(world: World, state: GameState, events: GameEvent[]): GameState {
+  const entries: LogEntry[] = [];
+  const day = Math.floor(state.day) + 1;
+  for (const e of events) {
+    if (e.type === 'arrived') {
+      const p = world.ports.get(e.portId);
+      entries.push({
+        day,
+        kind: 'arrive',
+        text: `${e.firstVisit ? '首次抵達' : '抵達'}${p?.name ?? e.portId}`,
+      });
+    } else if (e.type === 'discovered') {
+      entries.push({
+        day,
+        kind: 'discover',
+        text: `發現：${world.codex.get(e.codexId)?.name ?? e.codexId}`,
+      });
+    } else if (e.type === 'questCompleted') {
+      entries.push({
+        day,
+        kind: 'quest',
+        text: `完成任務：${world.quests.get(e.questId)?.title ?? e.questId}`,
+      });
+    } else if (e.type === 'stormResolved') {
+      entries.push({ day, kind: 'storm', text: `度過風暴，船體受損 ${e.hullLoss}` });
+    } else if (e.type === 'shipwreck') {
+      entries.push({
+        day,
+        kind: 'storm',
+        text: `遭遇${e.cause.name}沉船，被救回${world.ports.get(e.portId)?.name ?? ''}`,
+      });
+    } else if (e.type === 'eventResolved' && e.effect.title) {
+      entries.push({ day, kind: 'event', text: e.effect.title });
+    } else if (e.type === 'levelUp') {
+      entries.push({ day, kind: 'level', text: `船長升到第 ${e.level} 級` });
+    } else if (e.type === 'achievement') {
+      entries.push({
+        day,
+        kind: 'achievement',
+        text: `成就：${ACHIEVEMENT_MAP.get(e.id)?.name ?? e.id}`,
+      });
+    }
+  }
+  if (!entries.length) return state;
+  return { ...state, log: [...state.log, ...entries].slice(-LOG_LIMIT) };
+}
+
+export type { LearningDomain };

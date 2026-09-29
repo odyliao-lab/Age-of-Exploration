@@ -1,0 +1,53 @@
+{
+  "id": "tf-r7-boni",
+  "title": "渤泥國王的故事",
+  "scenario": "treasure-fleet",
+  "chapter": 1,
+  "tier": 1,
+  "kind": "region",
+  "giver_port": "manila",
+  "objectives": [
+    {
+      "domain": "B",
+      "text": "能說出婆羅洲是世界第三大島。"
+    },
+    {
+      "domain": "E",
+      "text": "知道渤泥國與明朝的往來。"
+    }
+  ],
+  "prerequisites": ["tf-r6-luzon"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "渤泥國使者",
+      "lines": [
+        "我們的國王曾經親自前往南京朝見皇帝，可惜在那裡病逝了。",
+        "請你到我們的國都看看。渤泥在婆羅洲的北岸，從這裡往西南方走。"
+      ]
+    },
+    {
+      "type": "navigate",
+      "target": "brunei",
+      "hint_level": 3
+    },
+    {
+      "type": "discover",
+      "target": "borneo"
+    },
+    {
+      "type": "quiz",
+      "question": "婆羅洲是世界第幾大島？",
+      "choices": ["第一大", "第二大", "第三大", "第四大"],
+      "answer": 2,
+      "explanation": "世界前三大島依序是格陵蘭、新幾內亞與婆羅洲。婆羅洲今天由汶萊、馬來西亞、印尼共有。"
+    }
+  ],
+  "reward": {
+    "xp": 110,
+    "gold": 200,
+    "reputation": 10,
+    "unlock_ports": [],
+    "codex": []
+  }
+}

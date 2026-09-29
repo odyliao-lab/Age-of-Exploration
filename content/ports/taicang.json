@@ -1,0 +1,15 @@
+{
+  "id": "taicang",
+  "name": "太倉",
+  "name_en": "Taicang",
+  "historical_names": ["劉家港"],
+  "country": "中國",
+  "country_en": "China",
+  "region": "east-china-sea",
+  "location": [121.13, 31.53],
+  "kind": "port",
+  "goods": ["silk"],
+  "sights": ["liujiagang"],
+  "climate": "副熱帶季風氣候",
+  "blurb": "長江口南岸的港口，古稱劉家港。鄭和船隊七次下西洋都從這裡集結出發，被稱為「六國碼頭」。"
+}

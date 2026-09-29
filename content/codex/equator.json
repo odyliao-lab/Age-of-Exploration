@@ -1,0 +1,11 @@
+{
+  "id": "equator",
+  "category": "phenomenon",
+  "name": "赤道",
+  "name_en": "Equator",
+  "line": "equator",
+  "domains": ["A", "D"],
+  "body": "赤道是緯度 0° 的緯線，把地球分成北半球與南半球，全長約 4 萬公里。赤道附近終年高溫多雨，是熱帶雨林分布的地方。",
+  "source": "維基百科「赤道」條目",
+  "reviewed": false
+}

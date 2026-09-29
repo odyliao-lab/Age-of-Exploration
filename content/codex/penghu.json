@@ -1,0 +1,12 @@
+{
+  "id": "penghu",
+  "category": "island",
+  "name": "澎湖群島",
+  "name_en": "Penghu Islands",
+  "location": [119.58, 23.57],
+  "discover_radius_km": 120,
+  "domains": ["B", "E"],
+  "body": "澎湖由約九十座島嶼組成，位於台灣海峽中央。元朝在此設立澎湖巡檢司，是台灣地區最早設立官署的地方，也是往來閩台的航海要地。",
+  "source": "維基百科「澎湖群島」「澎湖巡檢司」條目",
+  "reviewed": false
+}

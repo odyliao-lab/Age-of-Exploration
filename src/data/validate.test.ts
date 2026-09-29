@@ -24,6 +24,7 @@ const base = (): ContentBundle => ({
       location: [118.6, 24.9],
       kind: 'hub',
       goods: [],
+      sights: [],
     },
   ],
   codex: [],

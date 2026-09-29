@@ -1,0 +1,10 @@
+{
+  "id": "cloves",
+  "category": "goods",
+  "name": "丁香",
+  "name_en": "Cloves",
+  "domains": ["F", "E"],
+  "body": "丁香是丁香樹未開的花苞曬乾而成，原本只生長在印尼東部摩鹿加群島的少數小島上。它經由爪哇、麻六甲的商人轉運到中國、印度與歐洲。",
+  "source": "維基百科「丁香」「摩鹿加群島」條目",
+  "reviewed": false
+}

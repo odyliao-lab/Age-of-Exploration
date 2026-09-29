@@ -1,0 +1,10 @@
+{
+  "id": "sandalwood",
+  "category": "goods",
+  "name": "檀香",
+  "name_en": "Sandalwood",
+  "domains": ["F"],
+  "body": "檀香木質細緻、香氣持久，主要產在帝汶等東南亞島嶼，經爪哇商人轉運。常用來製作香料、佛像與扇子。",
+  "source": "維基百科「檀香」「帝汶島」條目",
+  "reviewed": false
+}

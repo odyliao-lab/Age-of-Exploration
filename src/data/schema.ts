@@ -59,6 +59,8 @@ export const Port = z.object({
   kind: z.enum(['hub', 'port', 'landmark']),
   /** 特產（物產 codex id） */
   goods: z.array(Id).default([]),
+  /** 名勝、文化、生物等，抵達港口時登錄圖鑑（codex id） */
+  sights: z.array(Id).default([]),
   climate: z.string().optional(),
   blurb: z.string().optional(),
 });
@@ -83,6 +85,16 @@ export const CodexEntry = z.object({
   location: LonLat.optional(),
   /** 航行經過多少公里內自動發現（landmark 類常用） */
   discover_radius_km: z.number().positive().optional(),
+  /** 航行穿越這條緯線時發現（赤道、回歸線、極圈） */
+  line: z
+    .enum([
+      'equator',
+      'tropic-of-cancer',
+      'tropic-of-capricorn',
+      'arctic-circle',
+      'antarctic-circle',
+    ])
+    .optional(),
   domains: z.array(LearningDomain).min(1),
   body: z.string().min(20, '知識卡內容至少 20 字'),
   source: z.string().min(1, '每張知識卡必須標註資料來源'),

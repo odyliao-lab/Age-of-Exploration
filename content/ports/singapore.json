@@ -1,0 +1,15 @@
+{
+  "id": "singapore",
+  "name": "新加坡",
+  "name_en": "Singapore",
+  "historical_names": ["單馬錫", "淡馬錫"],
+  "country": "新加坡",
+  "country_en": "Singapore",
+  "region": "malacca-java",
+  "location": [103.85, 1.29],
+  "kind": "port",
+  "goods": ["tin"],
+  "sights": [],
+  "climate": "熱帶雨林氣候",
+  "blurb": "馬來半島南端的小島。14 世紀汪大淵的《島夷誌略》記載這裡叫「單馬錫」，是扼守海峽的港口。"
+}

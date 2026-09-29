@@ -1,0 +1,12 @@
+{
+  "id": "singapore-strait",
+  "category": "landmark",
+  "name": "新加坡海峽",
+  "name_en": "Singapore Strait",
+  "location": [104.0, 1.2],
+  "discover_radius_km": 80,
+  "domains": ["B"],
+  "body": "新加坡海峽是麻六甲海峽東南端的狹窄水道，北岸是新加坡，南岸是印尼的廖內群島。船隻從南海進入麻六甲海峽都要經過這裡。",
+  "source": "維基百科「新加坡海峽」條目",
+  "reviewed": false
+}

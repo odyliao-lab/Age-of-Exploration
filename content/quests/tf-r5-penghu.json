@@ -1,0 +1,51 @@
+{
+  "id": "tf-r5-penghu",
+  "title": "澎湖的燈火",
+  "scenario": "treasure-fleet",
+  "chapter": 0,
+  "tier": 0,
+  "kind": "region",
+  "giver_port": "quanzhou",
+  "objectives": [
+    {
+      "domain": "A",
+      "text": "能在海圖上找到澎湖群島。"
+    },
+    {
+      "domain": "E",
+      "text": "知道元朝在澎湖設立巡檢司。"
+    }
+  ],
+  "prerequisites": ["tf-00-first-voyage"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "泉州漁夫",
+      "lines": [
+        "往台灣的方向，海峽中間有一群小島，晚上看得到漁火。",
+        "元朝就在那裡設了巡檢司，管理往來的漁民與商人。你知道在哪裡嗎？"
+      ]
+    },
+    {
+      "type": "locate",
+      "prompt": "在海圖上點出澎湖群島：它位在台灣海峽中央，台灣本島的西方（約北緯 23.5°、東經 119.6°）。",
+      "target": [119.58, 23.57],
+      "tolerance_km": 80,
+      "explanation": "澎湖群島由約九十座島嶼組成，位於台灣海峽中央，是台灣地區最早設立官署的地方。"
+    },
+    {
+      "type": "quiz",
+      "question": "元朝在澎湖設立了什麼機構？",
+      "choices": ["市舶司", "巡檢司", "宣慰司", "都護府"],
+      "answer": 1,
+      "explanation": "元朝在澎湖設立巡檢司，負責治安與管理漁民。「市舶司」則是管理海外貿易的機構，設在泉州、廣州等港口。"
+    }
+  ],
+  "reward": {
+    "xp": 60,
+    "gold": 60,
+    "reputation": 5,
+    "unlock_ports": [],
+    "codex": []
+  }
+}

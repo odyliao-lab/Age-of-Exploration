@@ -13,6 +13,11 @@ import { spendPoint, type AttributeKey } from '@/game/captain';
 import { deleteSave, listSaves, loadSave, writeSave } from '@/game/save';
 import {
   acceptQuest,
+  answerReviewItem,
+  appendLog,
+  claimDaily,
+  ensureDaily,
+  trackDaily,
   buyShip,
   checkAchievements,
   dismissCrew,
@@ -42,6 +47,7 @@ import { checkLeg } from '@/game/voyage';
 import type { EventEffect } from '@/game/events';
 import { ACHIEVEMENT_MAP } from '@/game/achievements';
 import { SKILLS } from '@/game/progression';
+import { findSeaPath } from '@/geo/seaPath';
 import type { World } from '@/game/world';
 
 /** 1 倍速時，現實 1.2 秒 = 遊戲 1 天 */
@@ -49,7 +55,7 @@ export const SECONDS_PER_DAY = 1.2;
 const AUTOSAVE_MS = 4000;
 
 type Screen = 'menu' | 'map';
-export type Panel = 'codex' | 'captain' | 'fleet' | null;
+export type Panel = 'codex' | 'captain' | 'fleet' | 'logbook' | null;
 
 export interface Toast {
   id: number;
@@ -133,6 +139,9 @@ interface GameStore {
   dismiss: (crewId: string) => void;
   buy: (shipId: string) => void;
   chooseTitle: (achievementId: string | null) => void;
+  claimDaily: () => void;
+  answerReview: (key: string, choice: number) => boolean;
+  suggestRoute: (portId: string) => void;
 
   dismissModal: () => void;
   dismissToast: (id: number) => void;
@@ -177,13 +186,14 @@ export const useGame = create<GameStore>((set, get) => {
   function apply(input: StepResult) {
     const { world } = get();
     if (!world) return;
-    // 每次狀態變化後檢查成就
+    // 每次狀態變化後檢查成就，並更新今日航程與航海紀錄
+    const prev = get().game;
     const ach = checkAchievements(world, input.state);
-    const result: StepResult = {
-      state: ach.state,
-      events: [...input.events, ...ach.events],
-      fogChanged: input.fogChanged,
-    };
+    const events = [...input.events, ...ach.events];
+    let state = ensureDaily(ach.state, Date.now());
+    if (prev) state = trackDaily(prev, state, events);
+    state = appendLog(world, state, events);
+    const result: StepResult = { state, events, fogChanged: input.fogChanged };
     emitFog(result.fogChanged);
     const toasts: Toast[] = [];
     const modals: Modal[] = [];
@@ -267,7 +277,7 @@ export const useGame = create<GameStore>((set, get) => {
     loadGame: (state) => {
       set({
         screen: 'map',
-        game: state,
+        game: ensureDaily(state, Date.now()),
         selectedPortId: state.dockedAt,
         planning: null,
         paused: false,
@@ -492,6 +502,38 @@ export const useGame = create<GameStore>((set, get) => {
     chooseTitle: (id) => {
       const g = get().game;
       if (g) commit(setTitle(g, id));
+    },
+
+    claimDaily: () => {
+      const g = get().game;
+      if (!g) return;
+      const r = claimDaily(g);
+      if (r.state === g) return;
+      apply(r);
+      scheduleSave(true);
+      toast({ text: '今日航程完成！經驗 +30、金幣 +50', kind: 'success' });
+    },
+
+    answerReview: (key, choice) => {
+      const g = get().game;
+      if (!g) return false;
+      const r = answerReviewItem(g, key, choice, Date.now());
+      apply(r);
+      scheduleSave(true);
+      return r.correct;
+    },
+
+    suggestRoute: (portId) => {
+      const { world, game, planning } = get();
+      if (!world || !game || !planning) return;
+      const port = world.ports.get(portId);
+      if (!port) return;
+      const path = findSeaPath(game.ship.position, port.location, harborsFor(world, game));
+      if (!path) {
+        set({ planning: { ...planning, error: '找不到可以抵達的海上航線。' } });
+        return;
+      }
+      set({ planning: { waypoints: path, destinationPortId: portId, error: null } });
     },
 
     spend: (key) => {

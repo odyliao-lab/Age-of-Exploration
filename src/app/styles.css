@@ -1173,3 +1173,134 @@ button.wide {
     grid-template-columns: 1fr;
   }
 }
+
+/* ---- 第 5 週：航海日誌 ---- */
+
+.logbook section {
+  margin-bottom: 18px;
+}
+
+.daily-goals {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 8px;
+}
+
+.daily-goals li {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 8px;
+  border: 1px solid var(--parchment-dark);
+  border-radius: 6px;
+  margin-bottom: 4px;
+  background: #fff;
+}
+
+.daily-goals li.done {
+  background: #eef6ef;
+  border-color: #2f7d4a;
+}
+
+.review-card {
+  border: 1px solid var(--parchment-dark);
+  border-radius: 8px;
+  padding: 10px;
+  background: #fff;
+}
+
+.choice.correct {
+  background: #d7eedb;
+  border-color: #2f7d4a;
+}
+
+.domain-stats {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.domain-stats li {
+  display: grid;
+  grid-template-columns: 7em 5em 1fr;
+  gap: 8px;
+  align-items: center;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--parchment-dark);
+  font-size: 0.9rem;
+}
+
+.mastery-tag {
+  border-radius: 999px;
+  padding: 1px 8px;
+  text-align: center;
+  font-size: 0.8rem;
+  background: var(--parchment-dark);
+}
+
+.mastery-mastered .mastery-tag {
+  background: #2f7d4a;
+  color: #fff;
+}
+
+.mastery-learning .mastery-tag {
+  background: #d9a441;
+}
+
+.mastery-needs-work .mastery-tag {
+  background: #c0392b;
+  color: #fff;
+}
+
+.voyage-log {
+  list-style: none;
+  padding-left: 0;
+  font-size: 0.9rem;
+  line-height: 1.8;
+  max-height: 260px;
+  overflow: auto;
+}
+
+@media (max-width: 600px) {
+  .domain-stats li {
+    grid-template-columns: 6em 4.5em 1fr;
+  }
+
+  .domain-stats li .meta {
+    grid-column: 1 / -1;
+  }
+}
+
+/* 列印航海日誌：只印日誌內容（企畫書 13：學習紀錄匯出） */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  .logbook,
+  .logbook * {
+    visibility: visible;
+  }
+
+  .logbook {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    max-height: none;
+    box-shadow: none;
+  }
+
+  .modal-backdrop {
+    background: none;
+  }
+
+  .no-print,
+  .logbook .close,
+  .logbook button {
+    display: none;
+  }
+
+  .voyage-log {
+    max-height: none;
+    overflow: visible;
+  }
+}

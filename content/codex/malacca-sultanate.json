@@ -1,0 +1,10 @@
+{
+  "id": "malacca-sultanate",
+  "category": "culture",
+  "name": "滿剌加王國",
+  "name_en": "Malacca Sultanate",
+  "domains": ["E", "F"],
+  "body": "約 1400 年，拜里米蘇拉在麻六甲建國。鄭和船隊在此設立存放貨物的「官廠」，滿剌加因而迅速成為東西方貿易的轉運中心。",
+  "source": "維基百科「馬六甲蘇丹國」條目；馬歡《瀛涯勝覽》",
+  "reviewed": false
+}

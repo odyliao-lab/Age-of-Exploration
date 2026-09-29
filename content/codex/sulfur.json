@@ -1,0 +1,10 @@
+{
+  "id": "sulfur",
+  "category": "goods",
+  "name": "硫磺",
+  "name_en": "Sulfur",
+  "domains": ["F", "C"],
+  "body": "琉球的硫黃鳥島是火山島，出產硫磺。硫磺是製造火藥的原料，琉球向明朝朝貢時常以硫磺與馬匹作為貢品。",
+  "source": "維基百科「硫黃鳥島」「琉球國」條目",
+  "reviewed": false
+}

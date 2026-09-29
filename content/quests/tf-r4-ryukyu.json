@@ -1,0 +1,58 @@
+{
+  "id": "tf-r4-ryukyu",
+  "title": "萬國津梁",
+  "scenario": "treasure-fleet",
+  "chapter": 0,
+  "tier": 0,
+  "kind": "region",
+  "giver_port": "ningbo",
+  "objectives": [
+    {
+      "domain": "B",
+      "text": "能說出琉球群島位於東海與太平洋之間。"
+    },
+    {
+      "domain": "D",
+      "text": "知道黑潮是流經琉球附近的暖流。"
+    }
+  ],
+  "prerequisites": ["tf-r3-mingzhou"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "琉球使節",
+      "lines": [
+        "我是琉球中山國的使節，要回國覆命。能請你送我一程嗎？",
+        "琉球在東南方的大海中。航行時你會碰上一股深藍色的強勁海流。"
+      ]
+    },
+    {
+      "type": "navigate",
+      "target": "naha",
+      "hint_level": 2
+    },
+    {
+      "type": "discover",
+      "target": "kuroshio"
+    },
+    {
+      "type": "quiz",
+      "question": "琉球王國為什麼被稱為「萬國津梁」（各國之間的橋樑）？",
+      "choices": [
+        "因為琉球有許多大橋",
+        "因為琉球位在中國、日本與東南亞的航路中間，靠轉口貿易繁榮",
+        "因為琉球是當時世界最大的國家",
+        "因為琉球出產大量瓷器"
+      ],
+      "answer": 1,
+      "explanation": "琉球地處東亞與東南亞航路的中繼點，把各地的貨物轉運買賣，因而繁榮。"
+    }
+  ],
+  "reward": {
+    "xp": 90,
+    "gold": 150,
+    "reputation": 10,
+    "unlock_ports": [],
+    "codex": []
+  }
+}

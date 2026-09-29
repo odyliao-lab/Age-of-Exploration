@@ -1,0 +1,15 @@
+{
+  "id": "ningbo",
+  "name": "寧波",
+  "name_en": "Ningbo",
+  "historical_names": ["明州"],
+  "country": "中國",
+  "country_en": "China",
+  "region": "east-china-sea",
+  "location": [121.62, 29.9],
+  "kind": "port",
+  "goods": ["tea", "porcelain"],
+  "sights": [],
+  "climate": "副熱帶季風氣候",
+  "blurb": "古稱明州，是與日本、朝鮮往來的重要港口。唐宋以來大量瓷器與茶葉從這裡輸出。"
+}

@@ -1,0 +1,53 @@
+{
+  "id": "tf-r2-liujiagang",
+  "title": "劉家港集結",
+  "scenario": "treasure-fleet",
+  "chapter": 0,
+  "tier": 0,
+  "kind": "region",
+  "giver_port": "fuzhou",
+  "objectives": [
+    {
+      "domain": "C",
+      "text": "能說出長江在東海出海。"
+    },
+    {
+      "domain": "E",
+      "text": "知道鄭和船隊在太倉劉家港集結。"
+    }
+  ],
+  "prerequisites": [],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "長樂守將",
+      "lines": [
+        "後續的船隻還在劉家港集結。請你北上替我們送一封信。",
+        "冬天北上要逆著東北季風，航程會比較慢，記得多帶補給。"
+      ]
+    },
+    {
+      "type": "navigate",
+      "target": "taicang",
+      "hint_level": 1
+    },
+    {
+      "type": "discover",
+      "target": "yangtze-mouth"
+    },
+    {
+      "type": "quiz",
+      "question": "長江在哪一片海注入大海？",
+      "choices": ["南海", "東海", "黃海", "渤海"],
+      "answer": 1,
+      "explanation": "長江在上海附近注入東海。長江全長約 6300 公里，是亞洲第一長河。"
+    }
+  ],
+  "reward": {
+    "xp": 70,
+    "gold": 100,
+    "reputation": 5,
+    "unlock_ports": ["ningbo"],
+    "codex": []
+  }
+}

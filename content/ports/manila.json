@@ -1,0 +1,15 @@
+{
+  "id": "manila",
+  "name": "馬尼拉",
+  "name_en": "Manila",
+  "historical_names": ["呂宋"],
+  "country": "菲律賓",
+  "country_en": "Philippines",
+  "region": "south-china-sea",
+  "location": [120.95, 14.6],
+  "kind": "port",
+  "goods": ["birds-nest"],
+  "sights": [],
+  "climate": "熱帶季風氣候",
+  "blurb": "呂宋島西岸、馬尼拉灣內的港口。早在歐洲人到來之前，這裡就有來自福建的商船往來貿易。"
+}

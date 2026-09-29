@@ -1,0 +1,54 @@
+{
+  "id": "tf-02-java",
+  "title": "爪哇的香料港",
+  "scenario": "treasure-fleet",
+  "chapter": 1,
+  "tier": 1,
+  "kind": "main",
+  "giver_port": "champa",
+  "objectives": [
+    {
+      "domain": "B",
+      "text": "能說出爪哇島位於赤道以南。"
+    },
+    {
+      "domain": "F",
+      "text": "知道丁香、檀香等香料來自東南亞的群島。"
+    }
+  ],
+  "prerequisites": ["tf-01-champa"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "占城港務官",
+      "lines": [
+        "船隊要繼續南下，下一站是爪哇島北岸的港口。",
+        "爪哇的商人從東邊的群島收購丁香、檀香，再轉賣給各國商船。",
+        "往南航行時，你會越過地球上一條很重要的線。"
+      ]
+    },
+    {
+      "type": "navigate",
+      "target": "semarang",
+      "hint_level": 2
+    },
+    {
+      "type": "discover",
+      "target": "equator"
+    },
+    {
+      "type": "quiz",
+      "question": "從占城航向爪哇島時，船隊越過了哪一條重要的緯線？",
+      "choices": ["北回歸線", "赤道", "南回歸線", "北極圈"],
+      "answer": 1,
+      "explanation": "占城約在北緯 14°，三寶壟約在南緯 7°，中間越過了緯度 0° 的赤道，從北半球進入南半球。"
+    }
+  ],
+  "reward": {
+    "xp": 100,
+    "gold": 200,
+    "reputation": 10,
+    "unlock_ports": [],
+    "codex": []
+  }
+}

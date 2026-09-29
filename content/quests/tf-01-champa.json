@@ -56,7 +56,7 @@
     "xp": 80,
     "gold": 150,
     "reputation": 8,
-    "unlock_ports": ["malacca"],
+    "unlock_ports": [],
     "codex": ["monsoon"]
   }
 }

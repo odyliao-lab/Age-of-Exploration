@@ -8,7 +8,8 @@
   "region": "malacca-java",
   "location": [102.25, 2.19],
   "kind": "hub",
-  "goods": ["agarwood"],
+  "goods": ["tin", "pepper", "cloves", "nutmeg"],
   "climate": "熱帶雨林氣候",
-  "blurb": "扼守麻六甲海峽的港市，15 世紀因鄭和船隊的支持而崛起為東西方貿易的轉運中心。"
+  "blurb": "扼守麻六甲海峽的港市，15 世紀因鄭和船隊的支持而崛起為東西方貿易的轉運中心。",
+  "sights": ["malacca-sultanate", "mangrove"]
 }

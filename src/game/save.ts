@@ -56,6 +56,10 @@ export function deserialize(data: SerializedSave): GameState {
     achievements: data.achievements ?? [],
     title: data.title ?? null,
     stats: { ...EMPTY_STATS, ...data.stats },
+    // 第 5 版新增：錯題回流、今日航程、航海紀錄
+    reviews: data.reviews ?? [],
+    daily: data.daily ?? null,
+    log: data.log ?? [],
   };
 }
 

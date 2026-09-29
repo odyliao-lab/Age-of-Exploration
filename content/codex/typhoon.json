@@ -1,0 +1,10 @@
+{
+  "id": "typhoon",
+  "category": "phenomenon",
+  "name": "颱風",
+  "name_en": "Typhoon",
+  "domains": ["D"],
+  "body": "颱風是發生在西北太平洋與南海的強烈熱帶氣旋，多在夏秋兩季形成，帶來狂風暴雨。大西洋的稱為颶風，印度洋的稱為氣旋。",
+  "source": "維基百科「颱風」「熱帶氣旋」條目",
+  "reviewed": false
+}

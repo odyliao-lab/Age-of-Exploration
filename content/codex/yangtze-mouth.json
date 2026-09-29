@@ -1,0 +1,12 @@
+{
+  "id": "yangtze-mouth",
+  "category": "river",
+  "name": "長江口",
+  "name_en": "Yangtze River Estuary",
+  "location": [121.9, 31.4],
+  "discover_radius_km": 120,
+  "domains": ["C", "B"],
+  "body": "長江全長約 6300 公里，是亞洲第一長河、世界第三長河，在上海附近注入東海。江水帶來的泥沙堆積出廣大的三角洲與崇明島。",
+  "source": "維基百科「長江」「長江三角洲」條目",
+  "reviewed": false
+}

@@ -1,0 +1,12 @@
+{
+  "id": "luzon",
+  "category": "island",
+  "name": "呂宋島",
+  "name_en": "Luzon",
+  "location": [121.0, 16.0],
+  "discover_radius_km": 280,
+  "domains": ["B", "E"],
+  "body": "呂宋島是菲律賓最大的島嶼。明代文獻中的「呂宋」指的就是這一帶，當時已有許多福建商人前來貿易。",
+  "source": "維基百科「呂宋島」條目",
+  "reviewed": false
+}

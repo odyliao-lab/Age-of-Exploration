@@ -1,0 +1,10 @@
+{
+  "id": "sumatran-tiger",
+  "category": "wildlife",
+  "name": "蘇門答臘虎",
+  "name_en": "Sumatran Tiger",
+  "domains": ["C"],
+  "body": "蘇門答臘虎是體型最小的現存老虎之一，只生活在蘇門答臘島的森林中。棲地被砍伐讓牠們瀕臨滅絕。",
+  "source": "維基百科「蘇門答臘虎」條目",
+  "reviewed": false
+}

@@ -1,0 +1,66 @@
+{
+  "id": "tf-05-strait-guardian",
+  "title": "海峽的守門人",
+  "scenario": "treasure-fleet",
+  "chapter": 1,
+  "tier": 1,
+  "kind": "main",
+  "giver_port": "malacca",
+  "objectives": [
+    {
+      "domain": "A",
+      "text": "能在海圖上找到新加坡海峽。"
+    },
+    {
+      "domain": "B",
+      "text": "能說明海峽在海上交通中的重要性。"
+    }
+  ],
+  "prerequisites": ["tf-04-malacca"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "滿剌加國王的使者",
+      "lines": [
+        "國王想知道，船隊的航海士是否真的看得懂海圖。",
+        "請你找出海峽東南方的出口，並前往那座扼守出口的小島港口。"
+      ]
+    },
+    {
+      "type": "locate",
+      "prompt": "在海圖上點出新加坡海峽：它是麻六甲海峽東南端的出口，位在馬來半島最南端與南方群島之間（約北緯 1°、東經 104°）。",
+      "target": [104.0, 1.2],
+      "tolerance_km": 150,
+      "explanation": "新加坡海峽夾在馬來半島南端與印尼廖內群島之間，船隻從南海進出麻六甲海峽都要經過這裡。"
+    },
+    {
+      "type": "navigate",
+      "target": "singapore",
+      "hint_level": 4,
+      "text": "線索：馬來半島最南端外的小島，14 世紀的《島夷誌略》稱它為「單馬錫」。"
+    },
+    {
+      "type": "discover",
+      "target": "singapore-strait"
+    },
+    {
+      "type": "quiz",
+      "question": "為什麼麻六甲海峽常被稱為海上交通的「咽喉」？",
+      "choices": [
+        "因為海峽裡的海水特別深",
+        "因為往來東西方的船隻大多必須經過這條狹窄水道",
+        "因為海峽裡沒有任何島嶼",
+        "因為海峽終年不會颳風"
+      ],
+      "answer": 1,
+      "explanation": "咽喉是狹窄又必經的通道。控制了麻六甲海峽，就等於掌握了東西方海上貿易的要道。"
+    }
+  ],
+  "reward": {
+    "xp": 150,
+    "gold": 300,
+    "reputation": 20,
+    "unlock_ports": [],
+    "codex": []
+  }
+}

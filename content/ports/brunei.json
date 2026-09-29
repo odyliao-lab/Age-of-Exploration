@@ -1,0 +1,15 @@
+{
+  "id": "brunei",
+  "name": "斯里巴加灣",
+  "name_en": "Bandar Seri Begawan",
+  "historical_names": ["渤泥", "浡泥"],
+  "country": "汶萊",
+  "country_en": "Brunei",
+  "region": "south-china-sea",
+  "location": [114.94, 4.89],
+  "kind": "port",
+  "goods": ["borneo-camphor", "birds-nest"],
+  "sights": ["boni-king", "hornbill"],
+  "climate": "熱帶雨林氣候",
+  "blurb": "婆羅洲北岸的港口，古稱渤泥。以龍腦香、燕窩聞名，15 世紀初與明朝往來密切。"
+}

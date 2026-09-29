@@ -1,0 +1,12 @@
+{
+  "id": "kuroshio",
+  "category": "phenomenon",
+  "name": "黑潮",
+  "name_en": "Kuroshio Current",
+  "location": [124.0, 27.0],
+  "discover_radius_km": 200,
+  "domains": ["D"],
+  "body": "黑潮是從台灣東部北上、流向日本的強勁暖流，因為海水深藍近黑而得名，是僅次於墨西哥灣流的世界第二大暖流。順著黑潮航行可以加快速度。",
+  "source": "維基百科「黑潮」條目",
+  "reviewed": false
+}

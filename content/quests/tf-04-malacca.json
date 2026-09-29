@@ -1,0 +1,54 @@
+{
+  "id": "tf-04-malacca",
+  "title": "滿剌加的官廠",
+  "scenario": "treasure-fleet",
+  "chapter": 1,
+  "tier": 1,
+  "kind": "main",
+  "giver_port": "palembang",
+  "objectives": [
+    {
+      "domain": "B",
+      "text": "能說出麻六甲海峽連接南海與印度洋。"
+    },
+    {
+      "domain": "E",
+      "text": "知道麻六甲王國在 15 世紀成為貿易轉運中心。"
+    }
+  ],
+  "prerequisites": ["tf-03-palembang"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "船隊書記",
+      "lines": [
+        "船隊要在滿剌加設立官廠，存放貨物、等待季風轉向。",
+        "滿剌加扼守一條狹長的海峽，是東西方船隻的必經之路。",
+        "從這裡往西北方航行，就能找到它。"
+      ]
+    },
+    {
+      "type": "navigate",
+      "target": "malacca",
+      "hint_level": 3
+    },
+    {
+      "type": "discover",
+      "target": "strait-of-malacca"
+    },
+    {
+      "type": "quiz",
+      "question": "麻六甲海峽連接了哪兩片海洋？",
+      "choices": ["東海與太平洋", "南海與印度洋", "南海與太平洋", "印度洋與大西洋"],
+      "answer": 1,
+      "explanation": "麻六甲海峽位於馬來半島與蘇門答臘之間，東南端接南海，西北端通往印度洋的安達曼海。"
+    }
+  ],
+  "reward": {
+    "xp": 120,
+    "gold": 250,
+    "reputation": 15,
+    "unlock_ports": [],
+    "codex": []
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "id": "zhoushan",
+  "category": "island",
+  "name": "舟山群島",
+  "name_en": "Zhoushan Archipelago",
+  "location": [122.2, 30.0],
+  "discover_radius_km": 100,
+  "domains": ["B"],
+  "body": "舟山群島位於杭州灣外，由上千座島嶼組成，是中國最大的群島。附近海域是寒暖流交會之處，漁產豐富。",
+  "source": "維基百科「舟山群島」「舟山漁場」條目",
+  "reviewed": false
+}

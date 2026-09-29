@@ -1,0 +1,12 @@
+{
+  "id": "borneo",
+  "category": "island",
+  "name": "婆羅洲",
+  "name_en": "Borneo",
+  "location": [114.5, 1.0],
+  "discover_radius_km": 600,
+  "domains": ["B", "E"],
+  "body": "婆羅洲是世界第三大島，赤道橫越島的中部，島上覆蓋茂密的熱帶雨林。今天由汶萊、馬來西亞、印尼三個國家共有。",
+  "source": "維基百科「婆羅洲」條目",
+  "reviewed": false
+}

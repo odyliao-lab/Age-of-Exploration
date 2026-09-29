@@ -1,0 +1,10 @@
+{
+  "id": "mangrove",
+  "category": "wildlife",
+  "name": "紅樹林",
+  "name_en": "Mangrove",
+  "domains": ["C", "D"],
+  "body": "紅樹林生長在熱帶與亞熱帶的河口泥灘，漲潮時浸在海水裡。它們的根能固定泥沙、抵擋海浪，也是魚蝦蟹的育嬰場。",
+  "source": "維基百科「紅樹林」條目",
+  "reviewed": false
+}

@@ -8,7 +8,8 @@
   "region": "south-china-sea",
   "location": [109.22, 13.78],
   "kind": "port",
-  "goods": ["agarwood"],
+  "goods": ["agarwood", "champa-rice", "sappanwood"],
   "climate": "熱帶季風氣候",
-  "blurb": "中南半島東岸的占城王國舊港，鄭和船隊每次下西洋離開中國後的第一個停靠點。以沉香與稻米聞名。"
+  "blurb": "中南半島東岸的占城王國舊港，鄭和船隊每次下西洋離開中國後的第一個停靠點。以沉香與稻米聞名。",
+  "sights": ["cham-towers"]
 }

@@ -1,0 +1,12 @@
+{
+  "id": "java",
+  "category": "island",
+  "name": "爪哇島",
+  "name_en": "Java",
+  "location": [110.0, -7.3],
+  "discover_radius_km": 450,
+  "domains": ["B", "E"],
+  "body": "爪哇島是世界上人口最多的島嶼，也是印尼首都雅加達所在地。島上火山眾多，火山灰讓土壤肥沃，適合種植稻米。",
+  "source": "維基百科「爪哇島」條目",
+  "reviewed": false
+}

@@ -1,0 +1,182 @@
+/**
+ * 內容完整性測試：用真實內容把整個東方寶船 MVP（序章與第一章）從頭玩到尾，
+ * 確認每個任務都能完成、每個目的地都能從海上到達、每個「發現」步驟都真的會觸發。
+ */
+import { describe, expect, it } from 'vitest';
+import type { LonLat } from '@/data/schema';
+import { findSeaPath, nearestSea } from '@/geo/seaPath';
+import { checkLeg } from './voyage';
+import {
+  acceptQuest,
+  answerLocate,
+  answerQuiz,
+  availableQuests,
+  finishDialogue,
+  newGame,
+  pendingInteraction,
+  resolveEncounter,
+  resolveEvent,
+  startVoyage,
+  tick,
+  type GameState,
+} from './state';
+import { contentForTests } from './testContent';
+import { buildWorld } from './world';
+
+const world = buildWorld(contentForTests());
+const allHarbors = [...world.harbors.values()];
+
+function route(from: LonLat, to: LonLat): LonLat[] {
+  const path = findSeaPath(from, to, allHarbors);
+  if (!path) throw new Error(`找不到海上航線 ${from} → ${to}`);
+  return path;
+}
+
+/** 航行到港口；途中的事件與風暴自動以最安全的方式處理 */
+function sailTo(s: GameState, portId: string): GameState {
+  if (s.dockedAt === portId) return s;
+  const port = world.ports.get(portId)!;
+  s = startVoyage(s, route(s.ship.position, port.location), portId);
+  // 讓測試不受補給與金錢影響
+  s = { ...s, gold: Math.max(s.gold, 5000) };
+  for (let i = 0; i < 5000 && s.voyage; i++) {
+    s = tick(world, s, 0.5).state;
+    if (s.encounter?.kind === 'storm') s = resolveEncounter(world, s, 'wait').state;
+    else if (s.encounter?.kind === 'event') {
+      const ev = s.encounter;
+      s = resolveEvent(
+        world,
+        s,
+        ev.choices
+          ? { choiceId: ev.choices[0].id }
+          : ev.question
+            ? { answer: 0 }
+            : { choiceId: 'take' },
+      ).state;
+    }
+    s = {
+      ...s,
+      condition: { ...s.condition, supplies: { water: 40, food: 40 }, morale: 100, hull: 100 },
+    };
+  }
+  if (s.dockedAt !== portId) throw new Error(`沒有抵達 ${portId}（停在 ${s.ship.position}）`);
+  return s;
+}
+
+/** 開到海上某點下錨 */
+function sailToPoint(s: GameState, p: LonLat): GameState {
+  s = startVoyage(s, route(s.ship.position, p), null);
+  for (let i = 0; i < 5000 && s.voyage; i++) {
+    s = tick(world, s, 0.5).state;
+    if (s.encounter?.kind === 'storm') s = resolveEncounter(world, s, 'wait').state;
+    else if (s.encounter?.kind === 'event') {
+      const ev = s.encounter;
+      s = resolveEvent(
+        world,
+        s,
+        ev.choices
+          ? { choiceId: ev.choices[0].id }
+          : ev.question
+            ? { answer: 0 }
+            : { choiceId: 'take' },
+      ).state;
+    }
+  }
+  return s;
+}
+
+/** 完成一個任務：處理所有需要互動的步驟，navigate 步驟就開船過去 */
+function playQuest(s: GameState, questId: string): GameState {
+  const quest = world.quests.get(questId)!;
+  s = sailTo(s, quest.giver_port);
+  expect(availableQuests(world, s, quest.giver_port).map((q) => q.id)).toContain(questId);
+  s = acceptQuest(world, s, questId).state;
+  for (let guard = 0; guard < 50 && s.quests[questId].status === 'active'; guard++) {
+    const pending = pendingInteraction(world, s);
+    const step = quest.steps[s.quests[questId].step];
+    if (pending && pending.questId === questId) {
+      const d = pending.data;
+      if (d.type === 'dialogue') s = finishDialogue(world, s, questId).state;
+      else if (d.type === 'quiz') s = answerQuiz(world, s, questId, d.answer).state;
+      else s = answerLocate(world, s, questId, d.target).state;
+    } else if (step?.type === 'navigate') {
+      s = sailTo(s, step.target);
+    } else if (step?.type === 'discover') {
+      // 地標在任務航線之外：開到地標旁的海面去找它
+      const codex = world.codex.get(step.target)!;
+      if (!codex.location)
+        throw new Error(`${questId}：「${step.target}」無法靠航行發現，玩家會卡住`);
+      const sea = nearestSea(codex.location);
+      if (!sea) throw new Error(`${questId}：「${step.target}」附近沒有海面`);
+      s = sailToPoint(s, sea);
+      if (!s.discovered.includes(step.target)) {
+        throw new Error(`${questId}：開到「${step.target}」旁邊仍沒有發現，發現半徑太小`);
+      }
+    } else {
+      throw new Error(`${questId}：步驟 ${s.quests[questId].step} 無法推進`);
+    }
+  }
+  expect(s.quests[questId].status, questId).toBe('completed');
+  return s;
+}
+
+describe('Treasure Fleet MVP content', () => {
+  it('has the MVP amount of content (GDD 16.1)', () => {
+    const quests = world.content.quests.filter((q) => q.scenario === 'treasure-fleet');
+    expect(world.content.ports.length).toBeGreaterThanOrEqual(12);
+    expect(quests.length).toBeGreaterThanOrEqual(15);
+    expect(world.content.codex.length).toBeGreaterThanOrEqual(40);
+  });
+
+  it('can reach every port by sea from home', () => {
+    const home = world.ports.get('quanzhou')!;
+    for (const p of world.content.ports) {
+      const path = route(home.location, p.location);
+      for (let i = 1; i < path.length; i++) {
+        expect(checkLeg(path[i - 1], path[i], allHarbors).ok, `${p.id} 第 ${i} 段`).toBe(true);
+      }
+    }
+  });
+
+  it('has an acyclic quest graph where every prerequisite exists', () => {
+    const ids = new Set(world.content.quests.map((q) => q.id));
+    const visiting = new Set<string>();
+    const done = new Set<string>();
+    const visit = (id: string) => {
+      if (done.has(id)) return;
+      expect(visiting.has(id), `循環前置任務：${id}`).toBe(false);
+      visiting.add(id);
+      for (const p of world.quests.get(id)!.prerequisites) {
+        expect(ids.has(p)).toBe(true);
+        visit(p);
+      }
+      visiting.delete(id);
+      done.add(id);
+    };
+    ids.forEach(visit);
+  });
+
+  it('plays every quest from start to finish', () => {
+    let s = newGame(world, 'treasure-fleet', 2024).state;
+    const remaining = new Set(
+      world.content.quests.filter((q) => q.scenario === 'treasure-fleet').map((q) => q.id),
+    );
+    // 依前置任務順序完成全部任務
+    for (let round = 0; round < 30 && remaining.size; round++) {
+      const ready = [...remaining].filter((id) =>
+        world.quests.get(id)!.prerequisites.every((p) => s.quests[p]?.status === 'completed'),
+      );
+      expect(ready.length, `卡住的任務：${[...remaining].join(', ')}`).toBeGreaterThan(0);
+      for (const id of ready) {
+        s = playQuest(s, id);
+        remaining.delete(id);
+      }
+    }
+    expect(remaining.size).toBe(0);
+    expect(s.visitedPorts.length).toBeGreaterThanOrEqual(12);
+    expect(s.discovered).toEqual(
+      expect.arrayContaining(['equator', 'strait-of-malacca', 'kuroshio']),
+    );
+    expect(s.captain.level).toBeGreaterThanOrEqual(5);
+  });
+});
