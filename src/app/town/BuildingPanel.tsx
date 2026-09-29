@@ -1,7 +1,8 @@
-import { useEffect, useRef } from 'react';
+import { useState } from 'react';
 import { LEARNING_DOMAIN_LABELS, type Quest } from '@/data/schema';
 import { formatLonLat } from '@/map/projection';
-import { drawPerson, type PersonLook } from '@/town/art';
+import type { PersonLook } from '@/town/art';
+import { Portrait } from './Portrait';
 import { BUILDING_NAMES, isChinese, type BuildingKind, type Culture } from '@/town/layout';
 import {
   PRAY_COST,
@@ -12,8 +13,11 @@ import {
   crewSlots,
   marketQuotes,
   mods,
+  pendingChallenges,
   rumorsAt,
   shipyardOffers,
+  CHALLENGE_REWARD,
+  type Challenge,
 } from '@/game/state';
 import { PROFESSIONS } from '@/game/progression';
 import { repairCost, resupplyCost, shipType } from '@/game/ship';
@@ -66,17 +70,6 @@ const NPCS: Record<BuildingKind, (c: Culture) => Npc> = {
     greeting: '淡水和糧食補足了嗎？海上可沒地方買。',
   }),
 };
-
-/** 像素人物頭像：把 16×16 的人物放大 */
-function Portrait({ look }: { look: PersonLook }) {
-  const ref = useRef<HTMLCanvasElement>(null);
-  useEffect(() => {
-    const ctx = ref.current!.getContext('2d')!;
-    ctx.clearRect(0, 0, 16, 16);
-    drawPerson(ctx, 0, 0, 'down', 0, look);
-  }, [look]);
-  return <canvas ref={ref} width={16} height={16} className="portrait" aria-hidden="true" />;
-}
 
 export function BuildingPanel({ kind, culture }: { kind: BuildingKind; culture: Culture }) {
   const leave = useGame((s) => s.leaveBuilding);
@@ -200,11 +193,63 @@ function Office() {
 function Academy() {
   const { world, game, port } = usePort();
   const quests = availableQuests(world, game, port.id).filter((q) => q.kind === 'academy');
+  const challenges = pendingChallenges(world, game);
   return (
     <>
       <p className="meta">學者的挑戰都是選擇性的；答錯的題目會在航海日誌裡安排複習。</p>
+      <h3>航程中的考題</h3>
+      {challenges.length === 0 ? (
+        <p className="meta">完成任務後，學者會就你去過的地方出題。</p>
+      ) : (
+        <>
+          <p className="meta">
+            一次答對：經驗 {CHALLENGE_REWARD.firstTry.xp}、金幣 {CHALLENGE_REWARD.firstTry.gold}
+            ；答錯可以再試。
+          </p>
+          {challenges.slice(0, 3).map((c) => (
+            <ChallengeCard key={c.key} challenge={c} />
+          ))}
+          {challenges.length > 3 && (
+            <p className="meta">還有 {challenges.length - 3} 題，答完上面的再來。</p>
+          )}
+        </>
+      )}
+      <h3>學者的課程</h3>
       <QuestList quests={quests} />
     </>
+  );
+}
+
+function ChallengeCard({ challenge }: { challenge: Challenge }) {
+  const answer = useGame((s) => s.answerChallenge);
+  const [wrong, setWrong] = useState<number[]>([]);
+  const q = challenge.quiz;
+  return (
+    <article className="rumor-card challenge">
+      <div className="meta">來自「{challenge.questTitle}」</div>
+      <p className="question">{q.question}</p>
+      <div className="choices">
+        {q.choices.map((c, i) => (
+          <button
+            type="button"
+            key={i}
+            className={`choice${wrong.includes(i) ? ' wrong' : ''}`}
+            disabled={wrong.includes(i)}
+            onClick={() => {
+              if (!answer(challenge.key, i)) setWrong((w) => [...w, i]);
+            }}
+          >
+            {c}
+          </button>
+        ))}
+      </div>
+      {wrong.length > 0 && q.explanation && (
+        <p className="lesson">
+          <strong>提示：</strong>
+          {q.explanation}
+        </p>
+      )}
+    </article>
   );
 }
 

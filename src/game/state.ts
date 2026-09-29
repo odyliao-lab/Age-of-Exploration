@@ -130,7 +130,7 @@ import {
   type Quote,
 } from './trade';
 
-export const SAVE_VERSION = 8;
+export const SAVE_VERSION = 9;
 
 /** 航行中需要玩家處理的狀況：風暴或隨機事件 */
 export type Encounter = StormEncounter | VoyageEvent;
@@ -230,6 +230,8 @@ export interface GameState {
   weather: WeatherCell[];
   /** 下一個海上物件的編號 */
   nextEntityId: number;
+  /** 在書院答對過的學者挑戰（`任務id#步驟`） */
+  challengesDone: string[];
 }
 
 export interface HelmState extends Helm {
@@ -337,6 +339,7 @@ export function newGame(world: World, scenarioId: string, seed = newSeed()): Ste
     traffic: [],
     weather: [],
     nextEntityId: 1,
+    challengesDone: [],
   };
   return { state, events: [], fogChanged };
 }
@@ -1672,10 +1675,18 @@ export function progressQuests(world: World, state: GameState): StepResult {
       const step = quest.steps[p.step];
       const satisfied =
         (step.type === 'navigate' && s.dockedAt === step.target) ||
-        (step.type === 'discover' && s.discovered.includes(step.target));
+        (step.type === 'discover' && s.discovered.includes(step.target)) ||
+        // 決策 R5：主線與地區任務的問答不擋住故事，改成書院裡的選擇性挑戰
+        (step.type === 'quiz' && quest.kind !== 'academy');
       if (satisfied) {
         s = { ...s, quests: { ...s.quests, [questId]: { ...p, step: p.step + 1 } } };
         changed = true;
+        if (step.type === 'quiz') {
+          events.push({
+            type: 'notice',
+            text: `學者就「${quest.title}」出了一道考題，可以到書院或學者之家挑戰。`,
+          });
+        }
       } else if (
         step.type === 'discover' &&
         world.codex.get(step.target)?.rumor &&
@@ -1730,6 +1741,103 @@ function completeQuest(world: World, state: GameState, quest: Quest): StepResult
     },
     events,
     fogChanged,
+  };
+}
+
+// ---------------------------------------------------------------- 學者挑戰（決策 R5）
+
+export interface Challenge {
+  key: string;
+  questId: string;
+  questTitle: string;
+  step: number;
+  quiz: Extract<QuestStep, { type: 'quiz' }>;
+  domains: LearningDomain[];
+}
+
+/** 已經走過、還沒在書院答對的任務問答 */
+export function pendingChallenges(world: World, state: GameState): Challenge[] {
+  const out: Challenge[] = [];
+  for (const [questId, p] of Object.entries(state.quests)) {
+    const quest = world.quests.get(questId);
+    if (!quest || quest.kind === 'academy') continue;
+    quest.steps.forEach((step, i) => {
+      const key = `${questId}#${i}`;
+      if (step.type !== 'quiz' || i >= p.step || state.challengesDone.includes(key)) return;
+      out.push({
+        key,
+        questId,
+        questTitle: quest.title,
+        step: i,
+        quiz: step,
+        domains: quest.objectives.map((o) => o.domain),
+      });
+    });
+  }
+  return out;
+}
+
+/** 學者挑戰的獎勵：一次答對較多 */
+export const CHALLENGE_REWARD = { firstTry: { xp: 25, gold: 20 }, retry: { xp: 10, gold: 0 } };
+
+export function answerChallenge(
+  world: World,
+  state: GameState,
+  key: string,
+  choice: number,
+  now = Date.now(),
+): StepResult & { correct: boolean } {
+  const c = pendingChallenges(world, state).find((x) => x.key === key);
+  if (!c || !state.dockedAt) return { state, events: [], fogChanged: [], correct: false };
+  const correct = choice === c.quiz.answer;
+  const existing = state.quizLog.find((r) => r.questId === c.questId && r.step === c.step);
+  const record: QuizRecord = existing
+    ? { ...existing, attempts: existing.attempts + 1 }
+    : {
+        questId: c.questId,
+        step: c.step,
+        domains: c.domains,
+        attempts: 1,
+        firstTry: correct,
+        day: state.day,
+      };
+  let next: GameState = {
+    ...state,
+    quizLog: [...state.quizLog.filter((r) => r !== existing), record],
+  };
+  if (!correct) {
+    if (!existing) {
+      next = {
+        ...next,
+        reviews: scheduleReview(
+          next.reviews,
+          key,
+          {
+            prompt: c.quiz.question,
+            choices: c.quiz.choices,
+            answer: c.quiz.answer,
+            explanation: c.quiz.explanation,
+          },
+          c.domains,
+          now,
+        ),
+      };
+    }
+    return { state: next, events: [], fogChanged: [], correct };
+  }
+  const reward = existing ? CHALLENGE_REWARD.retry : CHALLENGE_REWARD.firstTry;
+  const xp = gainXp(next, reward.xp);
+  return {
+    state: {
+      ...next,
+      captain: xp.captain,
+      skillPoints: xp.skillPoints,
+      gold: next.gold + reward.gold,
+      challengesDone: [...next.challengesDone, key],
+    },
+    events: xp.events,
+    fogChanged: [],
+    correct,
   };
 }
 

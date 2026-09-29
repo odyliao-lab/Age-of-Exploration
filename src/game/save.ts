@@ -74,6 +74,8 @@ export function deserialize(data: SerializedSave): GameState {
     traffic: data.traffic ?? [],
     weather: data.weather ?? [],
     nextEntityId: data.nextEntityId ?? 1,
+    // 第 9 版新增：書院的學者挑戰
+    challengesDone: data.challengesDone ?? [],
   };
 }
 

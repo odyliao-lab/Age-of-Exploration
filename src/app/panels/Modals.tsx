@@ -1,4 +1,6 @@
-import { useState, type ReactNode } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
+import { Portrait } from '../town/Portrait';
+import { lookForName } from '@/town/looks';
 import type { QuestStep } from '@/data/schema';
 import { ATTRIBUTE_INFO } from '@/game/captain';
 import { STORM_CHOICES, shipwreckLoss, type StormChoice, type StormEncounter } from '@/game/ship';
@@ -37,9 +39,13 @@ export function DialogueModal({
   const close = useGame((s) => s.closeDialogue);
   const [line, setLine] = useState(0);
   const last = line >= step.lines.length - 1;
+  const look = useMemo(() => lookForName(step.speaker), [step.speaker]);
   return (
     <ModalFrame title={step.speaker} label={`與${step.speaker}的對話`}>
-      <p className="dialogue-line">{step.lines[line]}</p>
+      <div className="dialogue-body">
+        <Portrait look={look} />
+        <p className="dialogue-line">{step.lines[line]}</p>
+      </div>
       <div className="row end">
         <span className="meta">
           {line + 1}/{step.lines.length}

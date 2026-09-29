@@ -14,6 +14,7 @@ import { deleteSave, listSaves, loadSave, writeSave } from '@/game/save';
 import {
   acceptQuest,
   answerReviewItem,
+  answerChallenge,
   appendLog,
   claimDaily,
   ensureDaily,
@@ -190,6 +191,8 @@ interface GameStore {
   buyPaint: (kind: 'hull' | 'sail', id: string) => void;
   claimDaily: () => void;
   answerReview: (key: string, choice: number) => boolean;
+  /** 書院的學者挑戰 */
+  answerChallenge: (key: string, choice: number) => boolean;
   suggestRoute: (portId: string) => void;
 
   dismissModal: () => void;
@@ -768,6 +771,16 @@ export const useGame = create<GameStore>((set, get) => {
       const g = get().game;
       if (!g) return false;
       const r = answerReviewItem(g, key, choice, Date.now());
+      play(r.correct ? 'correct' : 'wrong');
+      apply(r);
+      scheduleSave(true);
+      return r.correct;
+    },
+
+    answerChallenge: (key, choice) => {
+      const { world, game } = get();
+      if (!world || !game) return false;
+      const r = answerChallenge(world, game, key, choice, Date.now());
       play(r.correct ? 'correct' : 'wrong');
       apply(r);
       scheduleSave(true);

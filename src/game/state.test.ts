@@ -4,7 +4,6 @@ import { addXp, newCaptain, spendPoint, xpToNext } from './captain';
 import {
   acceptQuest,
   answerLocate,
-  answerQuiz,
   resolveEncounter,
   resolveEvent,
   availableQuests,
@@ -23,6 +22,8 @@ import {
   type GameState,
   investigate,
   rumorInReach,
+  pendingChallenges,
+  answerChallenge,
 } from './state';
 import { contentForTests } from './testContent';
 import { checkLeg } from './voyage';
@@ -146,19 +147,24 @@ describe('Treasure Fleet prologue and chapter 1', () => {
     expect(leg1.events).toContainEqual({ type: 'arrived', portId: 'guangzhou', firstVisit: true });
     expect(leg1.events).toContainEqual({ type: 'discovered', codexId: 'taiwan-strait' });
 
-    // 抵達後進行問答：答錯可重試，不會完成任務
-    expect(pendingInteraction(world, s)?.data.type).toBe('quiz');
-    const wrong = answerQuiz(world, s, 'tf-00-first-voyage', 0);
-    expect(wrong.correct).toBe(false);
-    expect(wrong.state.quests['tf-00-first-voyage'].status).toBe('active');
-    const right = answerQuiz(world, wrong.state, 'tf-00-first-voyage', 1);
-    expect(right.correct).toBe(true);
-    s = right.state;
+    // 抵達就完成任務：問答不再擋住故事（決策 R5），改成書院的選擇性挑戰
+    expect(pendingInteraction(world, s)).toBeNull();
     expect(s.quests['tf-00-first-voyage'].status).toBe('completed');
-    expect(right.events.map((e) => e.type)).toEqual(
+    expect(leg1.events.map((e) => e.type)).toEqual(
       expect.arrayContaining(['questCompleted', 'portUnlocked']),
     );
     expect(s.unlockedPorts).toContain('fuzhou');
+    const [challenge] = pendingChallenges(world, s);
+    expect(challenge).toMatchObject({ questId: 'tf-00-first-voyage', step: 3 });
+    // 答錯可以重試，排進錯題回流；答對拿到較少的獎勵
+    const wrong = answerChallenge(world, s, challenge.key, 0);
+    expect(wrong.correct).toBe(false);
+    expect(wrong.state.reviews.map((r) => r.key)).toContain(challenge.key);
+    const right = answerChallenge(world, wrong.state, challenge.key, 1);
+    expect(right.correct).toBe(true);
+    expect(right.state.captain.xp).toBeGreaterThan(wrong.state.captain.xp);
+    s = right.state;
+    expect(pendingChallenges(world, s)).toEqual([]);
     expect(s.quizLog.find((q) => q.step === 3)).toMatchObject({ attempts: 2, firstTry: false });
 
     // 第一章：廣州 → 占城，途經海南島
@@ -181,16 +187,14 @@ describe('Treasure Fleet prologue and chapter 1', () => {
     s = sail(found.state, [found.state.ship.position, ...ROUTES.toChampa.slice(4)], 'champa').state;
     expect(s.dockedAt).toBe('champa');
     expect(s.discovered).toContain('agarwood');
-    const done = answerQuiz(world, s, 'tf-01-champa', 1);
-    s = done.state;
     expect(s.quests['tf-01-champa'].status).toBe('completed');
     expect(s.discovered).toContain('monsoon');
-    // 下一站用提示等級 2（只給經緯度），完成畫面不能先揭露港名
-    expect(done.events.some((e) => e.type === 'portUnlocked')).toBe(false);
-    expect(s.captain.level).toBe(2);
-    // 一次答對的額外經驗
-    const reward = done.events.find((e) => e.type === 'questCompleted');
-    expect(reward && reward.type === 'questCompleted' && reward.reward.xp).toBe(90);
+    // 占城的問答留在書院，一次答對有額外獎勵
+    const champaQuiz = pendingChallenges(world, s).find((c) => c.questId === 'tf-01-champa')!;
+    const gold = s.gold;
+    const first = answerChallenge(world, s, champaQuiz.key, champaQuiz.quiz.answer);
+    expect(first.state.gold).toBe(gold + 20);
+    expect(first.state.quizLog.at(-1)).toMatchObject({ firstTry: true });
   });
 
   it('hides the name of a hint-level-2 destination until visited', () => {

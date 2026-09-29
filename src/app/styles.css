@@ -631,6 +631,18 @@ button.wide {
   line-height: 1.7;
   min-height: 3.4em;
 }
+.dialogue-body {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+.dialogue-body .dialogue-line {
+  margin-top: 0;
+}
+.challenge .choice.wrong {
+  text-decoration: line-through;
+  opacity: 0.6;
+}
 
 .question {
   font-size: 1.05rem;
