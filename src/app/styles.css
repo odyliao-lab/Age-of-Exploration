@@ -97,3 +97,206 @@ h1 {
   white-space: pre-wrap;
   font-family: ui-monospace, monospace;
 }
+
+button {
+  font: inherit;
+  color: var(--ink);
+  background: var(--card);
+  border: 1px solid var(--parchment-dark);
+  border-radius: 6px;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #fff;
+}
+
+button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+button.primary {
+  align-self: flex-start;
+  margin-top: 8px;
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  font-weight: 600;
+  padding: 8px 20px;
+}
+
+button.primary:hover {
+  background: #9c3b22;
+}
+
+/* ---- 世界海圖 ---- */
+
+.map-screen {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.map-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  background: var(--parchment);
+  border-bottom: 1px solid var(--parchment-dark);
+  z-index: 2;
+}
+
+.map-title {
+  flex: 1;
+  font-size: 1.05rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.map-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.map-host {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.map-host canvas {
+  display: block;
+}
+
+.map-legend,
+.map-coords {
+  position: absolute;
+  left: 12px;
+  background: rgba(251, 246, 234, 0.92);
+  border: 1px solid var(--parchment-dark);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 0.8rem;
+  pointer-events: none;
+}
+
+.map-coords {
+  bottom: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.map-legend {
+  bottom: 48px;
+  display: flex;
+  gap: 12px;
+}
+
+.map-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.map-legend .dot {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--ink);
+}
+
+.map-legend .dot.home {
+  background: var(--accent);
+}
+
+.map-legend .line {
+  display: inline-block;
+  width: 14px;
+  height: 0;
+  border-top: 2px solid rgba(181, 72, 43, 0.7);
+}
+
+.port-panel {
+  position: absolute;
+  top: 60px;
+  right: 12px;
+  width: min(320px, calc(100vw - 24px));
+  max-height: calc(100% - 120px);
+  overflow: auto;
+  background: var(--card);
+  border: 1px solid var(--parchment-dark);
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 4px 16px rgba(43, 33, 24, 0.18);
+  z-index: 2;
+}
+
+.port-panel h2 {
+  margin: 0 24px 6px 0;
+  font-size: 1.3rem;
+}
+
+.port-panel .en {
+  margin-left: 8px;
+  font-size: 0.9rem;
+  font-weight: 400;
+  color: var(--ink-soft);
+}
+
+.port-panel .meta + .meta {
+  margin-top: 2px;
+}
+
+.port-panel p {
+  line-height: 1.6;
+}
+
+.port-panel .close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  border: none;
+  background: transparent;
+  font-size: 1.3rem;
+  line-height: 1;
+  padding: 4px 8px;
+}
+
+.home-tag {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: 0.8rem;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #fff;
+}
+
+@media (max-width: 600px) {
+  .map-toolbar {
+    flex-wrap: wrap;
+  }
+
+  .map-title {
+    min-width: 6em;
+  }
+
+  .port-panel {
+    top: auto;
+    bottom: 12px;
+    left: 12px;
+    right: 12px;
+    width: auto;
+    max-height: 45%;
+  }
+
+  .map-legend {
+    display: none;
+  }
+}

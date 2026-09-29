@@ -17,7 +17,6 @@
     "check": "npm run typecheck && npm run lint && npm run format:check && npm run content:validate && npm run test"
   },
   "dependencies": {
-    "@pixi/react": "^8.0.5",
     "d3-geo": "^3.1.1",
     "dexie": "^4.4.6",
     "i18next": "^26.4.2",
@@ -25,6 +24,8 @@
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
     "react-i18next": "^17.0.15",
+    "topojson-client": "^3.1.0",
+    "world-atlas": "^2.0.2",
     "zod": "^4.6.5",
     "zustand": "^5.0.15"
   },
@@ -35,6 +36,7 @@
     "@types/node": "^26.6.3",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
+    "@types/topojson-client": "^3.1.5",
     "@vitejs/plugin-react": "^6.1.1",
     "eslint": "^10.11.0",
     "eslint-plugin-react-hooks": "^7.1.1",

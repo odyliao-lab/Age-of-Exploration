@@ -1,30 +1,36 @@
-import { useMemo } from 'react';
-import { loadContent } from '@/data/load';
-import { LEARNING_DOMAIN_LABELS } from '@/data/schema';
+import { lazy, Suspense } from 'react';
+import { LEARNING_DOMAIN_LABELS, type ContentBundle } from '@/data/schema';
+import { contentResult } from './content';
+import { useGame } from './store';
 
-/**
- * M1 骨架：載入並驗證內容，顯示劇本選單。
- * 世界地圖與航行在第一週切片的下一階段加入。
- */
+// 海圖（含 PixiJS）按需載入，讓劇本選單不必先下載繪圖引擎
+const MapScreen = lazy(() => import('./MapScreen').then((m) => ({ default: m.MapScreen })));
+
 export function App() {
-  const result = useMemo(() => {
-    try {
-      return { content: loadContent(), error: null };
-    } catch (e) {
-      return { content: null, error: (e as Error).message };
-    }
-  }, []);
+  const screen = useGame((s) => s.screen);
 
-  if (result.error) {
+  if (contentResult.error !== null) {
     return (
       <main className="page">
         <h1>內容載入失敗</h1>
-        <div className="error">{result.error}</div>
+        <div className="error">{contentResult.error}</div>
       </main>
     );
   }
 
-  const content = result.content!;
+  const content = contentResult.content;
+  if (screen === 'map') {
+    return (
+      <Suspense fallback={<main className="page">正在展開海圖…</main>}>
+        <MapScreen content={content} />
+      </Suspense>
+    );
+  }
+  return <ScenarioMenu content={content} />;
+}
+
+function ScenarioMenu({ content }: { content: ContentBundle }) {
+  const startScenario = useGame((s) => s.startScenario);
 
   return (
     <main className="page">
@@ -58,6 +64,9 @@ export function App() {
                   </li>
                 ))}
               </ol>
+              <button type="button" className="primary" onClick={() => startScenario(s.id)}>
+                出航
+              </button>
             </article>
           );
         })}
