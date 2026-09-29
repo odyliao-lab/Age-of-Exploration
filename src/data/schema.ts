@@ -63,6 +63,8 @@ export const Port = z.object({
   sights: z.array(Id).default([]),
   climate: z.string().optional(),
   blurb: z.string().optional(),
+  /** 酒館裡聽得到的閒聊：當地的地理、歷史小知識 */
+  gossip: z.array(z.string()).default([]),
 });
 export type Port = z.infer<typeof Port>;
 

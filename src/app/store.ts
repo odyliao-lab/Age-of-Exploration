@@ -80,7 +80,7 @@ export type Panel = 'codex' | 'captain' | 'fleet' | 'logbook' | null;
 export interface Toast {
   id: number;
   text: string;
-  kind: 'info' | 'discover' | 'success' | 'warn';
+  kind: 'info' | 'discover' | 'success' | 'warn' | 'talk';
   codexId?: string;
 }
 
@@ -841,6 +841,9 @@ function handleEvent(
       break;
     case 'warning':
       push({ text: e.text, kind: 'warn' });
+      break;
+    case 'talk':
+      push({ text: `${e.speaker}：「${e.text}」`, kind: 'talk' });
       break;
     case 'encounter':
       break;

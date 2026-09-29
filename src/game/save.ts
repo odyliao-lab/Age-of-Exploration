@@ -74,6 +74,9 @@ export function deserialize(data: SerializedSave): GameState {
     fleets: data.fleets ?? [],
     storms: data.storms ?? [],
     nextEntityId: data.nextEntityId ?? 1,
+    talkDay: data.talkDay ?? 0,
+    lastRegionId: data.lastRegionId ?? null,
+    hinted: data.hinted ?? [],
   };
 }
 

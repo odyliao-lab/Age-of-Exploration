@@ -258,8 +258,15 @@ function Tavern() {
   const rumors = rumorsAt(world, game, port.id);
   const recruits = availableCrew(world, game);
   const slotsFull = game.crew.length >= crewSlots(game);
+  // 每天聽到的閒聊不同
+  const talk = port.gossip.length ? port.gossip[Math.floor(game.day) % port.gossip.length] : null;
   return (
     <>
+      {talk && (
+        <p className="gossip">
+          <span className="meta">隔壁桌的酒客：</span>「{talk}」
+        </p>
+      )}
       <h3>傳聞</h3>
       {rumors.length === 0 && <p className="meta">今天沒聽到什麼新鮮事。</p>}
       {rumors.map((c) => (

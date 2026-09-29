@@ -1,7 +1,8 @@
 import { useEffect } from 'react';
 import { useGame, type Toast } from '../store';
 
-const TOAST_MS = 4500;
+/** 顯示時間依字數調整：大約每秒讀 8 個字，至少 4.5 秒、最多 12 秒 */
+const toastMs = (text: string) => Math.min(12000, Math.max(4500, 1500 + text.length * 120));
 
 export function Toasts() {
   const toasts = useGame((s) => s.toasts);
@@ -18,9 +19,9 @@ function ToastItem({ toast }: { toast: Toast }) {
   const dismiss = useGame((s) => s.dismissToast);
   const openPanel = useGame((s) => s.openPanel);
   useEffect(() => {
-    const id = setTimeout(() => dismiss(toast.id), TOAST_MS);
+    const id = setTimeout(() => dismiss(toast.id), toastMs(toast.text));
     return () => clearTimeout(id);
-  }, [toast.id, dismiss]);
+  }, [toast.id, toast.text, dismiss]);
   return (
     <div className={`toast ${toast.kind}`}>
       <span>{toast.text}</span>

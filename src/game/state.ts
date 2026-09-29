@@ -95,6 +95,7 @@ import {
 import type { Rig } from './progression';
 import { isLand } from '@/geo/landmask';
 import type { World } from './world';
+import { crewTalk } from './crewTalk';
 import {
   HAIL_KM,
   MAX_FLEETS,
@@ -232,6 +233,10 @@ export interface GameState {
   fleets: SeaFleet[];
   storms: StormCell[];
   nextEntityId: number;
+  /** 夥伴下次可以閒聊的遊戲日、上次所在海域、已給過提示的傳聞 */
+  talkDay: number;
+  lastRegionId: string | null;
+  hinted: string[];
 }
 
 export interface HelmState extends Helm {
@@ -264,6 +269,7 @@ export type GameEvent =
   | { type: 'levelUp'; level: number }
   | { type: 'portUnlocked'; portId: string }
   | { type: 'warning'; text: string }
+  | { type: 'talk'; speaker: string; text: string }
   | { type: 'encounter'; encounter: Encounter }
   | { type: 'stormResolved'; choice: StormChoice; hullLoss: number; days: number }
   | { type: 'eventResolved'; effect: EventEffect }
@@ -340,6 +346,9 @@ export function newGame(world: World, scenarioId: string, seed = newSeed()): Ste
     fleets: [],
     storms: [],
     nextEntityId: 1,
+    talkDay: 0.5,
+    lastRegionId: null,
+    hinted: [],
   };
   return { state, events: [], fogChanged };
 }
@@ -725,8 +734,47 @@ function seaLife(
     storms = storms.filter((c) => c.id !== inStorm.id);
   }
 
+  // 夥伴說話
+  let { talkDay, lastRegionId, hinted } = state;
+  if (!encounter) {
+    const region = regionId ? (world.regions.get(regionId) ?? null) : null;
+    const env = environmentAt(state, pos, state.ship.heading, usedDays);
+    const talk = crewTalk({
+      position: pos,
+      wind: gustyWind(env.wind, pos, day),
+      current: env.current,
+      night: isNight(day),
+      region,
+      lastRegionId,
+      openRumors: openRumors(world, state),
+      hinted,
+      speakers: state.crew.map((id) => world.crew.get(id)?.name).filter((n): n is string => !!n),
+      roll: rand(),
+      chatReady: day >= talkDay,
+    });
+    if (talk) {
+      events.push({ type: 'talk', speaker: talk.speaker, text: talk.text });
+      if (talk.region) lastRegionId = talk.region;
+      if (talk.hintFor) hinted = [...hinted, talk.hintFor];
+      if (talk.chat) talkDay = day + 1.2 + rand() * 1.2;
+    }
+    // 離開有名字的海域時也要記住，下次進來才會再介紹
+    if (!region && lastRegionId) lastRegionId = null;
+  }
+
   return {
-    state: { ...state, seed, nav, fleets, storms, nextEntityId, stats },
+    state: {
+      ...state,
+      seed,
+      nav,
+      fleets,
+      storms,
+      nextEntityId,
+      stats,
+      talkDay,
+      lastRegionId,
+      hinted,
+    },
     events,
     encounter,
   };

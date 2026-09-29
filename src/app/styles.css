@@ -1797,3 +1797,18 @@ table.market .tag {
     display: none;
   }
 }
+
+.gossip {
+  margin: 0;
+  padding: 6px 10px;
+  background: rgba(199, 154, 58, 0.12);
+  border-radius: 6px;
+}
+
+.toast.talk {
+  background: #fbf6ea;
+  color: #2b2118;
+  border: 1px solid #c9b48a;
+  max-width: min(520px, calc(100vw - 32px));
+  text-align: left;
+}
