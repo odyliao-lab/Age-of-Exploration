@@ -32,6 +32,7 @@ import {
   RIVAL_NAME,
   sellToMerchant,
   takeSounding,
+  crewSpeaker,
   sightStars,
   pray,
   tradeBuy,
@@ -660,7 +661,7 @@ export const useGame = create<GameStore>((set, get) => {
           modals: [...s.modals, { type: 'info', title: '打水（測深）', text, lesson: r.lesson! }],
         }));
       } else {
-        toast({ text: `水手長：「${text}」`, kind: 'talk' });
+        toast({ text: `${crewSpeaker(world, game)}：「${text}」`, kind: 'talk' });
       }
     },
     enterBuilding: (kind) => {

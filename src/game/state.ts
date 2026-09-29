@@ -846,7 +846,7 @@ function seaLife(
         type: 'warning',
         text: '起霧了！四周白茫茫一片，看不到岸也看不到星星。放慢一點，用測深探探水深吧。',
       });
-      events.push({ type: 'talk', speaker: '水手長', text: mistNow.lesson });
+      events.push({ type: 'talk', speaker: crewSpeaker(world, state), text: mistNow.lesson });
     }
   } else if (misty) {
     events.push({ type: 'warning', text: '霧散了，視野又清楚起來。' });
@@ -1006,6 +1006,11 @@ export function greetEnvoy(
     lesson:
       '明朝用「朝貢」和各國往來：外國派使節帶著貢品來，皇帝回贈豐厚的禮物，並承認對方的國王。鄭和下西洋之後，來朝貢的國家大增，還帶來了長頸鹿、獅子等珍奇動物。',
   };
+}
+
+/** 船上說話的人：第一位船員，沒有船員時是老舵工 */
+export function crewSpeaker(world: World, state: GameState): string {
+  return world.crew.get(state.crew[0] ?? '')?.name ?? '老舵工';
 }
 
 /** 附近可以打招呼的商船 */
