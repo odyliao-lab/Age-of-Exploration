@@ -7,6 +7,7 @@ import {
   dueReviews,
   type Mastery,
 } from '@/game/learning';
+import { RIVAL_NAME, openRumors, unreportedFinds } from '@/game/state';
 import { useGame } from '../store';
 import { useNow } from '../useNow';
 
@@ -90,6 +91,8 @@ export function LogbookPanel() {
             )}
           </section>
         )}
+
+        <RumorLog />
 
         <section>
           <h3>
@@ -204,5 +207,47 @@ function ReviewCard({
         </div>
       )}
     </div>
+  );
+}
+
+/** 傳聞與發現：還在找的傳聞（附原本的線索）、待回報的發現、整體進度與對手比賽 */
+function RumorLog() {
+  const world = useGame((s) => s.world)!;
+  const game = useGame((s) => s.game)!;
+  const open = openRumors(world, game);
+  const finds = unreportedFinds(world, game);
+  const rival = game.rival;
+  const racing = rival.target ? world.codex.get(rival.target) : null;
+  return (
+    <section>
+      <h3>
+        傳聞與發現{' '}
+        <span className="meta">
+          已回報 {game.reported.length}／{world.rumors.length} 個地方
+        </span>
+      </h3>
+      {open.length === 0 && finds.length === 0 && (
+        <p className="meta">在各港口的酒館聽傳聞，記下來的線索會出現在這裡。</p>
+      )}
+      {open.map((c) => {
+        const port = world.ports.get(c.rumor!.port);
+        return (
+          <article key={c.id} className="rumor-card">
+            <div className="meta">
+              {port?.name}・{c.rumor!.from}
+              {racing?.id === c.id &&
+                `・⚔️ 和${RIVAL_NAME}比賽中（剩 ${Math.max(0, Math.ceil(rival.due - game.day))} 天）`}
+            </div>
+            <p>「{c.rumor!.text}」</p>
+          </article>
+        );
+      })}
+      {finds.length > 0 && (
+        <p>
+          📜 待回報：{finds.map((c) => c.name).join('、')}
+          <span className="meta">（到任何港口的書院回報）</span>
+        </p>
+      )}
+    </section>
   );
 }
