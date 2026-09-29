@@ -15,7 +15,8 @@ import { PlanningPanel } from './panels/PlanningPanel';
 import { SailBar } from './panels/SailBar';
 import { QuestTracker } from './panels/QuestTracker';
 import { Toasts } from './panels/Toasts';
-import { DialogueModal, QuizModal, RewardModal, StormModal } from './panels/Modals';
+import { DialogueModal, EventModal, QuizModal, RewardModal, StormModal } from './panels/Modals';
+import { LocateBanner } from './panels/LocateBanner';
 import { WindCompass } from './panels/WindCompass';
 import { CodexPanel } from './panels/CodexPanel';
 import { CaptainPanel } from './panels/CaptainPanel';
@@ -31,6 +32,7 @@ export function MapScreen() {
   const follow = useGame((s) => s.follow);
   const modals = useGame((s) => s.modals);
   const panel = useGame((s) => s.panel);
+  const mapMarks = useGame((s) => s.mapMarks);
 
   const scenario = world.scenarios.get(game.scenarioId)!;
   const hostRef = useRef<HTMLDivElement>(null);
@@ -56,7 +58,9 @@ export function MapScreen() {
       },
       onMapTap: (p) => {
         const s = useGame.getState();
-        if (s.planning) s.addWaypoint(p);
+        const pending = s.world && s.game ? pendingInteraction(s.world, s.game) : null;
+        if (pending?.data.type === 'locate' && !s.modals.length) s.locate(p);
+        else if (s.planning) s.addWaypoint(p);
         else s.selectPort(null);
       },
       onPointerLonLat: setPointer,
@@ -158,13 +162,18 @@ export function MapScreen() {
   }, [game.ship, game.voyage, planning, follow, ready]);
 
   useEffect(() => {
-    mapRef.current?.setPlanning(!!planning);
-  }, [planning]);
+    if (ready) mapRef.current?.setMarks(mapMarks);
+  }, [mapMarks, ready]);
 
   const interaction = modals.length === 0 ? pendingInteraction(world, game) : null;
+  const locating = interaction?.data.type === 'locate';
+
+  useEffect(() => {
+    mapRef.current?.setPlanning(!!planning || locating);
+  }, [planning, locating]);
 
   return (
-    <div className="map-screen">
+    <div className={locating ? 'map-screen locating' : 'map-screen'}>
       <StatusBar
         onZoomIn={() => mapRef.current?.zoomBy(1.5)}
         onZoomOut={() => mapRef.current?.zoomBy(1 / 1.5)}
@@ -192,6 +201,10 @@ export function MapScreen() {
             <i className="line" />
             赤道、本初子午線
           </span>
+          <span>
+            <i className="line dashed" />
+            回歸線、極圈
+          </span>
         </div>
 
         <div className="map-coords" aria-live="off">
@@ -202,6 +215,7 @@ export function MapScreen() {
         {!planning && selectedPortId && <PortPanel portId={selectedPortId} />}
 
         <WindCompass />
+        {interaction?.data.type === 'locate' && <LocateBanner step={interaction.data} />}
         <Toasts />
       </div>
 
@@ -209,7 +223,10 @@ export function MapScreen() {
       {panel === 'captain' && <CaptainPanel />}
 
       {modals[0] && <RewardModal modal={modals[0]} />}
-      {!modals[0] && game.encounter && <StormModal encounter={game.encounter} />}
+      {!modals[0] && game.encounter?.kind === 'storm' && <StormModal encounter={game.encounter} />}
+      {!modals[0] && game.encounter?.kind === 'event' && (
+        <EventModal event={game.encounter} key={`${game.encounter.id}-${game.day}`} />
+      )}
       {interaction?.data.type === 'dialogue' && (
         <DialogueModal questId={interaction.questId} step={interaction.data} />
       )}

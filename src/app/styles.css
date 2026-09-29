@@ -976,3 +976,44 @@ button.wide {
     display: none;
   }
 }
+
+/* ---- 第 3 週：導航挑戰與事件 ---- */
+
+.map-legend .line.dashed {
+  border-top: 2px dashed rgba(192, 122, 31, 0.8);
+}
+
+.locate-banner {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(520px, calc(100vw - 24px));
+  background: var(--card);
+  border: 2px solid #2f7d4a;
+  border-radius: 8px;
+  padding: 10px 14px;
+  box-shadow: 0 4px 16px rgba(43, 33, 24, 0.18);
+  z-index: 4;
+}
+
+.locate-banner p {
+  margin: 4px 0;
+  line-height: 1.5;
+}
+
+.map-screen.locating .quest-tracker,
+.map-screen.locating .port-panel {
+  display: none;
+}
+
+@media (max-width: 600px) {
+  .map-screen.locating .map-coords {
+    display: block;
+    bottom: 12px;
+  }
+}
+
+.map-screen.locating .toasts {
+  top: 170px;
+}

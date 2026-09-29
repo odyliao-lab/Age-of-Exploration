@@ -18,6 +18,18 @@ import {
   type StormRisk,
   type Wind,
 } from './environment';
+import {
+  checkLocate,
+  createEvent,
+  eventChances,
+  flotsamEffect,
+  resolveAnswer,
+  resolveChoice,
+  type EventEffect,
+  type EventId,
+  type LocateResult,
+  type VoyageEvent,
+} from './events';
 import { createFog, exploredFraction, revealAround } from './fog';
 import { newSeed, nextRandom } from './rng';
 import {
@@ -33,14 +45,22 @@ import {
   rest,
   shipType,
   shipwreckLoss,
-  type Encounter,
   type ShipCondition,
   type StormChoice,
+  type StormEncounter,
 } from './ship';
 import { createVoyage, isFinished, positionAt, type Harbor, type Voyage } from './voyage';
 import type { World } from './world';
 
-export const SAVE_VERSION = 2;
+export const SAVE_VERSION = 3;
+
+/** 航行中需要玩家處理的狀況：風暴或隨機事件 */
+export type Encounter = StormEncounter | VoyageEvent;
+
+/** 兩次隨機事件之間至少間隔的天數 */
+const EVENT_COOLDOWN_DAYS = 4;
+/** 座標定位挑戰最多嘗試次數，之後直接公布答案 */
+export const LOCATE_MAX_ATTEMPTS = 3;
 
 /** 基礎航速：每日 100 海里（約 4 節），接近鄭和寶船的歷史估計 */
 export const BASE_SPEED_KM_PER_DAY = 185;
@@ -92,6 +112,8 @@ export interface GameState {
   shipwrecks: number;
   /** 可重現亂數的種子 */
   seed: number;
+  /** 下一次隨機事件最早可發生的遊戲天數 */
+  eventCooldownUntil: number;
 }
 
 export interface QuestReward {
@@ -113,6 +135,7 @@ export type GameEvent =
   | { type: 'warning'; text: string }
   | { type: 'encounter'; encounter: Encounter }
   | { type: 'stormResolved'; choice: StormChoice; hullLoss: number; days: number }
+  | { type: 'eventResolved'; effect: EventEffect }
   | {
       type: 'shipwreck';
       cause: StormRisk;
@@ -163,6 +186,7 @@ export function newGame(world: World, scenarioId: string, seed = newSeed()): Ste
     encounter: null,
     shipwrecks: 0,
     seed,
+    eventCooldownUntil: 2,
   };
   return { state, events: [], fogChanged };
 }
@@ -328,6 +352,17 @@ export function tick(world: World, state: GameState, days: number): StepResult {
         break;
       }
     }
+
+    // 隨機事件（有冷卻時間，避免太頻繁打斷航行）
+    if (state.day + usedDays >= s.eventCooldownUntil) {
+      const rolled = rollEvent(world, s, pos.position, pos.heading, stepDays, usedDays);
+      s = rolled.state;
+      if (rolled.event) {
+        encounter = rolled.event;
+        s = { ...s, eventCooldownUntil: state.day + usedDays + EVENT_COOLDOWN_DAYS };
+        break;
+      }
+    }
   }
 
   let next: GameState = { ...s, day: state.day + usedDays, voyage, discovered };
@@ -374,10 +409,124 @@ function warnConditionChanges(before: ShipCondition, after: ShipCondition, event
   }
 }
 
-/** 處理遭遇（目前只有風暴） */
+const EVENT_ORDER: EventId[] = ['pirates', 'doldrums', 'scurvy', 'stargazing', 'lost', 'flotsam'];
+
+function rollEvent(
+  world: World,
+  state: GameState,
+  position: LonLat,
+  heading: number,
+  stepDays: number,
+  usedDays: number,
+): { state: GameState; event: VoyageEvent | null } {
+  const month = gameDate(state, usedDays).month;
+  const env = environmentAt(state, position, heading, usedDays);
+  const lastPort = world.ports.get(state.lastPortId);
+  const regionId = regionAt(world, position);
+  const ctx = {
+    position,
+    heading,
+    month,
+    wind: env.wind,
+    daysAtSea: state.condition.daysAtSea,
+    lastPort: lastPort
+      ? { name: lastPort.name, location: lastPort.location }
+      : { name: '出發港', location: position },
+    regionName: regionId ? (world.regions.get(regionId)?.name ?? null) : null,
+    otherRegionNames: world.content.regions.filter((r) => r.id !== regionId).map((r) => r.name),
+  };
+  // 迷航題需要離開港口一段距離才有意義
+  const farEnough = distanceKm(ctx.lastPort.location, position) > 150;
+  const chances = eventChances(ctx);
+  let seed = state.seed;
+  const rand = () => {
+    const [v, n] = nextRandom(seed);
+    seed = n;
+    return v;
+  };
+  let event: VoyageEvent | null = null;
+  for (const id of EVENT_ORDER) {
+    const c = chances[id];
+    if (!c || (id === 'lost' && !farEnough)) continue;
+    if (id === 'pirates' && !ctx.regionName) continue;
+    if (rand() < 1 - Math.pow(1 - c, stepDays)) {
+      event = createEvent(id, ctx, rand);
+      break;
+    }
+  }
+  return { state: { ...state, seed }, event };
+}
+
+/** 處理隨機事件：選擇行動（choiceId）或回答問題（answer） */
+export function resolveEvent(
+  _world: World,
+  state: GameState,
+  response: { choiceId?: string; answer?: number },
+): StepResult {
+  const ev = state.encounter;
+  if (!ev || ev.kind !== 'event') return { state, events: [], fogChanged: [] };
+  const [roll, seed] = nextRandom(state.seed);
+  let effect: EventEffect;
+  let quizLog = state.quizLog;
+  if (response.answer !== undefined && ev.question) {
+    const correct = response.answer === ev.question.answer;
+    effect = resolveAnswer(ev, correct, state.gold);
+    quizLog = [
+      ...quizLog,
+      {
+        questId: `event:${ev.id}`,
+        step: Math.floor(state.day),
+        domains: ev.id === 'pirates' ? ['B'] : ['A'],
+        attempts: 1,
+        firstTry: correct,
+        day: state.day,
+      },
+    ];
+  } else if (ev.id === 'flotsam') {
+    effect = flotsamEffect(ev, roll);
+  } else {
+    effect = resolveChoice(ev, response.choiceId ?? '', roll, state.captain.attrs, state.gold);
+  }
+
+  const events: GameEvent[] = [{ type: 'eventResolved', effect }];
+  let condition = state.condition;
+  if (effect.days) condition = passTime(condition, effect.days, state.captain.attrs.leadership);
+  condition = {
+    ...condition,
+    morale: Math.max(0, Math.min(100, condition.morale + (effect.morale ?? 0))),
+    supplies: {
+      water: Math.max(0, condition.supplies.water + (effect.water ?? 0)),
+      food: Math.max(0, condition.supplies.food + (effect.food ?? 0)),
+    },
+  };
+  let captain = state.captain;
+  if (effect.xp) {
+    const r = addXp(captain, effect.xp);
+    captain = r.captain;
+    for (let i = 1; i <= r.levelsGained; i++) {
+      events.push({ type: 'levelUp', level: state.captain.level + i });
+    }
+  }
+  return {
+    state: {
+      ...state,
+      seed,
+      encounter: null,
+      quizLog,
+      captain,
+      condition,
+      gold: Math.max(0, state.gold + (effect.gold ?? 0)),
+      day: state.day + (effect.days ?? 0),
+    },
+    events,
+    fogChanged: [],
+  };
+}
+
+/** 處理風暴遭遇 */
 export function resolveEncounter(world: World, state: GameState, choice: StormChoice): StepResult {
   const enc = state.encounter;
-  if (!enc) return { state, events: [], fogChanged: [] };
+  if (!enc || enc.kind !== 'storm') return { state, events: [], fogChanged: [] };
   const [roll, seed] = nextRandom(state.seed);
   const severity = enc.risk.kind === 'gale' ? 0.8 : 1;
   const out = resolveStormChoice(
@@ -577,18 +726,56 @@ export function pendingInteraction(
 ): {
   questId: string;
   step: number;
-  data: Extract<QuestStep, { type: 'dialogue' | 'quiz' }>;
+  data: Extract<QuestStep, { type: 'dialogue' | 'quiz' | 'locate' }>;
 } | null {
-  // 航行途中不打斷；到港或停泊時才進行對話與問答
-  if (state.voyage) return null;
+  // 航行途中不打斷；到港或停泊時才進行對話、問答與定位挑戰
+  if (state.voyage || state.encounter) return null;
   for (const [questId, p] of Object.entries(state.quests)) {
     if (p.status !== 'active') continue;
     const step = world.quests.get(questId)?.steps[p.step];
-    if (step && (step.type === 'dialogue' || step.type === 'quiz')) {
+    if (step && (step.type === 'dialogue' || step.type === 'quiz' || step.type === 'locate')) {
       return { questId, step: p.step, data: step };
     }
   }
   return null;
+}
+
+/**
+ * 座標定位挑戰：玩家在海圖上點選位置。
+ * 答錯會告訴玩家正確位置在點選處的哪個方位；答錯三次後公布答案並繼續任務。
+ */
+export function answerLocate(
+  world: World,
+  state: GameState,
+  questId: string,
+  guess: LonLat,
+): StepResult & { result: LocateResult; attempts: number; revealed: boolean } {
+  const p = state.quests[questId];
+  const quest = world.quests.get(questId);
+  const step = quest?.steps[p?.step ?? -1];
+  const none = { correct: false, distanceKm: 0, direction: '' };
+  if (!p || !quest || p.status !== 'active' || step?.type !== 'locate') {
+    return { state, events: [], fogChanged: [], result: none, attempts: 0, revealed: false };
+  }
+  const result = checkLocate(guess, step.target, step.tolerance_km);
+  const existing = state.quizLog.find((r) => r.questId === questId && r.step === p.step);
+  const attempts = (existing?.attempts ?? 0) + 1;
+  const record: QuizRecord = existing
+    ? { ...existing, attempts }
+    : {
+        questId,
+        step: p.step,
+        domains: ['A'],
+        attempts: 1,
+        firstTry: result.correct,
+        day: state.day,
+      };
+  const next = { ...state, quizLog: [...state.quizLog.filter((r) => r !== existing), record] };
+  const revealed = !result.correct && attempts >= LOCATE_MAX_ATTEMPTS;
+  if (!result.correct && !revealed) {
+    return { state: next, events: [], fogChanged: [], result, attempts, revealed };
+  }
+  return { ...advanceStep(world, next, questId), result, attempts, revealed };
 }
 
 export function finishDialogue(world: World, state: GameState, questId: string): StepResult {

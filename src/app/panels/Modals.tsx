@@ -2,6 +2,7 @@ import { useState, type ReactNode } from 'react';
 import type { QuestStep } from '@/data/schema';
 import { ATTRIBUTE_INFO } from '@/game/captain';
 import { STORM_CHOICES, shipwreckLoss, type StormChoice, type StormEncounter } from '@/game/ship';
+import type { VoyageEvent } from '@/game/events';
 import { regionAt } from '@/game/state';
 import { formatLonLat } from '@/map/projection';
 import { ConditionBars } from './Condition';
@@ -100,6 +101,32 @@ export function RewardModal({ modal }: { modal: Modal }) {
 
   if (modal.type === 'shipwreck') {
     return <ShipwreckModal modal={modal} />;
+  }
+
+  if (modal.type === 'info') {
+    return (
+      <ModalFrame title={modal.title}>
+        <p>{modal.text}</p>
+        {modal.stats && modal.stats.length > 0 && (
+          <ul className="reward-list">
+            {modal.stats.map((t) => (
+              <li key={t}>{t}</li>
+            ))}
+          </ul>
+        )}
+        {modal.lesson && (
+          <p className="lesson">
+            <strong>地理小教室：</strong>
+            {modal.lesson}
+          </p>
+        )}
+        <div className="row end">
+          <button type="button" className="primary" autoFocus onClick={dismiss}>
+            繼續
+          </button>
+        </div>
+      </ModalFrame>
+    );
   }
 
   if (modal.type === 'levelUp') {
@@ -232,6 +259,72 @@ function ShipwreckModal({ modal }: { modal: Extract<Modal, { type: 'shipwreck' }
           重新振作
         </button>
       </div>
+    </ModalFrame>
+  );
+}
+
+export function EventModal({ event }: { event: VoyageEvent }) {
+  const respond = useGame((s) => s.respondEvent);
+  // 海盜的「知識挑戰」選項會切換到問答畫面
+  const [asking, setAsking] = useState(!event.choices && !!event.question);
+  const q = event.question;
+  return (
+    <ModalFrame title={event.title} label={event.title}>
+      <p>{event.text}</p>
+      {asking && q ? (
+        <>
+          <p className="question">{q.prompt}</p>
+          <div className="choices">
+            {q.choices.map((c, i) => (
+              <button
+                type="button"
+                key={i}
+                className="choice"
+                onClick={() => respond({ answer: i })}
+              >
+                {c}
+              </button>
+            ))}
+          </div>
+        </>
+      ) : (
+        <>
+          {event.lesson && event.id !== 'pirates' && (
+            <p className="lesson">
+              <strong>地理小教室：</strong>
+              {event.lesson}
+            </p>
+          )}
+          <div className="choices">
+            {event.choices ? (
+              event.choices
+                .filter((c) => c.id !== 'quiz' || q)
+                .map((c) => (
+                  <button
+                    type="button"
+                    key={c.id}
+                    className="choice"
+                    onClick={() =>
+                      c.id === 'quiz' ? setAsking(true) : respond({ choiceId: c.id })
+                    }
+                  >
+                    <strong>{c.label}</strong>
+                    <span className="meta"> — {c.hint}</span>
+                  </button>
+                ))
+            ) : (
+              <button
+                type="button"
+                className="primary"
+                autoFocus
+                onClick={() => respond({ choiceId: 'take' })}
+              >
+                撈起來看看
+              </button>
+            )}
+          </div>
+        </>
+      )}
     </ModalFrame>
   );
 }

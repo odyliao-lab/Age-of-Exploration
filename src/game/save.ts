@@ -43,6 +43,8 @@ export function deserialize(data: SerializedSave): GameState {
     encounter: data.encounter ?? null,
     shipwrecks: data.shipwrecks ?? 0,
     seed: data.seed ?? newSeed(),
+    // 第 3 版新增：隨機事件冷卻
+    eventCooldownUntil: data.eventCooldownUntil ?? 0,
   };
 }
 

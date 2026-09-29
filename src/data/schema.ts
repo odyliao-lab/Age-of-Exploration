@@ -109,6 +109,14 @@ export const QuestStep = z.discriminatedUnion('type', [
     answer: z.number().int().min(0),
     explanation: z.string().optional(),
   }),
+  /** 座標定位挑戰（企畫書 5.4）：在海圖上點出指定位置 */
+  z.object({
+    type: z.literal('locate'),
+    prompt: z.string(),
+    target: LonLat,
+    tolerance_km: z.number().positive().default(250),
+    explanation: z.string().optional(),
+  }),
   z.object({
     type: z.literal('dialogue'),
     speaker: z.string(),

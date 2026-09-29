@@ -7,8 +7,14 @@
   "kind": "main",
   "giver_port": "quanzhou",
   "objectives": [
-    { "domain": "A", "text": "能在海圖上找到指定經緯度的港口。" },
-    { "domain": "B", "text": "能指出台灣海峽的位置。" }
+    {
+      "domain": "A",
+      "text": "能在海圖上找到指定經緯度的港口。"
+    },
+    {
+      "domain": "B",
+      "text": "能指出台灣海峽的位置。"
+    }
   ],
   "prerequisites": [],
   "steps": [
@@ -20,14 +26,30 @@
         "廣州在我們的西南方，大約北緯 23 度、東經 113 度。把航線畫出來吧。"
       ]
     },
-    { "type": "navigate", "target": "guangzhou", "hint_level": 1 },
+    {
+      "type": "locate",
+      "prompt": "出發前，航海長先考考你：北回歸線（約北緯 23.5°）穿過台灣。請在海圖上點出北回歸線與東經 120.5° 交會的地方。",
+      "target": [120.5, 23.45],
+      "tolerance_km": 120,
+      "explanation": "北回歸線是夏至時太陽直射的最北界線，約在北緯 23.5°，穿過台灣的嘉義與花蓮。北回歸線以南屬於熱帶。"
+    },
+    {
+      "type": "navigate",
+      "target": "guangzhou",
+      "hint_level": 1
+    },
     {
       "type": "quiz",
-      "question": "剛才出港時，船的右舷（東側）遠處那片海域，把中國大陸和哪座島隔開？",
+      "question": "剛才沿著海岸往西南航行時，船的左手邊（東南方）隔著一道海峽的是哪座大島？",
       "choices": ["海南島", "台灣", "琉球", "呂宋"],
       "answer": 1,
-      "explanation": "泉州東側的海域就是台灣海峽，對岸是台灣。"
+      "explanation": "船往西南走時，左手邊是東南方。泉州東南方隔著台灣海峽的就是台灣；台灣海峽最窄處約 130 公里。"
     }
   ],
-  "reward": { "xp": 50, "gold": 100, "reputation": 5, "unlock_ports": ["champa"] }
+  "reward": {
+    "xp": 50,
+    "gold": 100,
+    "reputation": 5,
+    "unlock_ports": ["champa"]
+  }
 }

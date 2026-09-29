@@ -93,6 +93,8 @@ export class WorldMap {
   private world = new Container();
   private portLayer = new Container();
   private routeGfx = new Graphics();
+  private marksGfx = new Graphics();
+  private marks: { lonLat: LonLat; kind: 'guess' | 'answer' }[] = [];
   private ship = new Container();
   /** 原始迷霧格網（每格一像素） */
   private fogCanvas: HTMLCanvasElement;
@@ -164,6 +166,7 @@ export class WorldMap {
       fog,
       this.drawGraticule(),
       this.routeGfx,
+      this.marksGfx,
       this.portLayer,
       this.ship,
     );
@@ -212,6 +215,13 @@ export class WorldMap {
     g.moveTo(0, WORLD_HEIGHT / 2).lineTo(WORLD_WIDTH, WORLD_HEIGHT / 2);
     g.moveTo(WORLD_WIDTH / 2, 0).lineTo(WORLD_WIDTH / 2, WORLD_HEIGHT);
     g.stroke({ width: 1, color: COLORS.equator, alpha: 0.6, pixelLine: true });
+
+    // 南北回歸線（±23.44°）與南北極圈（±66.56°）以虛線表示
+    for (const lat of [23.44, -23.44, 66.56, -66.56]) {
+      const y = (90 - lat) * DEG_PX;
+      for (let x = 0; x < WORLD_WIDTH; x += 12) g.moveTo(x, y).lineTo(x + 6, y);
+    }
+    g.stroke({ width: 1, color: 0xc07a1f, alpha: 0.7, pixelLine: true });
     return g;
   }
 
@@ -287,6 +297,24 @@ export class WorldMap {
     }
   }
 
+  private drawMarks() {
+    const g = this.marksGfx;
+    g.clear();
+    const inv = 1 / this.view.scale;
+    for (const m of this.marks) {
+      const p = lonLatToWorld(m.lonLat);
+      if (m.kind === 'answer') {
+        g.circle(p.x, p.y, 12 * inv).stroke({ width: 3 * inv, color: COLORS.target });
+        g.circle(p.x, p.y, 3 * inv).fill({ color: COLORS.target });
+      } else {
+        const s = 6 * inv;
+        g.moveTo(p.x - s, p.y - s).lineTo(p.x + s, p.y + s);
+        g.moveTo(p.x + s, p.y - s).lineTo(p.x - s, p.y + s);
+        g.stroke({ width: 3 * inv, color: COLORS.invalid });
+      }
+    }
+  }
+
   private applyView(next: View) {
     this.view = clampView(next, this.size);
     this.world.position.set(this.view.x, this.view.y);
@@ -299,6 +327,7 @@ export class WorldMap {
     }
     this.ship.scale.set(inv * 1.2);
     this.drawRoute();
+    this.drawMarks();
   }
 
   // ---- 對外 API ----
@@ -364,6 +393,11 @@ export class WorldMap {
   setRoute(route: RouteView | null) {
     this.route = route;
     this.drawRoute();
+  }
+
+  setMarks(marks: { lonLat: LonLat; kind: 'guess' | 'answer' }[]) {
+    this.marks = marks;
+    this.drawMarks();
   }
 
   setShip(position: LonLat, heading: number, follow = false) {

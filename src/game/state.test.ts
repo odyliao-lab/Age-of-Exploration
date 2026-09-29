@@ -3,7 +3,10 @@ import type { LonLat } from '@/data/schema';
 import { addXp, newCaptain, spendPoint, xpToNext } from './captain';
 import {
   acceptQuest,
+  answerLocate,
   answerQuiz,
+  resolveEncounter,
+  resolveEvent,
   availableQuests,
   finishDialogue,
   harborsFor,
@@ -64,6 +67,20 @@ function sail(state: GameState, route: LonLat[], dest: string) {
     const r = tick(world, s, 0.25);
     s = r.state;
     events.push(...r.events);
+    // 途中遇到事件或風暴：自動處理，讓測試專注在任務流程
+    if (s.encounter?.kind === 'storm') s = resolveEncounter(world, s, 'wait').state;
+    else if (s.encounter?.kind === 'event') {
+      const ev = s.encounter;
+      s = resolveEvent(
+        world,
+        s,
+        ev.choices
+          ? { choiceId: ev.choices[0].id }
+          : ev.question
+            ? { answer: 0 }
+            : { choiceId: 'take' },
+      ).state;
+    }
   }
   return { state: s, events };
 }
@@ -100,6 +117,18 @@ describe('Treasure Fleet prologue and chapter 1', () => {
     expect(pendingInteraction(world, s)?.data.type).toBe('dialogue');
     s = finishDialogue(world, s, 'tf-00-first-voyage').state;
 
+    // 座標定位挑戰：北回歸線與東經 120.5° 的交會處
+    expect(pendingInteraction(world, s)?.data.type).toBe('locate');
+    const miss = answerLocate(world, s, 'tf-00-first-voyage', [118, 26]);
+    expect(miss.result.correct).toBe(false);
+    expect(miss.result.direction).toBe('東南');
+    expect(miss.state.quests['tf-00-first-voyage'].step).toBe(1);
+    const hit = answerLocate(world, miss.state, 'tf-00-first-voyage', [120.4, 23.5]);
+    expect(hit.result.correct).toBe(true);
+    expect(hit.attempts).toBe(2);
+    s = hit.state;
+    expect(s.quests['tf-00-first-voyage'].step).toBe(2);
+
     // 目的地廣州出現在海圖上，提示等級 1 顯示名稱
     expect(visiblePortIds(world, s)).toContain('guangzhou');
     expect(portNameKnown(world, s, 'guangzhou')).toBe(true);
@@ -134,7 +163,7 @@ describe('Treasure Fleet prologue and chapter 1', () => {
       expect.arrayContaining(['questCompleted', 'portUnlocked']),
     );
     expect(s.unlockedPorts).toContain('champa');
-    expect(s.quizLog[0]).toMatchObject({ attempts: 2, firstTry: false });
+    expect(s.quizLog.find((q) => q.step === 3)).toMatchObject({ attempts: 2, firstTry: false });
 
     // 第一章：廣州 → 占城，途經海南島
     expect(availableQuests(world, s, 'guangzhou').map((q) => q.id)).toEqual(['tf-01-champa']);

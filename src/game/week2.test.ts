@@ -21,6 +21,7 @@ import {
   portRepair,
   portResupply,
   resolveEncounter,
+  resolveEvent,
   startVoyage,
   tick,
   type GameState,
@@ -31,6 +32,21 @@ import { buildWorld } from './world';
 
 const world = buildWorld(contentForTests());
 const junk = shipType('junk');
+
+/** 自動處理隨機事件（這裡只關心風暴） */
+function skipEvents(s: GameState): GameState {
+  const ev = s.encounter;
+  if (ev?.kind !== 'event') return s;
+  return resolveEvent(
+    world,
+    s,
+    ev.choices
+      ? { choiceId: ev.choices[0].id }
+      : ev.question
+        ? { answer: 0 }
+        : { choiceId: 'take' },
+  ).state;
+}
 
 describe('calendar', () => {
   it('converts game days to dates across months and years', () => {
@@ -208,9 +224,10 @@ describe('sailing with weather', () => {
     let storms = 0;
     for (let i = 0; i < 2000 && s.voyage; i++) {
       const r = tick(world, s, 0.25);
-      s = r.state;
+      s = skipEvents(r.state);
       if (s.encounter) {
         storms++;
+        const goldBefore = s.gold;
         const res = resolveEncounter(world, s, 'push');
         s = res.state;
         const wreck = res.events.find((e) => e.type === 'shipwreck');
@@ -221,7 +238,7 @@ describe('sailing with weather', () => {
           expect(s.dockedAt).toBe('quanzhou');
           expect(s.condition.hull).toBe(60);
           expect(s.shipwrecks).toBe(1);
-          expect(s.gold).toBe(1000 - wreck.lostGold);
+          expect(s.gold).toBe(goldBefore - wreck.lostGold);
           return;
         }
       }
@@ -237,7 +254,8 @@ describe('sailing with weather', () => {
     s = startVoyage(s, openSea, null);
     for (let i = 0; i < 2000 && s.voyage; i++) {
       s = tick(world, s, 0.25).state;
-      expect(s.encounter).toBeNull();
+      expect(s.encounter?.kind).not.toBe('storm');
+      s = skipEvents(s);
     }
     expect(s.voyage).toBeNull();
   });

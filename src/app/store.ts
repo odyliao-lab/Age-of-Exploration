@@ -5,6 +5,7 @@
 import { create } from 'zustand';
 import type { LonLat } from '@/data/schema';
 import { KM_PER_NM } from '@/geo/geo';
+import { formatLonLat } from '@/map/projection';
 import type { StormRisk } from '@/game/environment';
 import type { StormChoice } from '@/game/ship';
 import { STORM_CHOICES } from '@/game/ship';
@@ -12,7 +13,10 @@ import { spendPoint, type AttributeKey } from '@/game/captain';
 import { deleteSave, listSaves, loadSave, writeSave } from '@/game/save';
 import {
   acceptQuest,
+  answerLocate,
   answerQuiz,
+  pendingInteraction,
+  resolveEvent,
   estimateVoyage,
   finishDialogue,
   harborsFor,
@@ -29,6 +33,7 @@ import {
   type StepResult,
 } from '@/game/state';
 import { checkLeg } from '@/game/voyage';
+import type { EventEffect } from '@/game/events';
 import type { World } from '@/game/world';
 
 /** 1 倍速時，現實 1.2 秒 = 遊戲 1 天 */
@@ -48,7 +53,13 @@ export interface Toast {
 export type Modal =
   | { type: 'questComplete'; questId: string; reward: QuestReward }
   | { type: 'levelUp'; level: number }
-  | { type: 'shipwreck'; cause: StormRisk; lostGold: number; portId: string; month: number };
+  | { type: 'shipwreck'; cause: StormRisk; lostGold: number; portId: string; month: number }
+  | { type: 'info'; title: string; text: string; lesson?: string; stats?: string[] };
+
+export interface MapMark {
+  lonLat: LonLat;
+  kind: 'guess' | 'answer';
+}
 
 export interface Planning {
   waypoints: LonLat[];
@@ -76,6 +87,9 @@ interface GameStore {
   modals: Modal[];
   panel: Panel;
   codexFocus: string | null;
+  /** 座標定位挑戰的回饋 */
+  locateFeedback: string | null;
+  mapMarks: MapMark[];
 
   init: (world: World) => void;
   refreshSaves: () => Promise<void>;
@@ -102,6 +116,8 @@ interface GameStore {
   answer: (questId: string, choice: number) => boolean;
   spend: (key: AttributeKey) => void;
   weatherStorm: (choice: StormChoice) => void;
+  respondEvent: (response: { choiceId?: string; answer?: number }) => void;
+  locate: (p: LonLat) => void;
   resupply: () => void;
   repair: () => void;
 
@@ -197,6 +213,8 @@ export const useGame = create<GameStore>((set, get) => {
     modals: [],
     panel: null,
     codexFocus: null,
+    locateFeedback: null,
+    mapMarks: [],
 
     init: (world) => {
       set({ world });
@@ -244,8 +262,8 @@ export const useGame = create<GameStore>((set, get) => {
     selectPort: (id) => set({ selectedPortId: id }),
 
     beginPlanning: () => {
-      const g = get().game;
-      if (!g || g.voyage) return;
+      const { world, game: g } = get();
+      if (!world || !g || g.voyage || pendingInteraction(world, g)) return;
       set({
         planning: { waypoints: [g.ship.position], destinationPortId: null, error: null },
         selectedPortId: null,
@@ -339,6 +357,59 @@ export const useGame = create<GameStore>((set, get) => {
       return r.correct;
     },
 
+    respondEvent: (response) => {
+      const { world, game } = get();
+      if (world && game) apply(resolveEvent(world, game, response));
+    },
+
+    locate: (p) => {
+      const { world, game } = get();
+      if (!world || !game) return;
+      const pending = pendingInteraction(world, game);
+      if (pending?.data.type !== 'locate') return;
+      const step = pending.data;
+      const r = answerLocate(world, game, pending.questId, p);
+      apply(r);
+      const km = Math.round(r.result.distanceKm / 10) * 10;
+      if (r.result.correct) {
+        set((s) => ({
+          locateFeedback: null,
+          mapMarks: [{ lonLat: step.target, kind: 'answer' }],
+          modals: [
+            ...s.modals,
+            {
+              type: 'info',
+              title: '定位正確！',
+              text: `你點的位置離目標只有約 ${km} 公里。${r.attempts === 1 ? '一次就找到了，厲害！' : ''}`,
+              lesson: step.explanation,
+            },
+          ],
+        }));
+      } else if (r.revealed) {
+        set((s) => ({
+          locateFeedback: null,
+          mapMarks: [
+            { lonLat: p, kind: 'guess' },
+            { lonLat: step.target, kind: 'answer' },
+          ],
+          modals: [
+            ...s.modals,
+            {
+              type: 'info',
+              title: '公布答案',
+              text: `正確位置在綠色圓圈處（${formatLonLat(step.target, 1)}）。你最後點的位置離它約 ${km} 公里。`,
+              lesson: step.explanation,
+            },
+          ],
+        }));
+      } else {
+        set({
+          locateFeedback: `不對喔。正確位置在你點的地方的${r.result.direction}方，大約 ${km} 公里。（還有 ${3 - r.attempts} 次機會）`,
+          mapMarks: [{ lonLat: p, kind: 'guess' }],
+        });
+      }
+    },
+
     weatherStorm: (choice) => {
       const { world, game } = get();
       if (world && game) apply(resolveEncounter(world, game, choice));
@@ -367,7 +438,12 @@ export const useGame = create<GameStore>((set, get) => {
       scheduleSave(true);
     },
 
-    dismissModal: () => set((s) => ({ modals: s.modals.slice(1) })),
+    dismissModal: () =>
+      set((s) => ({
+        modals: s.modals.slice(1),
+        // 看完定位結果後清除海圖上的標記
+        mapMarks: s.modals[0]?.type === 'info' ? [] : s.mapMarks,
+      })),
     dismissToast: (id) => set((s) => ({ toasts: s.toasts.filter((t) => t.id !== id) })),
     openPanel: (panel, codexFocus = null) => set({ panel, codexFocus }),
   };
@@ -412,6 +488,15 @@ function handleEvent(
       break;
     case 'encounter':
       break;
+    case 'eventResolved':
+      modals.push({
+        type: 'info',
+        title: e.effect.title,
+        text: e.effect.text,
+        lesson: e.effect.lesson,
+        stats: effectStats(e.effect),
+      });
+      break;
     case 'stormResolved':
       push({
         text:
@@ -432,4 +517,16 @@ function handleEvent(
       select(e.portId);
       break;
   }
+}
+
+function effectStats(e: EventEffect): string[] {
+  const out: string[] = [];
+  const sign = (n: number) => (n > 0 ? `+${n}` : `${n}`);
+  if (e.gold) out.push(`金幣 ${sign(e.gold)}`);
+  if (e.xp) out.push(`經驗 ${sign(e.xp)}`);
+  if (e.days) out.push(`耽擱 ${e.days} 天`);
+  if (e.morale) out.push(`士氣 ${sign(e.morale)}`);
+  if (e.food) out.push(`糧食 ${sign(e.food)} 天份`);
+  if (e.water) out.push(`淡水 ${sign(e.water)} 天份`);
+  return out;
 }

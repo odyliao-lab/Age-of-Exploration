@@ -141,8 +141,6 @@ export interface StormEncounter {
   month: number;
 }
 
-export type Encounter = StormEncounter;
-
 export interface StormOutcome {
   condition: ShipCondition;
   /** 額外耗費的天數 */
