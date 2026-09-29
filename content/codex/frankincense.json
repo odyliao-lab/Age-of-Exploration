@@ -1,0 +1,10 @@
+{
+  "id": "frankincense",
+  "category": "goods",
+  "name": "乳香",
+  "name_en": "Frankincense",
+  "domains": ["F", "C"],
+  "body": "乳香是乳香樹的樹脂，割開樹皮流出的汁液凝固後就成了乳香，燃燒時散發香氣，用於宗教儀式與藥材。阿拉伯半島南部的阿曼、葉門與非洲之角是主要產地。",
+  "source": "維基百科「乳香」條目",
+  "reviewed": false
+}

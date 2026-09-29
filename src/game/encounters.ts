@@ -43,11 +43,13 @@ export interface StormCell {
   lesson: string;
 }
 
-/** 海盜多的海域：麻六甲海峽、南海南部、蘇祿海；其他有名字的海域偶爾也有 */
+/** 海盜多的海域：麻六甲海峽、南海南部、蘇祿海、亞丁灣；其他有名字的海域偶爾也有 */
 const PIRATE_ZONES: [number, number, number, number][] = [
   [98, 0, 105, 7],
   [105, 0, 112, 6],
   [117, 4, 123, 10],
+  // 亞丁灣
+  [43, 10, 52, 15],
 ];
 
 export function pirateChancePerDay([lon, lat]: LonLat, inNamedSea: boolean): number {

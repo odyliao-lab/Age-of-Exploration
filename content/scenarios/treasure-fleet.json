@@ -14,14 +14,16 @@
     "east-china-sea": 0,
     "south-china-sea": 1,
     "malacca-java": 1,
-    "bengal-malabar": 2
+    "bengal-malabar": 2,
+    "arabian-sea": 2,
+    "east-africa": 3
   },
   "starting_ship": "junk",
   "ships": ["junk", "fuchuan", "baochuan"],
   "start_date": "1405-12-15",
   "recommended": true,
   "domains": ["A", "B", "D", "E", "F"],
-  "estimated_hours": 6,
+  "estimated_hours": 12,
   "chapters": [
     {
       "index": 0,

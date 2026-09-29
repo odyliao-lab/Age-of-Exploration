@@ -1,0 +1,59 @@
+{
+  "id": "tf-11-mogadishu",
+  "title": "非洲之角",
+  "scenario": "treasure-fleet",
+  "chapter": 4,
+  "tier": 3,
+  "kind": "main",
+  "giver_port": "aden",
+  "objectives": [
+    {
+      "domain": "B",
+      "text": "能找到非洲之角的位置。"
+    },
+    {
+      "domain": "E",
+      "text": "知道東非沿岸有古老的港口城市。"
+    }
+  ],
+  "prerequisites": ["tf-10-tianfang"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "阿丹的領航員",
+      "lines": [
+        "想去非洲的港口？出了亞丁灣往東，繞過那個像犀牛角的大海角，再沿著海岸往南。",
+        "第一個大港叫木骨都束，房子都是石頭砌的。"
+      ]
+    },
+    {
+      "type": "discover",
+      "target": "horn-of-africa"
+    },
+    {
+      "type": "navigate",
+      "target": "mogadishu",
+      "hint_level": 3,
+      "text": "線索：繞過非洲之角後，沿著東非海岸往西南，接近赤道的石頭城。"
+    },
+    {
+      "type": "quiz",
+      "question": "木骨都束（摩加迪休）靠近赤道，雨水卻很少。下列哪一個是原因？",
+      "choices": [
+        "沿岸季風的吹向與附近的冷洋流，讓空氣不容易形成雨",
+        "因為那裡海拔很高",
+        "因為那裡終年有颱風",
+        "因為那裡位在北極圈"
+      ],
+      "answer": 0,
+      "explanation": "東非這一段海岸的季風大多沿著海岸吹，夏季西南季風還帶來湧升的冷海水，空氣穩定、不易下雨，所以雖然接近赤道，卻相當乾燥。"
+    }
+  ],
+  "reward": {
+    "xp": 280,
+    "gold": 420,
+    "reputation": 25,
+    "unlock_ports": ["mogadishu"],
+    "codex": []
+  }
+}

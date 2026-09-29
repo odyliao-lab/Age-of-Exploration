@@ -1,0 +1,10 @@
+{
+  "id": "dates",
+  "category": "goods",
+  "name": "椰棗",
+  "name_en": "Dates",
+  "domains": ["F", "C"],
+  "body": "椰棗是棗椰樹的果實，耐旱的棗椰樹能在沙漠綠洲生長，椰棗又甜又耐存放，是阿拉伯世界重要的糧食，也適合帶上船做長途航行的乾糧。",
+  "source": "維基百科「椰棗」條目",
+  "reviewed": false
+}

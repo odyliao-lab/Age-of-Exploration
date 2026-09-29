@@ -30,6 +30,11 @@ export const GOODS_PRICE: Record<string, number> = {
   gemstones: 90,
   'cotton-cloth': 22,
   cowrie: 12,
+  pearl: 85,
+  frankincense: 48,
+  myrrh: 42,
+  dates: 10,
+  ambergris: 95,
 };
 
 const PRODUCER_FACTOR = 0.55;
