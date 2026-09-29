@@ -7,6 +7,9 @@
  * - 航位推算：沒有定位時，只能靠航向、航速與時間推算位置，誤差隨天數累積；
  *   靠近認得的港口或觀星成功時，誤差重新變小。
  */
+import type { LonLat } from '@/data/schema';
+import { compass16 } from '@/geo/geo';
+import { destinationPoint } from './events';
 
 /** 第 0 天從早上幾點開始 */
 export const DAY_START_HOUR = 6;
@@ -106,4 +109,90 @@ export function judgeSighting(trueLat: number, measuredZhi: number): SightingRes
   if (diffZhi <= 0.5) return { quality: 'good', latitude, diffDeg, errorKm: 15 };
   if (diffZhi <= 1) return { quality: 'ok', latitude, diffDeg, errorKm: 45 };
   return { quality: 'miss', latitude, diffDeg, errorKm: Infinity };
+}
+
+// ---------------------------------------------------------------- 測深
+
+/** 一托（兩臂張開的長度）約幾公尺；明代針路簿用「打水幾托」記錄水深 */
+export const METERS_PER_TUO = 1.7;
+/** 測深繩的長度（托） */
+export const SOUNDING_LINE_TUO = 100;
+/** 陸地在這個距離以內，測深就能幫忙確認位置 */
+export const SOUNDING_FIX_KM = 25;
+/** 靠測深確認位置後的誤差上限（公里） */
+export const SOUNDING_FIX_ERROR_KM = 25;
+
+/** 寬廣的大陸棚：水很淺，但可能看不到岸 */
+const SHELVES: { box: [number, number, number, number]; name: string }[] = [
+  { box: [117, 22, 125, 35], name: '東海與臺灣海峽的大陸棚' },
+  { box: [99, -7, 117, 8], name: '巽他陸棚' },
+  { box: [99, 5, 105, 13.5], name: '巽他陸棚' },
+  { box: [48, 24, 56.5, 30], name: '波斯灣的淺海' },
+];
+
+export function shelfAt([lon, lat]: LonLat): string | null {
+  const s = SHELVES.find(({ box: b }) => lon >= b[0] && lat >= b[1] && lon <= b[2] && lat <= b[3]);
+  return s?.name ?? null;
+}
+
+export interface Sounding {
+  /** 水深（托）；null 表示放完繩子還探不到底 */
+  tuo: number | null;
+  /** 海底底質 */
+  bottom: string | null;
+  /** 最近的陸地距離與方位（120 公里內） */
+  landKm: number | null;
+  landBearing: number | null;
+  /** 位在哪個大陸棚上 */
+  shelf: string | null;
+}
+
+const PROBE_KM = [3, 6, 10, 15, 20, 30, 45, 60, 80, 100, 120];
+
+/**
+ * 放下測深錘：由離陸地多遠推估水深與底質（簡化模型）。
+ * 大陸棚上水淺而平；離開陸棚後水深隨離岸距離快速增加。
+ */
+export function soundAt(pos: LonLat, isLand: (p: LonLat) => boolean): Sounding {
+  let landKm: number | null = null;
+  let landBearing: number | null = null;
+  for (const km of PROBE_KM) {
+    for (let b = 0; b < 360; b += 22.5) {
+      if (isLand(destinationPoint(pos, b, km))) {
+        landKm = km;
+        landBearing = b;
+        break;
+      }
+    }
+    if (landKm !== null) break;
+  }
+  const shelf = shelfAt(pos);
+  const tropical = Math.abs(pos[1]) < 23.5;
+  let tuo: number | null;
+  if (shelf) tuo = Math.round(Math.min(45, 4 + (landKm ?? 120) * 0.35));
+  else if (landKm !== null) tuo = Math.round(3 + landKm * 1.6);
+  else tuo = null;
+  if (tuo !== null && tuo > SOUNDING_LINE_TUO) tuo = null;
+  let bottom: string | null = null;
+  if (tuo !== null) {
+    if (landKm !== null && landKm <= 10 && tropical && !shelf) bottom = '白色的珊瑚碎屑';
+    else if (landKm !== null && landKm <= 8) bottom = '細沙和碎貝殼';
+    else bottom = '灰黑色的軟泥';
+  }
+  return { tuo, bottom, landKm, landBearing, shelf };
+}
+
+/** 測深結果的一段話 */
+export function soundingText(s: Sounding): string {
+  if (s.tuo === null) {
+    return `放完 ${SOUNDING_LINE_TUO} 托長的測深繩還探不到底——這裡是深海，離陸地還遠。`;
+  }
+  let text = `打水 ${s.tuo} 托（約 ${Math.round(s.tuo * METERS_PER_TUO)} 公尺），測深錘底沾上了${s.bottom}。`;
+  if (s.landKm !== null && s.landBearing !== null && s.landKm <= 60) {
+    text += `水越來越淺，陸地應該在${compass16(s.landBearing)}方約 ${s.landKm} 公里內。`;
+  }
+  if (s.shelf && (s.landKm === null || s.landKm > 60)) {
+    text += `看不到岸，水卻這麼淺——我們正在${s.shelf}上。`;
+  }
+  return text;
 }

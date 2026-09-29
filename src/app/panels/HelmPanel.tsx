@@ -46,7 +46,7 @@ export function HelmPanel() {
   const speed = useGame((s) => s.speed);
   const { steer, trimSail, toggleAnchor, togglePause, setSpeed, dock, investigate } =
     useGame.getState();
-  const { openStargazing, openCoastSight, greetMerchant } = useGame.getState();
+  const { openStargazing, openCoastSight, greetMerchant, sound } = useGame.getState();
   const dial = useRef<SVGSVGElement>(null);
   const dragging = useRef(false);
 
@@ -120,6 +120,9 @@ export function HelmPanel() {
             🔭 看岸形定位
           </button>
         )}
+        <button type="button" onClick={sound} title="放下測深錘，量水深、看海底">
+          🪢 測深
+        </button>
         {night && !starBlocked && (
           <button type="button" onClick={() => openStargazing(true)}>
             ✨ 觀星定位（牽星術）

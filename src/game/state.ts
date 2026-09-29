@@ -117,8 +117,13 @@ import {
   judgeSighting,
   nightIndex,
   positionError,
+  soundAt,
+  soundingText,
+  SOUNDING_FIX_ERROR_KM,
+  SOUNDING_FIX_KM,
   type NavFix,
   type SightingResult,
+  type Sounding,
 } from './navigation';
 import {
   GOODS_PRICE,
@@ -732,7 +737,18 @@ function seaLife(
       encounter = {
         ...ev,
         text: '海盜快船追上來了，鉤索搭上船舷，船上的人高聲喊話，要你們交出貨物。',
-        choices: ev.choices?.filter((c) => c.id !== 'flee'),
+        choices: [
+          ...(ev.choices ?? []).filter((c) => c.id !== 'flee'),
+          ...(cargoUsed(state.cargo) > 0
+            ? [
+                {
+                  id: 'cargo',
+                  label: '分一些貨物給他們',
+                  hint: '交出約三分之一的貨物，保住金幣',
+                },
+              ]
+            : []),
+        ],
       };
     }
     if (r.fleet) moved.push(r.fleet);
@@ -1015,6 +1031,45 @@ export function sightStars(
     next = { ...next, stats: { ...next.stats, starsCorrect: next.stats.starsCorrect + 1 } };
   }
   return { state: next, result, events };
+}
+
+/**
+ * 測深（打水）：放下測深錘量水深、看底質。隨時可以做；
+ * 離陸地夠近時，水深與底質能幫忙確認位置（誤差不超過 25 公里）。
+ * 第一次測深會附上地理小教室。
+ */
+export function takeSounding(
+  world: World,
+  state: GameState,
+): {
+  state: GameState;
+  sounding: Sounding;
+  text: string;
+  fixed: boolean;
+  lesson: string | null;
+} | null {
+  if (!state.helm) return null;
+  const sounding = soundAt(state.ship.position, (p) => landAt(world, p));
+  let next = state;
+  let fixed = false;
+  const now = positionErrorKm(world, state);
+  if (
+    sounding.landKm !== null &&
+    sounding.landKm <= SOUNDING_FIX_KM &&
+    now > SOUNDING_FIX_ERROR_KM
+  ) {
+    next = { ...next, nav: { day: state.day, errorKm: SOUNDING_FIX_ERROR_KM } };
+    fixed = true;
+  }
+  let lesson: string | null = null;
+  if (!state.hinted.includes('sounding')) {
+    next = { ...next, hinted: [...next.hinted, 'sounding'] };
+    lesson =
+      '明代的針路簿（例如《順風相送》）常記下「打水幾托」和海底是泥還是沙。' +
+      '大陸旁邊常有一片較淺的海底，叫做大陸棚，水深多在 200 公尺以內；' +
+      '離開大陸棚，海底就陡降成深海。航海者靠水深和底質，就能在看不到岸時判斷離陸地多遠。';
+  }
+  return { state: next, sounding, text: soundingText(sounding), fixed, lesson };
 }
 
 // ---------------------------------------------------------------- 親手駕船
@@ -1533,6 +1588,15 @@ function eventContext(
   };
 }
 
+/** 被海盜追上時「以貨換路」：每種貨交出約三分之一（至少一擔） */
+export function pirateCargoShare(cargo: Cargo): Record<string, number> {
+  const out: Record<string, number> = {};
+  for (const [good, lot] of Object.entries(cargo)) {
+    if (lot.qty > 0) out[good] = Math.max(1, Math.ceil(lot.qty / 3));
+  }
+  return out;
+}
+
 /** 處理隨機事件：選擇行動（choiceId）或回答問題（answer） */
 export function resolveEvent(
   world: World,
@@ -1583,6 +1647,22 @@ export function resolveEvent(
     ];
   } else if (ev.id === 'flotsam') {
     effect = flotsamEffect(ev, roll);
+  } else if (ev.id === 'pirates' && response.choiceId === 'cargo') {
+    const given = pirateCargoShare(state.cargo);
+    const cargo: Cargo = {};
+    for (const [good, lot] of Object.entries(state.cargo)) {
+      const qty = lot.qty - (given[good] ?? 0);
+      if (qty > 0) cargo[good] = { qty, cost: (lot.cost * qty) / lot.qty };
+    }
+    const list = Object.entries(given)
+      .map(([g, n]) => `${world.codex.get(g)?.name ?? g} ${n} 擔`)
+      .join('、');
+    effect = {
+      title: '以貨換路',
+      text: `你讓船員搬出${list}。海盜清點過後滿意地收下，讓出了航道。`,
+      lesson: ev.lesson,
+    };
+    state = { ...state, cargo };
   } else {
     effect = resolveChoice(ev, response.choiceId ?? '', roll, m, state.gold);
   }

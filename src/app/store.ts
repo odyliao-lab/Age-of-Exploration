@@ -26,6 +26,7 @@ import {
   autoSail,
   reportFinds,
   greetMerchant,
+  takeSounding,
   sightStars,
   pray,
   tradeBuy,
@@ -205,6 +206,8 @@ interface GameStore {
   sightCoast: (choiceId: string) => { correct: boolean; answer: CoastChoice } | null;
   sightStars: (zhi: number) => SightingResult | null;
   greetMerchant: (fleetId: number, choice: 'news' | 'supplies') => void;
+  /** 測深（打水） */
+  sound: () => void;
   setTownView: (on: boolean) => void;
   enterBuilding: (kind: BuildingKind) => void;
   leaveBuilding: () => void;
@@ -601,6 +604,21 @@ export const useGame = create<GameStore>((set, get) => {
       set((s) => ({
         modals: [...s.modals, { type: 'info', title: r.title, text: r.text, lesson: r.lesson }],
       }));
+    },
+    sound: () => {
+      const { world, game } = get();
+      if (!world || !game) return;
+      const r = takeSounding(world, game);
+      if (!r) return;
+      commit(r.state);
+      const text = r.fixed ? `${r.text}對照海圖，位置確認了。` : r.text;
+      if (r.lesson) {
+        set((s) => ({
+          modals: [...s.modals, { type: 'info', title: '打水（測深）', text, lesson: r.lesson! }],
+        }));
+      } else {
+        toast({ text: `水手長：「${text}」`, kind: 'talk' });
+      }
     },
     enterBuilding: (kind) => set({ building: kind, lastBuilding: kind }),
     leaveBuilding: () => set({ building: null }),

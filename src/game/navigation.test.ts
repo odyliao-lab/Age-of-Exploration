@@ -20,6 +20,8 @@ import {
   nightIndex,
   polarisZhi,
   positionError,
+  soundAt,
+  soundingText,
   timeLabel,
 } from './navigation';
 import { motion } from './sailing';
@@ -36,6 +38,7 @@ import {
   setHelm,
   sightStars,
   starSightBlocked,
+  takeSounding,
   tick,
   type GameState,
 } from './state';
@@ -232,5 +235,35 @@ describe('看岸形', () => {
     expect(coastSightBlocked(world, { ...s, day: 14 / 24 })).toContain('天黑');
     const ocean = { ...s, ship: { position: [128, 20] as [number, number], heading: 0 } };
     expect(coastSightBlocked(world, ocean)).toContain('海岸');
+  });
+});
+
+describe('測深', () => {
+  const isLand = (p: [number, number]) => coast.isLand(p);
+
+  it('finds no bottom in the open ocean', () => {
+    const r = soundAt([80, -10], isLand);
+    expect(r.tuo).toBeNull();
+    expect(soundingText(r)).toContain('深海');
+  });
+
+  it('is shallow and flat on the East China Sea shelf even out of sight of land', () => {
+    const r = soundAt([124.5, 30], isLand);
+    expect(r.shelf).toContain('大陸棚');
+    expect(r.tuo).not.toBeNull();
+    expect(r.tuo!).toBeLessThanOrEqual(45);
+  });
+
+  it('near the coast tells how far land is and fixes the position once lost', () => {
+    let s = departPort(world, newGame(world, 'treasure-fleet', 1).state);
+    s = { ...s, nav: { day: s.day, errorKm: 120 } };
+    const r = takeSounding(world, s)!;
+    expect(r.sounding.landKm).not.toBeNull();
+    expect(r.sounding.landKm!).toBeLessThanOrEqual(25);
+    expect(r.fixed).toBe(true);
+    expect(positionErrorKm(world, r.state)).toBeLessThanOrEqual(25);
+    expect(r.lesson).toContain('大陸棚');
+    // 第二次不再附小教室
+    expect(takeSounding(world, r.state)!.lesson).toBeNull();
   });
 });

@@ -5,11 +5,14 @@ import {
   checkAchievements,
   marketQuotes,
   newGame,
+  pirateCargoShare,
+  resolveEvent,
   tradeBuy,
   tradeSell,
   type GameState,
 } from './state';
 import { contentForTests } from './testContent';
+import { createEvent, type EventContext } from './events';
 import { buildWorld } from './world';
 
 const world = buildWorld(contentForTests());
@@ -80,5 +83,36 @@ describe('trading', () => {
     const p0 = pressureNow(s.market, 'quanzhou', 'silk', s.day);
     expect(p0).toBeGreaterThan(0.4);
     expect(pressureNow(s.market, 'quanzhou', 'silk', s.day + 10)).toBeLessThan(p0 / 3);
+  });
+});
+
+describe('pirates can take cargo instead of gold', () => {
+  it('hands over about a third of every good and keeps the gold', () => {
+    const base = newGame(world, 'treasure-fleet', 1).state;
+    const ev = createEvent(
+      'pirates',
+      {
+        position: [101, 3],
+        heading: 0,
+        month: 1,
+        wind: { toward: 0, speed: 5 },
+        daysAtSea: 1,
+        lastPort: { name: '泉州', location: [118.6, 24.9] },
+        regionName: null,
+        otherRegionNames: [],
+      } as unknown as EventContext,
+      () => 0.3,
+    );
+    const s: GameState = {
+      ...base,
+      gold: 500,
+      encounter: ev,
+      cargo: { silk: { qty: 9, cost: 180 }, tea: { qty: 1, cost: 15 } },
+    };
+    expect(pirateCargoShare(s.cargo)).toEqual({ silk: 3, tea: 1 });
+    const r = resolveEvent(world, s, { choiceId: 'cargo' });
+    expect(r.state.gold).toBe(500);
+    expect(r.state.encounter).toBeNull();
+    expect(r.state.cargo).toEqual({ silk: { qty: 6, cost: 120 } });
   });
 });
