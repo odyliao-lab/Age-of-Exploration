@@ -662,6 +662,8 @@ function seaNear(world: World, p: LonLat): { point: LonLat; bearing: number } | 
 
 /** 每隔這麼多天更新一次海上船隻、天氣與推算位置 */
 const SEA_LIFE_STEP = 0.02;
+/** 推算誤差超過這個值時提醒玩家可以觀星 */
+const NAV_TIP_KM = 30;
 /** 朝貢使節船可能來自的國家 */
 const ENVOY_COUNTRIES = ['占城', '暹羅', '滿剌加', '渤泥', '爪哇', '蘇門答剌', '琉球', '呂宋'];
 
@@ -729,6 +731,13 @@ function seaLife(
     });
   }
   nav = { ...nav, landInSight: seesLand };
+  const after = navErrorKm(nav);
+  if (before < NAV_TIP_KM && after >= NAV_TIP_KM) {
+    events.push({
+      type: 'notice',
+      text: '看不見陸地了，船的位置越來越不確定（海圖上的虛線圈）。入夜後可以觀星量緯度。',
+    });
+  }
 
   // 天氣
   let weather = spawnWeather(state.weather, dt, {

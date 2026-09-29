@@ -147,15 +147,21 @@ describe('Treasure Fleet prologue and chapter 1', () => {
     expect(leg1.events).toContainEqual({ type: 'arrived', portId: 'guangzhou', firstVisit: true });
     expect(leg1.events).toContainEqual({ type: 'discovered', codexId: 'taiwan-strait' });
 
-    // 抵達就完成任務：問答不再擋住故事（決策 R5），改成書院的選擇性挑戰
+    // 抵達後是故事對話（先鋒哨船與對手登場），講完就完成任務：
+    // 問答不再擋住故事（決策 R5），改成書院的選擇性挑戰
+    expect(pendingInteraction(world, s)?.data).toMatchObject({ speaker: '船隊書記' });
+    s = finishDialogue(world, s, 'tf-00-first-voyage').state;
+    expect(pendingInteraction(world, s)?.data).toMatchObject({ speaker: '廣州的年輕船長梁阿水' });
+    const told = finishDialogue(world, s, 'tf-00-first-voyage');
+    s = told.state;
     expect(pendingInteraction(world, s)).toBeNull();
     expect(s.quests['tf-00-first-voyage'].status).toBe('completed');
-    expect(leg1.events.map((e) => e.type)).toEqual(
+    expect(told.events.map((e) => e.type)).toEqual(
       expect.arrayContaining(['questCompleted', 'portUnlocked']),
     );
     expect(s.unlockedPorts).toContain('fuzhou');
     const [challenge] = pendingChallenges(world, s);
-    expect(challenge).toMatchObject({ questId: 'tf-00-first-voyage', step: 3 });
+    expect(challenge).toMatchObject({ questId: 'tf-00-first-voyage', step: 5 });
     // 答錯可以重試，排進錯題回流；答對拿到較少的獎勵
     const wrong = answerChallenge(world, s, challenge.key, 0);
     expect(wrong.correct).toBe(false);
@@ -165,7 +171,7 @@ describe('Treasure Fleet prologue and chapter 1', () => {
     expect(right.state.captain.xp).toBeGreaterThan(wrong.state.captain.xp);
     s = right.state;
     expect(pendingChallenges(world, s)).toEqual([]);
-    expect(s.quizLog.find((q) => q.step === 3)).toMatchObject({ attempts: 2, firstTry: false });
+    expect(s.quizLog.find((q) => q.step === 5)).toMatchObject({ attempts: 2, firstTry: false });
 
     // 第一章：廣州 → 占城，途經海南島
     expect(availableQuests(world, s, 'guangzhou').map((q) => q.id)).toEqual([
@@ -187,6 +193,8 @@ describe('Treasure Fleet prologue and chapter 1', () => {
     s = sail(found.state, [found.state.ship.position, ...ROUTES.toChampa.slice(4)], 'champa').state;
     expect(s.dockedAt).toBe('champa');
     expect(s.discovered).toContain('agarwood');
+    expect(pendingInteraction(world, s)?.data).toMatchObject({ speaker: '梁阿水' });
+    s = finishDialogue(world, s, 'tf-01-champa').state;
     expect(s.quests['tf-01-champa'].status).toBe('completed');
     expect(s.discovered).toContain('monsoon');
     // 占城的問答留在書院，一次答對有額外獎勵

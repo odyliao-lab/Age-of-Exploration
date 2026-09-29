@@ -44,6 +44,21 @@
       "target": "singapore-strait"
     },
     {
+      "type": "navigate",
+      "target": "malacca",
+      "hint_level": 1,
+      "text": "回滿剌加向鄭大人報告"
+    },
+    {
+      "type": "dialogue",
+      "speaker": "正使鄭和",
+      "lines": [
+        "你找到了海峽的出口，也及時把舊港的消息帶了回來。",
+        "從今天起，你的船就是船隊的先鋒哨船。梁阿水說，他願意當你的副手。",
+        "等東北季風再起，我們要穿過這道海峽，橫渡大洋，前往錫蘭與古里。在那之前，好好認識這片海吧。"
+      ]
+    },
+    {
       "type": "quiz",
       "question": "為什麼麻六甲海峽常被稱為海上交通的「咽喉」？",
       "choices": [
