@@ -161,6 +161,8 @@ export const LOCATE_MAX_ATTEMPTS = 3;
 export const BASE_SPEED_KM_PER_DAY = 185;
 /** 船上瞭望的揭霧半徑：桅頂看得到的海岸與山（地圖逐步繪出） */
 export const SIGHT_KM = 70;
+/** 航行經過多近，瞭望員會看見沿岸的港口 */
+export const PORT_SIGHT_KM = 40;
 const HOME_REVEAL_KM = 160;
 const PORT_REVEAL_KM = 90;
 /** 離港口多近可以入港 */
@@ -711,6 +713,20 @@ function seaLife(
     if (near) nav = { day, errorKm: 3 };
   }
 
+  // 沿岸航行時看見還沒標在海圖上的港口
+  let unlockedPorts = state.unlockedPorts;
+  for (const p of world.content.ports) {
+    if (unlockedPorts.includes(p.id) || state.visitedPorts.includes(p.id)) continue;
+    if (distanceKm(p.location, pos) > PORT_SIGHT_KM) continue;
+    unlockedPorts = [...unlockedPorts, p.id];
+    events.push({ type: 'portUnlocked', portId: p.id });
+    events.push({
+      type: 'talk',
+      speaker: '瞭望員',
+      text: `${compass16(bearingDeg(pos, p.location))}方的岸邊有船桅和房子——是${p.name}！已經標在海圖上了。`,
+    });
+  }
+
   // 新船隊出現
   const regionId = regionAt(world, pos);
   if (fleets.length < MAX_FLEETS) {
@@ -858,6 +874,7 @@ function seaLife(
       ...state,
       seed,
       nav,
+      unlockedPorts,
       fleets,
       storms,
       mists,

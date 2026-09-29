@@ -298,3 +298,20 @@ describe('harbor entrances', () => {
     );
   });
 });
+
+describe('sighting ports along the coast', () => {
+  it('marks an unknown port on the chart when you sail close by', () => {
+    const s0 = departPort(world, newGame(world, 'treasure-fleet', 1).state);
+    const fuzhou = world.ports.get('fuzhou')!;
+    expect(s0.unlockedPorts).not.toContain('fuzhou');
+    const near = destinationPoint(fuzhou.location, 100, 30);
+    const s: GameState = {
+      ...s0,
+      ship: { position: near, heading: 0 },
+      helm: { ...s0.helm!, anchored: true },
+    };
+    const r = tick(world, s, 0.05);
+    expect(r.state.unlockedPorts).toContain('fuzhou');
+    expect(r.events.some((e) => e.type === 'portUnlocked' && e.portId === 'fuzhou')).toBe(true);
+  });
+});

@@ -1,0 +1,19 @@
+{
+  "id": "siam",
+  "name": "暹羅",
+  "name_en": "Siam (Ayutthaya)",
+  "historical_names": ["暹羅國", "阿瑜陀耶（大城）"],
+  "country": "泰國",
+  "country_en": "Thailand",
+  "region": "south-china-sea",
+  "location": [100.58, 13.52],
+  "kind": "port",
+  "goods": ["sappanwood"],
+  "climate": "熱帶莽原氣候",
+  "blurb": "暹羅灣最深處、湄南河（昭披耶河）的河口。暹羅王國的都城阿瑜陀耶（大城）在上游，四面被河水環繞。鄭和船隊多次到訪，暹羅也常派使節到明朝朝貢。",
+  "sights": [],
+  "gossip": [
+    "從河口坐船往上游走好幾天，才到得了王城。雨季時河水暴漲，整片平原都泡在水裡。",
+    "湄南河帶來的泥土又肥又軟，平原上到處是稻田，暹羅的米多得吃不完。"
+  ]
+}

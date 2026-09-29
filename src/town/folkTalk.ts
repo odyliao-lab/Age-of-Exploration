@@ -41,6 +41,7 @@ const GREETINGS: Record<string, Greeting> = {
   semarang: { phrase: 'Sugeng rawuh！', lang: '爪哇語', meaning: '歡迎光臨' },
   calicut: MALAYALAM,
   cochin: MALAYALAM,
+  quilon: MALAYALAM,
   galle: { phrase: 'Ayubowan！', lang: '僧伽羅語', meaning: '祝你長壽' },
   chittagong: { phrase: 'Nomoskar！', lang: '孟加拉語', meaning: '雙手合十的問候' },
   maldives: { phrase: 'Assalaamu alaikum！', lang: '迪維希語', meaning: '願你平安' },
@@ -49,6 +50,7 @@ const GREETINGS: Record<string, Greeting> = {
   aden: ARABIC,
   jeddah: ARABIC,
   mogadishu: ARABIC,
+  brava: ARABIC,
   malindi: SWAHILI,
   kilwa: SWAHILI,
 };

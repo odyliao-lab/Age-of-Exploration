@@ -1,0 +1,19 @@
+{
+  "id": "quilon",
+  "name": "小葛蘭",
+  "name_en": "Quilon (Kollam)",
+  "historical_names": ["小葛蘭國", "俱藍"],
+  "country": "印度",
+  "country_en": "India",
+  "region": "bengal-malabar",
+  "location": [76.57, 8.87],
+  "kind": "port",
+  "goods": ["pepper"],
+  "climate": "熱帶季風氣候",
+  "blurb": "印度西南岸、柯枝南方的古老港口，宋元時稱為「俱藍」，很早就有中國商船來買胡椒。這裡離印度半島的最南端不遠，是繞過半島前的最後一站。",
+  "sights": [],
+  "gossip": [
+    "我們這裡也有潟湖和河道相連，胡椒從山上順著水路運下來。",
+    "往南再走一點就是陸地的盡頭，過了那裡，海岸就轉向東北了。"
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "id": "brava",
+  "name": "卜剌哇",
+  "name_en": "Brava (Barawa)",
+  "historical_names": ["卜剌哇國"],
+  "country": "索馬利亞",
+  "country_en": "Somalia",
+  "region": "east-africa",
+  "location": [44.03, 1.1],
+  "kind": "port",
+  "goods": ["myrrh", "ambergris"],
+  "climate": "熱帶莽原氣候",
+  "blurb": "木骨都束南方的港口小城，位在赤道北邊不遠。費信《星槎勝覽》記載這裡的人用石頭砌屋、以捕魚為生，出產乳香、沒藥與龍涎香，還有駱駝與鴕鳥。",
+  "sights": [],
+  "gossip": [
+    "赤道就在南邊不遠的地方，中午的太陽幾乎在頭頂正上方。",
+    "這一帶的海岸幾乎都是沙丘，只有少數地方能讓船躲風。"
+  ]
+}
