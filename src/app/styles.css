@@ -163,11 +163,16 @@ button.primary:hover {
   gap: 6px;
 }
 
-.map-host {
+.map-area {
   position: relative;
   flex: 1;
   min-height: 0;
   overflow: hidden;
+}
+
+.map-host {
+  position: absolute;
+  inset: 0;
 }
 
 .map-host canvas {
@@ -224,10 +229,10 @@ button.primary:hover {
 
 .port-panel {
   position: absolute;
-  top: 60px;
+  top: 12px;
   right: 12px;
   width: min(320px, calc(100vw - 24px));
-  max-height: calc(100% - 120px);
+  max-height: calc(100% - 24px);
   overflow: auto;
   background: var(--card);
   border: 1px solid var(--parchment-dark);
@@ -290,6 +295,7 @@ button.primary:hover {
   .port-panel {
     top: auto;
     bottom: 12px;
+    z-index: 4;
     left: 12px;
     right: 12px;
     width: auto;
@@ -298,5 +304,496 @@ button.primary:hover {
 
   .map-legend {
     display: none;
+  }
+}
+
+/* ---- 共用 ---- */
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+button.danger {
+  background: #fde8e4;
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+button.link {
+  border: none;
+  background: none;
+  padding: 0;
+  color: var(--accent);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+button.active {
+  background: var(--ink);
+  color: var(--card);
+  border-color: var(--ink);
+}
+
+button.wide {
+  width: 100%;
+  align-self: stretch;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.row.end {
+  justify-content: flex-end;
+}
+
+.row .spacer {
+  flex: 1;
+}
+
+.warn {
+  color: #9c2a14;
+  background: #fde8e4;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 0.9rem;
+}
+
+.howto {
+  margin-top: 32px;
+  background: var(--card);
+  border: 1px solid var(--parchment-dark);
+  border-radius: 8px;
+  padding: 8px 20px 16px;
+}
+
+.howto h2 {
+  font-size: 1.1rem;
+}
+
+.howto li {
+  margin: 4px 0;
+}
+
+/* ---- 狀態列 ---- */
+
+.stats-inline {
+  display: flex;
+  gap: 10px;
+  font-size: 0.9rem;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.has-badge {
+  position: relative;
+}
+
+.badge-dot {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 9px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.7rem;
+  line-height: 18px;
+  text-align: center;
+}
+
+.map-legend .dot.target {
+  background: transparent;
+  border: 2px solid #2f7d4a;
+  width: 11px;
+  height: 11px;
+}
+
+/* ---- 任務追蹤 ---- */
+
+.quest-tracker {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  width: min(300px, calc(100vw - 24px));
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.quest-item {
+  background: rgba(251, 246, 234, 0.95);
+  border: 1px solid var(--parchment-dark);
+  border-left: 4px solid #2f7d4a;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.quest-item .step-count {
+  float: right;
+  color: var(--ink-soft);
+  font-size: 0.75rem;
+}
+
+/* ---- 港口面板內容 ---- */
+
+.port-panel h3 {
+  margin: 16px 0 6px;
+  font-size: 1rem;
+  border-top: 1px solid var(--parchment-dark);
+  padding-top: 12px;
+}
+
+.quest-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 12px;
+}
+
+.quest-list > li {
+  border: 1px solid var(--parchment-dark);
+  border-radius: 6px;
+  padding: 8px 10px;
+  margin-bottom: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.objectives {
+  margin: 4px 0;
+  padding-left: 18px;
+  font-size: 0.85rem;
+}
+
+.objectives .domain {
+  display: inline-block;
+  font-size: 0.7rem;
+  background: var(--parchment-dark);
+  border-radius: 4px;
+  padding: 0 4px;
+  margin-right: 4px;
+}
+
+/* ---- 底部面板：航線規劃、航行控制 ---- */
+
+.bottom-panel {
+  position: absolute;
+  left: 50%;
+  bottom: 12px;
+  transform: translateX(-50%);
+  width: min(560px, calc(100vw - 24px));
+  background: var(--card);
+  border: 1px solid var(--parchment-dark);
+  border-radius: 8px;
+  padding: 10px 14px;
+  box-shadow: 0 4px 16px rgba(43, 33, 24, 0.18);
+  z-index: 3;
+}
+
+.bottom-panel h3 {
+  margin: 0 0 4px;
+  font-size: 1rem;
+}
+
+.bottom-panel p {
+  margin: 4px 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.progress {
+  height: 6px;
+  background: var(--parchment-dark);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.2s linear;
+}
+
+/* ---- 提示訊息 ---- */
+
+.toasts {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.toast {
+  pointer-events: auto;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  background: var(--ink);
+  color: var(--card);
+  border-radius: 999px;
+  padding: 6px 16px;
+  font-size: 0.9rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  animation: toast-in 0.25s ease-out;
+}
+
+.toast.discover {
+  background: #2f7d4a;
+}
+
+.toast.success {
+  background: var(--accent);
+}
+
+.toast button.link {
+  color: #fff;
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+
+/* ---- 對話框 ---- */
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(43, 33, 24, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  z-index: 10;
+}
+
+.modal {
+  background: var(--card);
+  border-radius: 10px;
+  padding: 20px;
+  width: min(480px, 100%);
+  max-height: calc(100vh - 32px);
+  overflow: auto;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  position: relative;
+}
+
+.modal h2 {
+  margin: 0 0 10px;
+  font-size: 1.25rem;
+}
+
+.modal.sheet {
+  width: min(760px, 100%);
+}
+
+.sheet-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: -20px;
+  background: var(--card);
+  padding: 4px 0;
+  z-index: 1;
+}
+
+.sheet-head .close {
+  border: none;
+  background: none;
+  font-size: 1.4rem;
+}
+
+.dialogue-line {
+  font-size: 1.05rem;
+  line-height: 1.7;
+  min-height: 3.4em;
+}
+
+.question {
+  font-size: 1.05rem;
+  line-height: 1.6;
+}
+
+.choices {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.choice {
+  text-align: left;
+  padding: 10px 14px;
+}
+
+.choice.wrong {
+  text-decoration: line-through;
+}
+
+.reward-list,
+.records {
+  line-height: 1.8;
+}
+
+.attr-hints {
+  font-size: 0.85rem;
+  line-height: 1.7;
+}
+
+/* ---- 圖鑑 ---- */
+
+.codex-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 10px;
+}
+
+.codex-card {
+  border: 1px solid var(--parchment-dark);
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: #fff;
+  font-size: 0.9rem;
+}
+
+.codex-card h4 {
+  margin: 0 0 4px;
+}
+
+.codex-card .en {
+  font-weight: 400;
+  color: var(--ink-soft);
+  font-size: 0.8rem;
+}
+
+.codex-card p {
+  line-height: 1.6;
+  margin: 4px 0;
+}
+
+.codex-card.locked {
+  background: var(--parchment);
+  color: var(--ink-soft);
+}
+
+.codex-card.focus {
+  outline: 3px solid var(--accent);
+}
+
+.codex-card.legend {
+  border-color: #7b5ea7;
+  background: #f5f0fb;
+}
+
+.codex-card .science {
+  background: #eef6ef;
+  border-radius: 4px;
+  padding: 4px 6px;
+}
+
+.codex-card .source {
+  font-size: 0.75rem;
+}
+
+/* ---- 船長 ---- */
+
+.xp-bar {
+  position: relative;
+  height: 22px;
+  background: var(--parchment-dark);
+  border-radius: 11px;
+  overflow: hidden;
+  font-size: 0.8rem;
+}
+
+.xp-fill {
+  height: 100%;
+  background: #d9a441;
+}
+
+.xp-bar span {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.attrs {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.attrs li {
+  display: grid;
+  grid-template-columns: 5em 2em 1fr auto;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--parchment-dark);
+}
+
+.attr-name {
+  font-weight: 600;
+}
+
+.attr-value {
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+@media (max-width: 600px) {
+  .stats-inline {
+    order: 3;
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .toasts {
+    top: auto;
+    bottom: 140px;
+    width: calc(100vw - 24px);
+    align-items: center;
+  }
+
+  .map-actions .zoom {
+    display: none;
+  }
+
+  .map-toolbar {
+    gap: 6px 8px;
+    padding: 6px 8px;
+  }
+
+  .map-toolbar button {
+    padding: 4px 8px;
+  }
+
+  .bottom-panel {
+    bottom: 8px;
+  }
+
+  .attrs li {
+    grid-template-columns: 4.5em 1.5em 1fr auto;
+    font-size: 0.85rem;
   }
 }

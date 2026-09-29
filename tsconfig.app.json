@@ -16,5 +16,6 @@
     "types": ["vite/client"],
     "paths": { "@/*": ["./src/*"], "@content/*": ["./content/*"] }
   },
-  "include": ["src", "content"]
+  "include": ["src", "content"],
+  "exclude": ["src/**/*.test.ts", "src/game/testContent.ts"]
 }

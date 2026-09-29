@@ -40,6 +40,7 @@ const base = (): ContentBundle => ({
       inspiration: '',
       home_port: 'quanzhou',
       home_region: 'east-china-sea',
+      starting_ports: [],
       region_tiers: { 'east-china-sea': 0 },
       starting_ship: 'junk',
       recommended: true,
@@ -95,7 +96,7 @@ describe('crossValidate', () => {
       objectives: [{ domain: 'A', text: 'x' }],
       prerequisites: [],
       steps: [{ type: 'navigate', target: 'atlantis', hint_level: 1 }],
-      reward: { xp: 0, gold: 0, reputation: 0, unlock_ports: [] },
+      reward: { xp: 0, gold: 0, reputation: 0, unlock_ports: [], codex: [] },
     });
     expect(crossValidate(b).some((i) => i.message.includes('未知的港口 atlantis'))).toBe(true);
   });

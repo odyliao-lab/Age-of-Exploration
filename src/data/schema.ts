@@ -134,8 +134,10 @@ export const Quest = z.object({
       gold: z.number().int().nonnegative().default(0),
       reputation: z.number().int().nonnegative().default(0),
       unlock_ports: z.array(Id).default([]),
+      /** 完成任務時登錄的知識卡（例如沒有地點的氣候現象） */
+      codex: z.array(Id).default([]),
     })
-    .default({ xp: 0, gold: 0, reputation: 0, unlock_ports: [] }),
+    .default({ xp: 0, gold: 0, reputation: 0, unlock_ports: [], codex: [] }),
 });
 export type Quest = z.infer<typeof Quest>;
 
@@ -151,6 +153,8 @@ export const Scenario = z.object({
   inspiration: z.string(),
   home_port: Id,
   home_region: Id,
+  /** 開局即解鎖、顯示在海圖上的港口（家鄉港口一定包含在內） */
+  starting_ports: z.array(Id).default([]),
   /** 各海域區在此劇本中的 Tier */
   region_tiers: z.record(Id, Tier),
   starting_ship: z.string(),

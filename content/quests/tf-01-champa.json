@@ -7,9 +7,18 @@
   "kind": "main",
   "giver_port": "guangzhou",
   "objectives": [
-    { "domain": "D", "text": "能說明冬季東北季風如何幫助船隊南下。" },
-    { "domain": "B", "text": "能在地圖上辨識海南島。" },
-    { "domain": "E", "text": "知道占城位於今日的越南。" }
+    {
+      "domain": "D",
+      "text": "能說明冬季東北季風如何幫助船隊南下。"
+    },
+    {
+      "domain": "B",
+      "text": "能在地圖上辨識海南島。"
+    },
+    {
+      "domain": "E",
+      "text": "知道占城位於今日的越南。"
+    }
   ],
   "prerequisites": ["tf-00-first-voyage"],
   "steps": [
@@ -21,8 +30,15 @@
         "沿著海岸線走，繞過海南島，再往南就是占城的新州港。"
       ]
     },
-    { "type": "discover", "target": "hainan" },
-    { "type": "navigate", "target": "champa", "hint_level": 2 },
+    {
+      "type": "discover",
+      "target": "hainan"
+    },
+    {
+      "type": "navigate",
+      "target": "champa",
+      "hint_level": 2
+    },
     {
       "type": "quiz",
       "question": "船隊為什麼選在冬天出發南下？",
@@ -36,5 +52,11 @@
       "explanation": "南海冬季吹東北季風，從中國南下正好順風；夏季西南季風則用來北返。"
     }
   ],
-  "reward": { "xp": 80, "gold": 150, "reputation": 8, "unlock_ports": ["malacca"] }
+  "reward": {
+    "xp": 80,
+    "gold": 150,
+    "reputation": 8,
+    "unlock_ports": ["malacca"],
+    "codex": ["monsoon"]
+  }
 }

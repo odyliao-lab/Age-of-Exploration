@@ -60,6 +60,13 @@ export function crossValidate(bundle: ContentBundle): ContentIssue[] {
       issues.push({ file: f, message: '有 discover_radius_km 就必須有 location' });
   }
 
+  // 可以在遊戲中被發現的知識卡：航經地標、港口特產、任務獎勵
+  const discoverable = new Set<string>([
+    ...bundle.codex.filter((c) => c.location && c.discover_radius_km).map((c) => c.id),
+    ...bundle.ports.flatMap((p) => p.goods),
+    ...bundle.quests.flatMap((q) => q.reward.codex),
+  ]);
+
   for (const q of bundle.quests) {
     const f = `quests/${q.id}`;
     if (!scenarioIds.has(q.scenario))
@@ -70,11 +77,18 @@ export function crossValidate(bundle: ContentBundle): ContentIssue[] {
       if (!questIds.has(pre)) issues.push({ file: f, message: `未知的前置任務：${pre}` });
     for (const u of q.reward.unlock_ports)
       if (!portIds.has(u)) issues.push({ file: f, message: `未知的解鎖港口：${u}` });
+    for (const c of q.reward.codex)
+      if (!codexIds.has(c)) issues.push({ file: f, message: `未知的獎勵 codex：${c}` });
     q.steps.forEach((s, i) => {
       if (s.type === 'navigate' && !portIds.has(s.target))
         issues.push({ file: f, message: `步驟 ${i}：未知的港口 ${s.target}` });
       if (s.type === 'discover' && !codexIds.has(s.target))
         issues.push({ file: f, message: `步驟 ${i}：未知的 codex ${s.target}` });
+      if (s.type === 'discover' && codexIds.has(s.target) && !discoverable.has(s.target))
+        issues.push({
+          file: f,
+          message: `步驟 ${i}：codex ${s.target} 無法在遊戲中發現（需有 location 與 discover_radius_km、為港口特產，或為任務獎勵）`,
+        });
       if (s.type === 'quiz' && s.answer >= s.choices.length)
         issues.push({ file: f, message: `步驟 ${i}：answer 超出選項範圍` });
     });
@@ -86,6 +100,8 @@ export function crossValidate(bundle: ContentBundle): ContentIssue[] {
       issues.push({ file: f, message: `未知的家鄉港口：${s.home_port}` });
     if (!regionIds.has(s.home_region))
       issues.push({ file: f, message: `未知的家鄉海域區：${s.home_region}` });
+    for (const sp of s.starting_ports)
+      if (!portIds.has(sp)) issues.push({ file: f, message: `未知的起始港口：${sp}` });
     for (const rid of Object.keys(s.region_tiers))
       if (!regionIds.has(rid))
         issues.push({ file: f, message: `region_tiers 含未知海域區：${rid}` });

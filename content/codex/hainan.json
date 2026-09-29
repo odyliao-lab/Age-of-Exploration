@@ -4,7 +4,7 @@
   "name": "海南島",
   "name_en": "Hainan Island",
   "location": [109.8, 19.2],
-  "discover_radius_km": 150,
+  "discover_radius_km": 220,
   "domains": ["B", "D"],
   "body": "中國最南端的大島，隔瓊州海峽與雷州半島相望，面積約 3.4 萬平方公里。位於熱帶北緣，是古代船隊離開中國沿海、進入南海前最後的補給地。",
   "source": "維基百科「海南島」條目",

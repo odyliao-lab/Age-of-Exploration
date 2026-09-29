@@ -1,0 +1,51 @@
+import { planSummary, useGame } from '../store';
+
+export function PlanningPanel() {
+  const world = useGame((s) => s.world)!;
+  const game = useGame((s) => s.game)!;
+  const planning = useGame((s) => s.planning)!;
+  const undo = useGame((s) => s.undoWaypoint);
+  const cancel = useGame((s) => s.cancelPlanning);
+  const setSail = useGame((s) => s.setSail);
+
+  const legs = planning.waypoints.length - 1;
+  const sum = planSummary(world, game, planning);
+
+  return (
+    <section className="bottom-panel planning" aria-label="航線規劃">
+      <h3>航線規劃</h3>
+      {legs === 0 ? (
+        <p>在海面上點選航點，最後點選目的港口。航線不能穿越陸地，沿著海岸多加幾個點吧。</p>
+      ) : (
+        <p>
+          {legs} 段航線，全長約 <strong>{sum.nm}</strong> 海里（{sum.km} 公里），預計{' '}
+          <strong>{sum.days}</strong> 天。
+          {sum.destination ? (
+            <>
+              {' '}
+              目的地：<strong>{sum.destination}</strong>
+            </>
+          ) : (
+            ' 終點不是港口，抵達後會在海上下錨。'
+          )}
+        </p>
+      )}
+      {planning.error && (
+        <p className="warn" role="alert">
+          {planning.error}
+        </p>
+      )}
+      <div className="row">
+        <button type="button" onClick={undo} disabled={legs === 0}>
+          復原一點
+        </button>
+        <button type="button" onClick={cancel}>
+          取消
+        </button>
+        <button type="button" className="primary" onClick={setSail} disabled={legs === 0}>
+          出航
+        </button>
+      </div>
+    </section>
+  );
+}

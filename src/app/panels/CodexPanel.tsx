@@ -1,0 +1,84 @@
+import { useEffect, useRef } from 'react';
+import { LEARNING_DOMAIN_LABELS, type CodexEntry } from '@/data/schema';
+import { useGame } from '../store';
+import { CATEGORY_LABELS } from '../labels';
+
+export function CodexPanel() {
+  const world = useGame((s) => s.world)!;
+  const discovered = useGame((s) => s.game!.discovered);
+  const focus = useGame((s) => s.codexFocus);
+  const openPanel = useGame((s) => s.openPanel);
+  const focusRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    focusRef.current?.scrollIntoView({ block: 'center' });
+  }, [focus]);
+
+  const entries = world.content.codex;
+  const found = entries.filter((e) => discovered.includes(e.id)).length;
+  const byCategory = Object.keys(CATEGORY_LABELS)
+    .map((cat) => ({
+      cat: cat as CodexEntry['category'],
+      items: entries.filter((e) => e.category === cat),
+    }))
+    .filter((g) => g.items.length > 0);
+
+  return (
+    <div className="modal-backdrop">
+      <section className="modal sheet" role="dialog" aria-modal="true" aria-label="圖鑑">
+        <header className="sheet-head">
+          <h2>
+            圖鑑{' '}
+            <span className="meta">
+              {found} / {entries.length}
+            </span>
+          </h2>
+          <button type="button" className="close" aria-label="關閉" onClick={() => openPanel(null)}>
+            ×
+          </button>
+        </header>
+        {byCategory.map(({ cat, items }) => (
+          <div key={cat}>
+            <h3>{CATEGORY_LABELS[cat]}</h3>
+            <div className="codex-grid">
+              {items.map((e) => {
+                const known = discovered.includes(e.id);
+                return (
+                  <article
+                    key={e.id}
+                    ref={e.id === focus ? focusRef : undefined}
+                    className={`codex-card ${known ? '' : 'locked'} ${e.id === focus ? 'focus' : ''} ${e.category === 'legend' ? 'legend' : ''}`}
+                  >
+                    {known ? (
+                      <>
+                        <h4>
+                          {e.name} <span className="en">{e.name_en}</span>
+                        </h4>
+                        <p>{e.body}</p>
+                        {e.science_note && (
+                          <p className="science">
+                            <strong>科學對照：</strong>
+                            {e.science_note}
+                          </p>
+                        )}
+                        <div className="meta">
+                          {e.domains.map((d) => LEARNING_DOMAIN_LABELS[d]).join('、')}
+                        </div>
+                        <div className="meta source">資料來源：{e.source}</div>
+                      </>
+                    ) : (
+                      <>
+                        <h4>？？？</h4>
+                        <p className="meta">尚未發現</p>
+                      </>
+                    )}
+                  </article>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </section>
+    </div>
+  );
+}
