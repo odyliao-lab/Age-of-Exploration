@@ -27,25 +27,27 @@ npm run build            # 產出 dist/
 
 ### 目錄
 
-| 目錄 | 內容 |
-| --- | --- |
-| `content/` | 遊戲內容資料（劇本、海域區、港口、任務、知識卡），純 JSON，CC BY-SA 4.0 |
-| `src/data/` | 內容 schema（Zod）、交叉參照驗證、載入器 |
-| `src/app/` | React 介面 |
-| `tools/` | 命令列工具（內容驗證等） |
-| `docs/` | 企畫書、決策清單、開發日誌 |
+| 目錄        | 內容                                                                    |
+| ----------- | ----------------------------------------------------------------------- |
+| `content/`  | 遊戲內容資料（劇本、海域區、港口、任務、知識卡），純 JSON，CC BY-SA 4.0 |
+| `src/data/` | 內容 schema（Zod）、交叉參照驗證、載入器                                |
+| `src/app/`  | React 介面                                                              |
+| `tools/`    | 命令列工具（內容驗證等）                                                |
+| `docs/`     | 企畫書、決策清單、開發日誌                                              |
 
 ### 部署（Cloudflare Pages）
 
-在 Cloudflare Pages 建立專案並連接本 repo：
+Cloudflare Pages 已連接本 repo（Git 整合）：
 
-| 設定 | 值 |
-| --- | --- |
-| Build command | `npm run build` |
-| Build output directory | `dist` |
-| Node version | 22（環境變數 `NODE_VERSION=22`） |
+| 設定                   | 值                                       |
+| ---------------------- | ---------------------------------------- |
+| Framework preset       | None 或 Vite                             |
+| Build command          | `npm run build`                          |
+| Build output directory | `dist`                                   |
+| Node version           | 22（由 `.nvmrc` 指定，不需另設環境變數） |
 
-每次推送到 production branch 會自動部署；其他分支會產生 preview 網址。
+- 每次推送到 production branch 會自動部署；其他分支會產生 preview 網址。
+- `public/_headers` 設定安全標頭，並讓 `assets/` 下帶雜湊的檔案長期快取。
 
 ## 專案流程
 
