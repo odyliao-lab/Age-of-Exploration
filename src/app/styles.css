@@ -1812,3 +1812,11 @@ table.market .tag {
   max-width: min(520px, calc(100vw - 32px));
   text-align: left;
 }
+
+.route-list {
+  display: grid;
+  gap: 6px;
+}
+.route-list button {
+  text-align: left;
+}

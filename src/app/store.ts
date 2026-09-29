@@ -20,6 +20,7 @@ import {
   trackDaily,
   buyShip,
   departPort,
+  autoSail,
   reportFinds,
   greetMerchant,
   sightStars,
@@ -161,6 +162,7 @@ interface GameStore {
   dock: (portId: string) => void;
   hearRumor: (id: string) => void;
   report: () => void;
+  autoSail: (to: string) => void;
   openStargazing: (on: boolean) => void;
   sightStars: (zhi: number) => SightingResult | null;
   greetMerchant: (fleetId: number, choice: 'news' | 'supplies') => void;
@@ -575,6 +577,17 @@ export const useGame = create<GameStore>((set, get) => {
         kind: r.profit >= 0 ? 'success' : 'warn',
       });
       play(r.profit >= 0 ? 'questComplete' : 'warn');
+    },
+
+    autoSail: (to) => {
+      const { world, game } = get();
+      if (!world || !game) return;
+      const next = autoSail(world, game, to);
+      if (next === game) return;
+      set({ selectedPortId: null, paused: false, follow: true, building: null });
+      commit(next);
+      toast({ text: `沿著熟悉的航線前往${world.ports.get(to)?.name}`, kind: 'info' });
+      play('depart');
     },
 
     report: () => {

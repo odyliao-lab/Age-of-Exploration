@@ -8,6 +8,7 @@ import {
   availableCrew,
   availableQuests,
   cargoCapacity,
+  familiarRoutes,
   cargoUsed,
   crewSlots,
   marketQuotes,
@@ -447,6 +448,8 @@ function Dock() {
   const { world, game } = usePort();
   const resupply = useGame((s) => s.resupply);
   const depart = useGame((s) => s.depart);
+  const autoSail = useGame((s) => s.autoSail);
+  const routes = familiarRoutes(world, game, game.dockedAt!);
   const price = mods(world, game).price;
   const cost = resupplyCost(game.condition, shipType(game.shipTypeId), price);
   return (
@@ -459,8 +462,20 @@ function Dock() {
       </div>
       <p className="meta">淡水每天份 1 金幣、糧食每天份 2 金幣；錢不夠時會先補淡水。</p>
       <button type="button" className="primary wide" onClick={depart}>
-        ⛵ 出港
+        ⛵ 出港（親手掌舵）
       </button>
+      <h3>熟悉航線</h3>
+      {routes.length === 0 ? (
+        <p className="meta">親手開船到過的港口，之後可以從這裡沿著同一條航線自動航行。</p>
+      ) : (
+        <div className="route-list">
+          {routes.map((r) => (
+            <button key={r.to} type="button" onClick={() => autoSail(r.to)}>
+              🧭 {world.ports.get(r.to)?.name}（約 {r.km} 公里、{r.days} 天）
+            </button>
+          ))}
+        </div>
+      )}
     </>
   );
 }

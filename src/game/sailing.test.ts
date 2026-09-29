@@ -12,9 +12,13 @@ import {
   turnToward,
 } from './sailing';
 import { bearingDeg } from '@/geo/geo';
+import { findSeaPath } from '@/geo/seaPath';
+import { destinationPoint } from './events';
 import {
+  autoSail,
   departPort,
   enterPort,
+  familiarRoutes,
   hearRumor,
   investigate,
   newGame,
@@ -222,5 +226,33 @@ describe('rumor content', () => {
       // 傳聞地點不能被路過自動發現
       expect(world.landmarks.map((l) => l.id)).not.toContain(c.id);
     }
+  });
+});
+
+describe('familiar routes', () => {
+  it('remembers a hand-sailed route both ways and can sail it automatically', () => {
+    let s: GameState = departPort(world, newGame(world, 'treasure-fleet', 11).state);
+    const gz = world.ports.get('guangzhou')!;
+    // 模擬一趟親手駕船的航跡：沿著海上航線前進，最後抵達廣州附近
+    const path = findSeaPath(s.ship.position, gz.location, [...world.harbors.values()])!;
+    s = { ...s, trail: path.slice(0, -1), ship: { position: path[path.length - 2], heading: 230 } };
+    s = {
+      ...s,
+      unlockedPorts: [...s.unlockedPorts, 'guangzhou'],
+      ship: { position: destinationPoint(gz.location, 150, 10), heading: 0 },
+    };
+    expect(portInReach(world, s)).toBe('guangzhou');
+    s = enterPort(world, s, 'guangzhou').state;
+    expect(Object.keys(s.routes).sort()).toEqual(['guangzhou>quanzhou', 'quanzhou>guangzhou']);
+    const back = familiarRoutes(world, s, 'guangzhou');
+    expect(back.map((r) => r.to)).toEqual(['quanzhou']);
+    expect(back[0].days).toBeGreaterThan(1);
+    s = autoSail(world, { ...s, eventCooldownUntil: 1e9 }, 'quanzhou');
+    expect(s.voyage?.destinationPortId).toBe('quanzhou');
+    for (let i = 0; i < 400 && s.voyage; i++) {
+      s = tick(world, s, 0.1).state;
+      if (s.encounter) s = { ...s, encounter: null };
+    }
+    expect(s.dockedAt).toBe('quanzhou');
   });
 });

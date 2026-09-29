@@ -233,6 +233,10 @@ export interface GameState {
   fleets: SeaFleet[];
   storms: StormCell[];
   nextEntityId: number;
+  /** 熟悉航線：「出發港>抵達港」→ 親手開過的航跡 */
+  routes: Record<string, LonLat[]>;
+  /** 這趟親手駕船的航跡（每約 25 公里記一點） */
+  trail: LonLat[];
   /** 夥伴下次可以閒聊的遊戲日、上次所在海域、已給過提示的傳聞 */
   talkDay: number;
   lastRegionId: string | null;
@@ -349,6 +353,8 @@ export function newGame(world: World, scenarioId: string, seed = newSeed()): Ste
     talkDay: 0.5,
     lastRegionId: null,
     hinted: [],
+    routes: {},
+    trail: [],
   };
   return { state, events: [], fogChanged };
 }
@@ -491,6 +497,7 @@ export function tick(world: World, state: GameState, days: number): StepResult {
   let s: GameState = state;
   let voyage = state.voyage;
   let helm = state.helm;
+  let trail = state.trail;
   let discovered = state.discovered;
   let usedDays = 0;
   let encounter: Encounter | null = null;
@@ -536,6 +543,10 @@ export function tick(world: World, state: GameState, days: number): StepResult {
       heading = pos.heading;
     }
     usedDays += stepDays;
+    // 記錄親手開過的航跡，入港時存成熟悉航線
+    if (helm && trail.length && trail.length < TRAIL_MAX) {
+      if (distanceKm(trail[trail.length - 1], to) > TRAIL_STEP_KM) trail = [...trail, to];
+    }
 
     const before = s.condition;
     const condition = passTime(before, stepDays, m);
@@ -596,7 +607,7 @@ export function tick(world: World, state: GameState, days: number): StepResult {
     }
   }
 
-  let next: GameState = { ...s, day: state.day + usedDays, voyage, helm, discovered };
+  let next: GameState = { ...s, day: state.day + usedDays, voyage, helm, discovered, trail };
   if (encounter) {
     next = { ...next, encounter };
     events.push({ type: 'encounter', encounter });
@@ -923,6 +934,7 @@ export function departPort(world: World, state: GameState): GameState {
     nav: { day: state.day, errorKm: 2 },
     fleets: [],
     storms: [],
+    trail: [start.point],
   };
 }
 
@@ -1196,11 +1208,70 @@ export function portInReach(world: World, state: GameState): string | null {
   return best;
 }
 
+const TRAIL_STEP_KM = 25;
+const TRAIL_MAX = 500;
+
+function pathKm(pts: LonLat[]): number {
+  let km = 0;
+  for (let i = 1; i < pts.length; i++) km += distanceKm(pts[i - 1], pts[i]);
+  return km;
+}
+
+/** 入港時把這趟航跡存成兩個方向的熟悉航線（已有更短的就保留舊的） */
+function learnRoute(state: GameState, portId: string): Record<string, LonLat[]> {
+  const from = state.lastPortId;
+  if (!from || from === portId || state.trail.length < 2) return state.routes;
+  const path = [...state.trail, state.ship.position];
+  const key = `${from}>${portId}`;
+  const old = state.routes[key];
+  if (old && pathKm(old) <= pathKm(path)) return state.routes;
+  const back = [...path].reverse();
+  return { ...state.routes, [key]: path, [`${portId}>${from}`]: back };
+}
+
+export interface FamiliarRoute {
+  to: string;
+  waypoints: LonLat[];
+  km: number;
+  days: number;
+}
+
+/** 從這個港口出發、親手開過的航線 */
+export function familiarRoutes(world: World, state: GameState, portId: string): FamiliarRoute[] {
+  return Object.entries(state.routes)
+    .filter(([k]) => k.startsWith(`${portId}>`))
+    .map(([k, waypoints]) => {
+      const to = k.split('>')[1];
+      const est = estimateVoyage(world, state, [state.ship.position, ...waypoints]);
+      return {
+        to,
+        waypoints,
+        km: Math.round(pathKm(waypoints)),
+        days: Math.round(est.days * 10) / 10,
+      };
+    })
+    .filter((r) => world.ports.has(r.to))
+    .sort((a, b) => a.km - b.km);
+}
+
+/** 沿熟悉航線自動航行（途中仍可能遇到風暴與隨機事件） */
+export function autoSail(world: World, state: GameState, to: string): GameState {
+  if (!state.dockedAt || state.helm || state.voyage) return state;
+  const r = familiarRoutes(world, state, state.dockedAt).find((x) => x.to === to);
+  if (!r) return state;
+  return startVoyage(
+    state,
+    [state.ship.position, ...r.waypoints, world.ports.get(to)!.location],
+    to,
+  );
+}
+
 export function enterPort(world: World, state: GameState, portId: string): StepResult {
   if (portInReach(world, state) !== portId || state.encounter) {
     return { state, events: [], fogChanged: [] };
   }
-  const arrived = arrive(world, { ...state, helm: null }, portId);
+  const routes = learnRoute(state, portId);
+  const arrived = arrive(world, { ...state, helm: null, routes, trail: [] }, portId);
   const next = {
     ...arrived.state,
     stats: { ...arrived.state.stats, voyages: arrived.state.stats.voyages + 1 },

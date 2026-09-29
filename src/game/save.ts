@@ -77,6 +77,8 @@ export function deserialize(data: SerializedSave): GameState {
     talkDay: data.talkDay ?? 0,
     lastRegionId: data.lastRegionId ?? null,
     hinted: data.hinted ?? [],
+    routes: data.routes ?? {},
+    trail: data.trail ?? [],
   };
 }
 
