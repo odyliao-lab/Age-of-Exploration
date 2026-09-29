@@ -172,6 +172,8 @@ interface GameStore {
   stargazing: boolean;
   /** 正在看岸形（遊戲暫停）：這次的三個選項 */
   coastSight: CoastChoice[] | null;
+  /** 剛發現的地點（海圖上放光圈） */
+  celebration: { at: LonLat; key: number } | null;
 
   init: (world: World) => void;
   refreshSaves: () => Promise<void>;
@@ -381,6 +383,7 @@ export const useGame = create<GameStore>((set, get) => {
     lastBuilding: null,
     stargazing: false,
     coastSight: null,
+    celebration: null,
 
     init: (world) => {
       set({ world });
@@ -709,8 +712,22 @@ export const useGame = create<GameStore>((set, get) => {
       if (r.state === game) return;
       apply(r);
       const c = world.codex.get(id)!;
-      toast({ text: `調查成功！傳聞中的地方就是「${c.name}」`, kind: 'success' });
       play('achievement');
+      set({ celebration: { at: c.location ?? game.ship.position, key: Date.now() } });
+      // 先讓海圖上的光圈放一會兒，再跳出發現卡
+      setTimeout(() => {
+        set((s) => ({
+          modals: [
+            ...s.modals,
+            {
+              type: 'info',
+              title: `發現：${c.name}`,
+              text: '傳聞中的地方就是這裡！已經登錄在圖鑑，也畫上了你的海圖。回港到書院（學者之家）回報，可以領賞金與名聲。',
+              lesson: c.body,
+            },
+          ],
+        }));
+      }, 1500);
     },
 
     accept: (questId) => {

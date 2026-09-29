@@ -50,6 +50,8 @@ export class SeaEntities {
   private mists: MistView[] = [];
   private stormLabels = new Container();
   private errorGfx = new Graphics();
+  private burstGfx = new Graphics();
+  private bursts: { center: LonLat; t0: number }[] = [];
   private fleetLayer = new Container();
   private fleets = new Map<number, FleetSprite>();
   private storms: StormView[] = [];
@@ -65,6 +67,7 @@ export class SeaEntities {
       this.fleetLayer,
       this.mistGfx,
       this.mistLabels,
+      this.burstGfx,
     );
   }
 
@@ -166,6 +169,38 @@ export class SeaEntities {
     this.setView(this.view);
   }
 
+  /** 發現新地方：金色的光圈從那裡擴散出去 */
+  celebrate(center: LonLat) {
+    this.bursts.push({ center, t0: this.time });
+  }
+
+  private drawBursts() {
+    const g = this.burstGfx;
+    g.clear();
+    this.bursts = this.bursts.filter((b) => this.time - b.t0 < 2.8);
+    const inv = 1 / this.view.scale;
+    for (const b of this.bursts) {
+      const age = this.time - b.t0;
+      const p = lonLatToWorld(b.center);
+      for (let k = 0; k < 3; k++) {
+        const t = age - k * 0.35;
+        if (t < 0 || t > 1.8) continue;
+        const r = (10 + t * 60) * inv;
+        g.circle(p.x, p.y, r).stroke({ width: 3 * inv, color: 0xe0b94a, alpha: 1 - t / 1.8 });
+      }
+      const n = 12;
+      for (let i = 0; i < n; i++) {
+        const a = (i / n) * Math.PI * 2 + age * 0.6;
+        const d = (12 + age * 45) * inv;
+        const alpha = Math.max(0, 1 - age / 2.8);
+        g.circle(p.x + Math.cos(a) * d, p.y + Math.sin(a) * d, 2.2 * inv).fill({
+          color: 0xfff1b8,
+          alpha,
+        });
+      }
+    }
+  }
+
   /** 位置誤差圈：船「大概」在這個範圍內 */
   setError(center: LonLat | null, km: number) {
     this.error = center && km > 8 ? { center, km } : null;
@@ -194,6 +229,7 @@ export class SeaEntities {
   update(dt: number) {
     this.time += dt;
     for (const f of this.fleets.values()) f.ship.drawRig(this.time);
+    this.drawBursts();
     // 海霧：一團團慢慢起伏的白霧，蓋在船隊上面
     const mg = this.mistGfx;
     mg.clear();

@@ -262,6 +262,12 @@ export function MapScreen() {
     if (ready) mapRef.current?.setMarks(mapMarks);
   }, [mapMarks, ready]);
 
+  // ---- 調查發現新地方時，海圖上放金色光圈
+  const celebration = useGame((s) => s.celebration);
+  useEffect(() => {
+    if (ready && celebration) mapRef.current?.celebrate(celebration.at);
+  }, [ready, celebration]);
+
   // ---- 已發現地點的地名註記（親手畫出的海圖）
   const discovered = game.discovered;
   useEffect(() => {

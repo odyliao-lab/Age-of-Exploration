@@ -294,6 +294,11 @@ export class WorldMap {
     this.entities.setFleets(list);
   }
 
+  /** 發現新地方時的金色光圈 */
+  celebrate(at: LonLat) {
+    this.entities.celebrate(at);
+  }
+
   /** 看得見的海霧 */
   setMists(list: MistView[]) {
     this.entities.setMists(list);
