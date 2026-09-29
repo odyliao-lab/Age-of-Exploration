@@ -217,7 +217,9 @@ export class SeaEntities {
     const p = lonLatToWorld(this.error.center);
     const r = (this.error.km / KM_PER_DEG) * DEG_PX;
     const inv = 1 / this.view.scale;
-    const n = 48;
+    // 虛線的段數跟著圈在畫面上的大小，放大時才不會變成一道道長刮痕
+    const screenLen = 2 * Math.PI * r * this.view.scale;
+    const n = 2 * Math.max(24, Math.min(360, Math.round(screenLen / 24)));
     for (let i = 0; i < n; i += 2) {
       const a0 = (i / n) * Math.PI * 2;
       const a1 = ((i + 1) / n) * Math.PI * 2;
