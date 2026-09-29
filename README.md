@@ -3,7 +3,7 @@
 一款以「大航海時代」為題材的教育遊戲，讓學生透過航海、探險、任務與角色成長，
 在遊玩過程中自然學會世界地理（大洲、國家、海洋、地形、氣候、經緯度、文化與物產）。
 
-> 目前狀態：**M1 專案骨架完成**，第一週可玩切片開發中。Cloudflare 部署尚未完成，見 [docs/03-deployment-blocker.md](docs/03-deployment-blocker.md)。
+> 目前狀態：**M1 專案骨架完成**，第一週可玩切片開發中。[劇本選單已上線](https://age-of-exploration.odyliao-pikmin.workers.dev/)，部署驗證紀錄見 [docs/03-deployment-blocker.md](docs/03-deployment-blocker.md)。
 >
 > 授權：程式碼 MIT，遊戲內容（知識卡、任務文本）CC BY-SA 4.0。
 
@@ -38,33 +38,31 @@ npm run build            # 產出 dist/
 
 ### 部署（Cloudflare）
 
-本 repo 同時支援 Cloudflare 的兩種 Git 部署方式，擇一即可。
+實際採用 **Cloudflare Workers Builds 的 GitHub 整合**，以 Workers Static Assets 發布 `dist/`。
 
-**方式 A：Workers（新版後台預設流程，建議）**
+公開網址：**[https://age-of-exploration.odyliao-pikmin.workers.dev/](https://age-of-exploration.odyliao-pikmin.workers.dev/)**。
 
-後台「Workers & Pages → Create application → Import a repository」，選本 repo 後填：
+| 設定              | 值                                |
+| ----------------- | --------------------------------- |
+| Worker 名稱       | `age-of-exploration`              |
+| GitHub repository | `odyliao-lab/Age-of-Exploration`  |
+| Production branch | `claude/gallant-bardeen-wewmq8`   |
+| Build command     | `npm run check && npm run build`  |
+| Deploy command    | `npx wrangler deploy`             |
+| Root directory    | `/`                               |
+| Node              | 22，由 `.nvmrc` 指定              |
+| 靜態資源目錄      | `dist/`，由 `wrangler.jsonc` 指定 |
 
-| 設定           | 值                    |
-| -------------- | --------------------- |
-| Project name   | `age-of-exploration`  |
-| Build command  | `npm run build`       |
-| Deploy command | `npx wrangler deploy` |
+每次推送到上述 production branch，Cloudflare 會自動安裝依賴、執行完整檢查與建置，成功後才部署。GitHub Actions 的 `check` workflow 也會照常執行。
 
-部署設定由 `wrangler.jsonc` 提供（靜態資源目錄 `dist/`），網址為 `*.workers.dev`。
+後台設定位置為「Workers 和 Pages → age-of-exploration → 設定 → 建置」。Worker 名稱須與 `wrangler.jsonc` 的 `name` 完全一致；改名時兩處及本段必須一起更新。
 
-**方式 B：Pages**
+此次建立流程為「Workers 和 Pages → 建立應用程式 → Continue with GitHub → 選取 `Age-of-Exploration` → 下一步」，填入上述命令，再於「進階設定 → API Token」選「建立新 Token」，名稱為 `age-of-exploration-build`，按「部署」。Token 由 Cloudflare 管理，密鑰不寫入 repo。
 
-| 設定                   | 值              |
-| ---------------------- | --------------- |
-| Framework preset       | None            |
-| Build command          | `npm run build` |
-| Build output directory | `dist`          |
-
-共通說明：
-
-- Node 22 由 `.nvmrc` 指定，不需另設環境變數。
-- `public/_headers` 設定安全標頭，並讓 `assets/` 下帶雜湊的檔案長期快取。
-- 本機可用 `npx wrangler deploy --dry-run` 確認部署設定正確（不需登入）。
+- `public/_headers` 提供安全標頭及帶雜湊靜態資源的長期快取；SPA fallback 由 `wrangler.jsonc` 設定。
+- 推送前必須執行 `npm run check` 與 `npm run build`。
+- 本機可用 `npx wrangler deploy --dry-run` 檢查部署設定（不需登入）。
+- 後台排查證據與 GitHub Actions 備案見 [部署卡關紀錄](docs/03-deployment-blocker.md)。
 
 ## 專案流程
 

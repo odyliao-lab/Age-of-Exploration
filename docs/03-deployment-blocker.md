@@ -1,8 +1,9 @@
 # 部署卡關紀錄：Cloudflare
 
 - 建立日期：2026-09-29
-- 狀態：🔴 **未解決**，網站尚未上線
-- 負責：交接給下一位處理者（Codex）
+- 狀態：🟡 **首次部署成功，推送自動部署驗收中**
+- 處理：Codex，2026-09-29
+- 公開網址：[Age of Exploration](https://age-of-exploration.odyliao-pikmin.workers.dev/)
 
 ---
 
@@ -35,16 +36,42 @@
    因此 repo 補上 `wrangler.jsonc`，讓後台預設的「Workers → Import a repository」流程也能部署。
 4. 擁有者依 Workers 流程操作，專案名稱使用預設的 `age-of-exploration`，後台出現 **「an unknown error occurred」**，無法建立專案。
 
-## 4. 未解決的錯誤與推測原因
+## 4. 原始錯誤、排查與解決方式
 
 錯誤訊息：建立 Workers 專案時，專案名稱欄位 `age-of-exploration` 顯示「an unknown error occurred」。
 
-推測原因（未驗證，依可能性排序）：
+交接時的推測原因（以下保留歷史紀錄，實際排查結果見後文）：
 
 1. **同名專案已存在**：擁有者先前「連結 repo」時，可能已建立名為 `age-of-exploration` 的 Worker 或 Pages 專案。
 2. **帳號尚未設定 workers.dev 子網域**：第一次使用 Workers 的帳號須先註冊子網域，否則建立專案常出現不明錯誤。
 3. **GitHub App 權限不足**：Cloudflare Workers and Pages 這個 GitHub App 未被授權存取本 repo。
 4. **後台暫時性錯誤**。
+
+### 2026-09-29 接手後的實際檢查
+
+- **同名專案已排除**：在正確 Cloudflare 帳戶的「Workers 和 Pages」選擇「顯示全部」，清單只有既有的 `pikmin-mush-maintenance`，沒有 `age-of-exploration` Worker 或 Pages 專案。
+- **子網域已排除**：「帳戶詳細資料 → 子網域」已有 `odyliao-pikmin.workers.dev`，不需要重新註冊或改名。
+- **repo 可見性已確認**：「建立應用程式 → Continue with GitHub」的帳戶為 `odyliao-lab`，可列出並選取 `Age-of-Exploration`。GitHub「Settings → Applications → Installed GitHub Apps」也已列出 `Cloudflare Workers and Pages`。進一步開啟 `Configure` 需要擁有者完成 GitHub 的 `Confirm access → Verify via email`。
+- **重試前尚無 Cloudflare 建置**：提交 `c71c9081e30ad576edf7ced19d70dfb9bbe780b5` 只有 GitHub Actions `check` 成功，沒有 Cloudflare check、commit status 或 deployment；帳戶的 Workers 組建分鐘數為 0。
+- **匯入表單的額外前置條件**：「進階設定 → API Token」只有「建立新 Token」。取得擁有者同意後，明確選取它並填入 `age-of-exploration-build`，再按「部署」，成功建立同名 Worker 與首次建置。此憑證由 Cloudflare 管理，未複製到 repo。
+
+### 根本原因與證據界限
+
+已定位的故障環節是 **Cloudflare 後台的專案／Git 建置初始化**：原先專案沒有建立完成，因此根本沒有執行 repo 的建置或部署命令。不是 Vite 建置、`wrangler.jsonc` 名稱不符、同名專案或缺少 `workers.dev` 子網域造成的建置失敗。
+
+本次明確建立並指定建置 Token 後，同一名稱、repo、分支及原有 `wrangler.jsonc` 即可成功部署。**原始 `an unknown error occurred` 未留下 API 錯誤碼，且本次未再出現，因此無法證明其更深層內部原因就是 Token 欄位、權限或 Cloudflare 暫時性故障。** 不將成功重試的相關性寫成已證實的後端根因。
+
+### 實際採用的部署方式
+
+1. 「Workers 和 Pages → 建立應用程式 → Continue with GitHub」。
+2. 帳戶選 `odyliao-lab`，選取 `Age-of-Exploration`，按「下一步」。
+3. 專案名稱 `age-of-exploration`；組建命令 `npm run check && npm run build`；部署命令 `npx wrangler deploy`；根目錄 `/`。
+4. 「進階設定 → API Token → 建立新 Token」，Token 名稱填 `age-of-exploration-build`，按「部署」。
+5. 「設定 → 組建」確認生產分支為 `claude/gallant-bardeen-wewmq8`、包括路徑為 `*`、沒有排除路徑。
+
+首次建置 ID：`d058ed7b-8e92-4c6e-8974-70dc89f0edd7`；2026-09-29 11:11（Asia/Taipei）完成，日誌顯示 Node `22.23.3`、完整檢查與 build 成功、`Success: Deploy command completed`。Worker 版本為 `a80dddd7-211f-486d-a46a-b817f1db4291`。
+
+已從公開網址驗證劇本選單、瀏覽器主控台無 error/warning、首頁與 JS/CSS 為 HTTP 200、安全標頭、靜態資源 `max-age=31536000, immutable`，以及導航到其他路徑時的 SPA fallback。
 
 ## 5. 限制
 
@@ -60,6 +87,8 @@
 
 ## 7. 備案：改用 GitHub Actions 部署
 
+**本次未採用**：Workers Git 整合已成功建立。保留此節供未來 Git 整合故障時使用，避免同時啟用兩套部署。
+
 若後台的 Git 整合一直無法建立，可改由 GitHub Actions 呼叫 wrangler 部署，完全不依賴後台的專案建立流程。
 需要擁有者做的事：
 
@@ -72,7 +101,7 @@ repo 端需新增一個部署 workflow：在 `check` 通過後執行 `npm run bu
 
 ## 8. 完成標準
 
-- [ ] 取得可公開存取的網址，開啟後看到「Age of Exploration」劇本選單，瀏覽器主控台無錯誤。
+- [x] 取得可公開存取的網址，開啟後看到「Age of Exploration」劇本選單，瀏覽器主控台無錯誤。
 - [ ] 推送到 production branch 後會自動重新部署。
-- [ ] README「部署」段落記載實際採用的方式與網址。
+- [x] README「部署」段落記載實際採用的方式與網址。
 - [ ] `docs/DEVLOG.md` 記錄解決方式；本文件狀態改為 🟢 並補上根本原因。
