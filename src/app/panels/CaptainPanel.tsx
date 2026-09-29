@@ -20,6 +20,7 @@ import {
 } from '@/game/cosmetics';
 import { ACHIEVEMENT_MAP } from '@/game/achievements';
 import { Avatar, Emblem, Flag } from './Avatar';
+import { CloudAccount } from './CloudAccount';
 
 type Tab = 'captain' | 'skills' | 'achievements' | 'looks';
 
@@ -166,8 +167,9 @@ function CaptainTab() {
       <SoundSettings />
 
       <h3>存檔</h3>
+      <CloudAccount />
       <p className="meta">
-        進度會自動存在這台裝置的瀏覽器。要換裝置或留存學習紀錄，可以匯出存檔檔案。
+        進度會自動存在這台裝置的瀏覽器。也可以匯出存檔檔案，手動搬到其他裝置或留存學習紀錄。
       </p>
       <div className="row">
         <button type="button" onClick={download}>

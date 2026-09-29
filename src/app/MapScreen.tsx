@@ -10,6 +10,7 @@ import {
   visiblePortIds,
 } from '@/game/state';
 import { positionAt } from '@/game/voyage';
+import { isDebug } from './debug';
 import { onFogChange, useGame } from './store';
 import { PortPanel } from './panels/PortPanel';
 import { PlanningPanel } from './panels/PlanningPanel';
@@ -85,7 +86,7 @@ export function MapScreen() {
       });
       m.centerOn(g.ship.position, HOME_ZOOM);
       // 網址加上 ?debug 時開放給自動化測試
-      if (new URLSearchParams(location.search).has('debug')) {
+      if (isDebug()) {
         Object.assign(window, { __aoeMap: m, __aoeStore: useGame });
       }
       setReady(true);

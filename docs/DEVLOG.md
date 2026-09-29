@@ -15,6 +15,21 @@
 - Cloudflare 生產與 Previews Base 均已保存 `VITE_SUPABASE_URL`、`VITE_SUPABASE_ANON_KEY` 建置變數；兩個環境共用同一 Supabase 專案。
 - `docs/05-codex-handoff-week7-setup.md` 已改為 🟢，記錄公開 Project URL／Publishable key、preview 格式及介面差異。未修改 `src/` 或 `content/`；登入與雲端同步程式及實測交由 Claude 接續，OAuth 憑證與資料庫密碼未寫入 repo。
 
+## 2026-09-29 — 第 7 週：Google 登入與雲端存檔
+
+- **外部服務**（Codex 代為設定，見 `docs/05-codex-handoff-week7-setup.md`）：Supabase 專案（東京）、`saves` 表與 RLS、Google OAuth（Testing 模式）、Cloudflare 建置變數；`main` 成為正式版分支，開發分支自動產生 preview。
+- **登入**（`src/app/cloud.ts`）：Supabase Auth 的 Google 登入，使用 PKCE 流程；回來後自動從網址移除授權碼。
+  supabase-js 動態載入，主選單與離線遊玩不受影響；沒有設定環境變數時整個功能自動隱藏。登入是選擇性的。
+- **同步規則**（`src/game/sync.ts`，純函式與單元測試）：每台裝置記住上次同步時本機與雲端的時間。
+  只有一邊有新進度就沿用那一邊；兩邊都有新進度，或這台裝置第一次同步且兩邊都有進度，就請玩家選擇保留哪一份（顯示天數、等級、任務、圖鑑等摘要）。
+  上傳時的雲端時間至少比已知時間晚 1 毫秒，避免時鐘偏慢的裝置造成誤判；雲端存檔來自較新版本時不覆蓋，提示更新遊戲。
+- **同步時機**（`src/app/cloudSync.ts`）：登入後、本機存檔後 20 秒、切到背景、回到選單、恢復網路時，另有「立即同步」按鈕。
+  只在記憶體中的進度真的變了才寫回本機，避免同步本身讓裝置看起來「有新進度」而誤報衝突（瀏覽器測試抓到的問題）。
+- **介面**：主選單與「船長 → 存檔」顯示登入狀態、上次同步時間、立即同步與登出；衝突時跳出比較視窗。說明只保存哪些資料。
+- **驗證**：單元測試 96 個。容器無法連到 Supabase，因此以 Playwright 模擬 Supabase 的授權、token 交換與 REST API（依 JWT 使用者隔離資料），
+  用三個瀏覽器環境實測：未登入進度登入後上傳、新裝置下載、跨裝置更新、衝突時保留本機、另一台自動下載不誤報衝突、第二位使用者看不到第一位的存檔、登出後本機進度保留。
+  真實 Google 帳號的驗收步驟寫在 `docs/playtest-guide.md`。
+
 ## 2026-09-29 — 第 6 週：音效、外觀、離線遊玩
 
 - **音效與音樂**（`src/app/sound.ts`）：全部用 Web Audio 即時合成，不需要音檔，也沒有授權問題。

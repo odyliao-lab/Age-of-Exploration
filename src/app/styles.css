@@ -1344,3 +1344,39 @@ button.wide {
   border-radius: 50%;
   border: 1px solid #2b2118;
 }
+
+/* ---- 雲端存檔 */
+.cloud-account {
+  margin: 12px 0;
+  padding: 12px;
+  border: 1px solid var(--line, #c9b48a);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.4);
+  display: grid;
+  gap: 6px;
+  max-width: 640px;
+}
+.cloud-account .meta {
+  margin: 0;
+}
+.google-btn {
+  justify-self: start;
+}
+.conflict-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 10px;
+  margin: 10px 0;
+}
+.conflict-card {
+  border: 1px solid var(--line, #c9b48a);
+  border-radius: 8px;
+  padding: 8px 12px;
+}
+.conflict-card h3 {
+  margin: 0 0 4px;
+}
+.conflict-card ul {
+  margin: 0;
+  padding-left: 18px;
+}

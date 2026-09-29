@@ -2,6 +2,7 @@ import { lazy, Suspense, useEffect, useState } from 'react';
 import { LEARNING_DOMAIN_LABELS, type Scenario } from '@/data/schema';
 import { contentResult } from './content';
 import { useGame } from './store';
+import { CloudAccount, SyncConflictModal } from './panels/CloudAccount';
 
 // 海圖與遊戲引擎（含 PixiJS）按需載入，讓劇本選單不必先下載繪圖引擎
 const GameScreen = lazy(() => import('./GameScreen'));
@@ -21,12 +22,20 @@ export function App() {
 
   if (screen === 'map' && world) {
     return (
-      <Suspense fallback={<main className="page">正在展開海圖…</main>}>
-        <GameScreen />
-      </Suspense>
+      <>
+        <Suspense fallback={<main className="page">正在展開海圖…</main>}>
+          <GameScreen />
+        </Suspense>
+        <SyncConflictModal />
+      </>
     );
   }
-  return <ScenarioMenu />;
+  return (
+    <>
+      <ScenarioMenu />
+      <SyncConflictModal />
+    </>
+  );
 }
 
 function ScenarioMenu() {
@@ -38,6 +47,7 @@ function ScenarioMenu() {
     <main className="page">
       <h1>Age of Exploration</h1>
       <p className="subtitle">選擇一個劇本，從家鄉港口出發，親手航向世界。</p>
+      <CloudAccount />
 
       <section className="scenario-grid">
         {content.scenarios.map((s) => (
@@ -53,7 +63,7 @@ function ScenarioMenu() {
           <li>出航後船會自動前進，途中瞭望員會回報發現的島嶼與地標。</li>
           <li>抵達港口完成任務、回答問題，累積經驗、升級船長，並收集圖鑑。</li>
         </ol>
-        <p className="meta">進度會自動存在這台裝置的瀏覽器裡。</p>
+        <p className="meta">進度會自動存在這台裝置的瀏覽器裡；用 Google 登入後也會同步到雲端。</p>
       </section>
     </main>
   );

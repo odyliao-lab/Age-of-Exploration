@@ -113,7 +113,8 @@ interface GameStore {
   refreshSaves: () => Promise<void>;
   startNew: (scenarioId: string) => Promise<void>;
   continueGame: (scenarioId: string) => Promise<void>;
-  loadGame: (state: GameState) => void;
+  /** fromDisk：狀態剛從存檔讀出，不需要再寫回 */
+  loadGame: (state: GameState, fromDisk?: boolean) => void;
   backToMenu: () => void;
 
   selectPort: (id: string | null) => void;
@@ -151,6 +152,7 @@ interface GameStore {
 
   dismissModal: () => void;
   dismissToast: (id: number) => void;
+  pushToast: (t: Omit<Toast, 'id'>) => void;
   openPanel: (panel: Panel, codexFocus?: string | null) => void;
 }
 
@@ -163,6 +165,28 @@ export function onFogChange(fn: FogListener): () => void {
 }
 function emitFog(changed: number[] | 'all') {
   if (changed === 'all' || changed.length) fogListeners.forEach((fn) => fn(changed));
+}
+
+// 本機存檔寫入後通知雲端同步（cloudSync.ts 訂閱，避免互相匯入）
+type SaveListener = (scenarioId: string) => void;
+const saveListeners = new Set<SaveListener>();
+export function onLocalSave(fn: SaveListener): () => void {
+  saveListeners.add(fn);
+  return () => saveListeners.delete(fn);
+}
+// 最後一次寫進本機的狀態：沒有變化就不必重寫（重寫會讓同步誤以為本機有新進度）
+let persisted: GameState | null = null;
+async function persist(state: GameState) {
+  const t = await writeSave(state);
+  if (t === null) return;
+  persisted = state;
+  saveListeners.forEach((fn) => fn(state.scenarioId));
+}
+
+/** 同步前把海圖上尚未存檔的進度寫進本機 */
+export async function flushSave(): Promise<void> {
+  const { screen, game } = useGame.getState();
+  if (screen === 'map' && game && game !== persisted) await persist(game);
 }
 
 let toastSeq = 0;
@@ -224,7 +248,7 @@ export const useGame = create<GameStore>((set, get) => {
         const g = get().game;
         if (g) {
           lastSave = Date.now();
-          void writeSave(g);
+          void persist(g);
         }
       },
       soon ? 300 : 0,
@@ -271,19 +295,21 @@ export const useGame = create<GameStore>((set, get) => {
       await deleteSave(scenarioId);
       const { state } = newGame(world, scenarioId);
       get().loadGame(state);
-      void writeSave(state);
+      void persist(state);
     },
 
     continueGame: async (scenarioId) => {
       const saved = await loadSave(scenarioId);
-      if (saved) get().loadGame(saved);
+      if (saved) get().loadGame(saved, true);
       else await get().startNew(scenarioId);
     },
 
-    loadGame: (state) => {
+    loadGame: (state, fromDisk = false) => {
+      const game = ensureDaily(state, Date.now());
+      if (fromDisk) persisted = game;
       set({
         screen: 'map',
-        game: ensureDaily(state, Date.now()),
+        game,
         selectedPortId: state.dockedAt,
         planning: null,
         paused: false,
@@ -296,7 +322,7 @@ export const useGame = create<GameStore>((set, get) => {
 
     backToMenu: () => {
       const g = get().game;
-      if (g) void writeSave(g);
+      if (g) void persist(g);
       set({ screen: 'menu', selectedPortId: null, planning: null, panel: null, modals: [] });
       void get().refreshSaves();
     },
@@ -574,6 +600,7 @@ export const useGame = create<GameStore>((set, get) => {
       })),
     dismissToast: (id) => set((s) => ({ toasts: s.toasts.filter((t) => t.id !== id) })),
     openPanel: (panel, codexFocus = null) => set({ panel, codexFocus }),
+    pushToast: (t) => toast(t),
   };
 });
 

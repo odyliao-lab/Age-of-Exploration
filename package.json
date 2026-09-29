@@ -17,6 +17,7 @@
     "check": "npm run typecheck && npm run lint && npm run format:check && npm run content:validate && npm run test"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.117.2",
     "d3-geo": "^3.1.1",
     "dexie": "^4.4.6",
     "i18next": "^26.4.2",
