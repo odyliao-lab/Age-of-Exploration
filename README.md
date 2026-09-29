@@ -46,14 +46,22 @@ npm run build            # 產出 dist/
 | ----------------- | --------------------------------- |
 | Worker 名稱       | `age-of-exploration`              |
 | GitHub repository | `odyliao-lab/Age-of-Exploration`  |
-| Production branch | `claude/gallant-bardeen-wewmq8`   |
+| Production branch | `main`                            |
+| Preview branch    | `claude/gallant-bardeen-wewmq8`   |
 | Build command     | `npm run check && npm run build`  |
 | Deploy command    | `npx wrangler deploy`             |
+| Preview command   | `npx wrangler preview`            |
 | Root directory    | `/`                               |
 | Node              | 22，由 `.nvmrc` 指定              |
 | 靜態資源目錄      | `dist/`，由 `wrangler.jsonc` 指定 |
 
 每次推送到上述 production branch，Cloudflare 會自動安裝依賴、執行完整檢查與建置，成功後才部署。GitHub Actions 的 `check` workflow 也會照常執行。
+
+`main` 為 GitHub 預設分支與正式版來源；開發分支推送由已啟用的 Worker Previews 建置獨立預覽，完成後以 PR 合併進 `main`。新版後台的預覽設定位於「設定 → 組建 → Previews Base」，部署命令為 `npx wrangler preview`，並需要 `wrangler.jsonc` 的 `previews` 區塊。第 7 週外部服務設定與實際預覽網址見 [交接文件](docs/05-codex-handoff-week7-setup.md)。
+
+Google 登入與雲端存檔需要建置變數 `VITE_SUPABASE_URL`、`VITE_SUPABASE_ANON_KEY`（可公開的前端值，已設定在 Cloudflare）；本機開發時把 `.env.example` 複製成 `.env.local` 填入。沒有設定時遊戲只使用本機存檔。
+
+目前開發分支預覽：<https://claude-gallant-bardeen-wewmq8-age-of-exploration.odyliao-pikmin.workers.dev/>。
 
 後台設定位置為「Workers 和 Pages → age-of-exploration → 設定 → 建置」。Worker 名稱須與 `wrangler.jsonc` 的 `name` 完全一致；改名時兩處及本段必須一起更新。
 

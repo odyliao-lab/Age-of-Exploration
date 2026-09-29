@@ -100,15 +100,31 @@ export async function listSaves(): Promise<Pick<SaveRecord, 'scenarioId' | 'upda
   }
 }
 
-export async function writeSave(state: GameState): Promise<void> {
+/** 寫入本機存檔，回傳這次的更新時間（失敗時為 null） */
+export async function writeSave(state: GameState): Promise<number | null> {
   try {
-    await getDb()?.saves.put({
-      scenarioId: state.scenarioId,
-      updatedAt: Date.now(),
-      data: serialize(state),
-    });
+    const d = getDb();
+    if (!d) return null;
+    // 確保時間嚴格遞增，同步判斷才不會漏掉同一毫秒內的變更
+    const prev = await d.saves.get(state.scenarioId);
+    const updatedAt = Math.max(Date.now(), (prev?.updatedAt ?? 0) + 1);
+    await d.saves.put({ scenarioId: state.scenarioId, updatedAt, data: serialize(state) });
+    return updatedAt;
   } catch (e) {
     console.warn('寫入存檔失敗', e);
+    return null;
+  }
+}
+
+/** 讀取本機存檔與它的更新時間（雲端同步用） */
+export async function loadSaveRecord(
+  scenarioId: string,
+): Promise<{ updatedAt: number; data: SerializedSave } | null> {
+  try {
+    const rec = await getDb()?.saves.get(scenarioId);
+    return rec ? { updatedAt: rec.updatedAt, data: rec.data } : null;
+  } catch {
+    return null;
   }
 }
 
