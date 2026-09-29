@@ -11,11 +11,17 @@ import {
   sailPolar,
   turnToward,
 } from './sailing';
+import { bearingDeg } from '@/geo/geo';
 import {
   departPort,
   enterPort,
+  hearRumor,
+  investigate,
   newGame,
+  openRumors,
   portInReach,
+  rumorInReach,
+  rumorsAt,
   setHelm,
   tick,
   type GameState,
@@ -161,5 +167,36 @@ describe('hands-on sailing', () => {
     s = sail(s, 1);
     expect(s.ship.position).toEqual(start);
     expect(s.day).toBeCloseTo(1, 5);
+  });
+});
+
+describe('rumors and investigation', () => {
+  it('hears a rumor in port, sails there by hand and investigates', () => {
+    let s: GameState = { ...newGame(world, 'treasure-fleet', 3).state, eventCooldownUntil: 1e9 };
+    expect(rumorsAt(world, s, 'quanzhou').map((c) => c.id)).toContain('taiwan');
+    s = hearRumor(world, s, 'taiwan');
+    expect(openRumors(world, s).map((c) => c.id)).toEqual(['taiwan']);
+    expect(rumorsAt(world, s, 'quanzhou')).toEqual([]);
+
+    // 傳聞的地點不會因為路過就自動發現
+    const target = world.codex.get('taiwan')!.location!;
+    s = setHelm(departPort(world, s), { sail: 2 });
+    for (let t = 0; t < 12 && !rumorInReach(world, s); t += 0.05) {
+      s = setHelm(s, { course: bearingDeg(s.ship.position, target) });
+      s = tick(world, s, 0.05).state;
+      if (s.encounter) s = { ...s, encounter: null };
+    }
+    expect(rumorInReach(world, s)).toBe('taiwan');
+    expect(s.discovered).not.toContain('taiwan');
+    expect(s.day).toBeLessThan(6);
+
+    const xp = s.captain.xp;
+    const r = investigate(world, s, 'taiwan');
+    expect(r.state.discovered).toContain('taiwan');
+    expect(r.events).toContainEqual({ type: 'discovered', codexId: 'taiwan' });
+    expect(r.state.captain.xp).toBeGreaterThan(xp);
+    expect(r.state.reputation).toBe(s.reputation + 5);
+    expect(openRumors(world, r.state)).toEqual([]);
+    expect(investigate(world, r.state, 'taiwan').state).toBe(r.state);
   });
 });

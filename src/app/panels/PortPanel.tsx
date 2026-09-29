@@ -6,6 +6,7 @@ import {
   crewSlots,
   mods,
   portNameKnown,
+  rumorsAt,
   shipyardOffers,
 } from '@/game/state';
 import { PROFESSIONS } from '@/game/progression';
@@ -17,13 +18,14 @@ export function PortPanel({ portId }: { portId: string }) {
   const world = useGame((s) => s.world)!;
   const game = useGame((s) => s.game)!;
   const selectPort = useGame((s) => s.selectPort);
-  const beginPlanning = useGame((s) => s.beginPlanning);
+  const depart = useGame((s) => s.depart);
   const accept = useGame((s) => s.accept);
   const resupply = useGame((s) => s.resupply);
   const repair = useGame((s) => s.repair);
   const hire = useGame((s) => s.hire);
   const buy = useGame((s) => s.buy);
   const openPanel = useGame((s) => s.openPanel);
+  const hearRumor = useGame((s) => s.hearRumor);
 
   const port = world.ports.get(portId);
   if (!port) return null;
@@ -38,6 +40,7 @@ export function PortPanel({ portId }: { portId: string }) {
   const recruits = docked ? availableCrew(world, game) : [];
   const offers = docked ? shipyardOffers(world, game) : [];
   const slotsFull = game.crew.length >= crewSlots(game);
+  const rumors = docked ? rumorsAt(world, game, portId) : [];
 
   if (!known) {
     return (
@@ -85,6 +88,21 @@ export function PortPanel({ portId }: { portId: string }) {
         </div>
       )}
       {port.id === scenario.home_port && <div className="home-tag">你的家鄉港口</div>}
+
+      {docked && rumors.length > 0 && (
+        <>
+          <h3>傳聞</h3>
+          {rumors.map((c) => (
+            <article key={c.id} className="rumor-card">
+              <div className="meta">{c.rumor!.from}：</div>
+              <p>「{c.rumor!.text}」</p>
+              <button type="button" onClick={() => hearRumor(c.id)}>
+                📝 記在航海日誌
+              </button>
+            </article>
+          ))}
+        </>
+      )}
 
       {docked && (
         <>
@@ -179,8 +197,8 @@ export function PortPanel({ portId }: { portId: string }) {
               ))}
             </>
           )}
-          <button type="button" className="primary wide" onClick={beginPlanning}>
-            規劃航線
+          <button type="button" className="primary wide" onClick={depart}>
+            ⛵ 出港
           </button>
         </>
       )}

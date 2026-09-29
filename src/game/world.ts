@@ -26,6 +26,8 @@ export interface World {
   crew: Map<string, CrewMember>;
   /** 航經時可自動發現的地標 */
   landmarks: CodexEntry[];
+  /** 要依傳聞調查才會發現的地點 */
+  rumors: CodexEntry[];
   harbors: Map<string, Harbor>;
   /** 1:50m 精確海岸（親手駕船的碰撞判定）；沒有時退回 0.25° 陸地遮罩 */
   coast: CoastIndex | null;
@@ -61,7 +63,8 @@ export function buildWorld(content: ContentBundle, coast: CoastIndex | null = nu
     quests: byId(content.quests),
     scenarios: byId(content.scenarios),
     crew: byId(content.crew),
-    landmarks: content.codex.filter((c) => c.location && c.discover_radius_km),
+    landmarks: content.codex.filter((c) => c.location && c.discover_radius_km && !c.rumor),
+    rumors: content.codex.filter((c) => c.location && c.rumor),
     harbors: new Map(content.ports.map((p) => [p.id, harborFor(p)])),
     coast,
   };

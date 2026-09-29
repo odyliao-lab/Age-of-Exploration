@@ -7,14 +7,17 @@ import {
   activeNavigateTargets,
   pendingInteraction,
   portNameKnown,
+  sailingStatus,
   visiblePortIds,
 } from '@/game/state';
+import { bearingDeg } from '@/geo/geo';
 import { positionAt } from '@/game/voyage';
 import { isDebug } from './debug';
 import { onFogChange, useGame } from './store';
 import { PortPanel } from './panels/PortPanel';
 import { PlanningPanel } from './panels/PlanningPanel';
 import { SailBar } from './panels/SailBar';
+import { HelmPanel } from './panels/HelmPanel';
 import { QuestTracker } from './panels/QuestTracker';
 import { Toasts } from './panels/Toasts';
 import { DialogueModal, EventModal, QuizModal, RewardModal, StormModal } from './panels/Modals';
@@ -27,6 +30,8 @@ import { LogbookPanel } from './panels/LogbookPanel';
 import { StatusBar } from './panels/StatusBar';
 
 const HOME_ZOOM = 5;
+/** 親手駕船時的鏡頭：約 4–6 度見方 */
+const SAIL_ZOOM = 30;
 
 export function MapScreen() {
   const world = useGame((s) => s.world)!;
@@ -56,6 +61,10 @@ export function MapScreen() {
         if (s.planning) {
           const port = s.world!.ports.get(id)!;
           s.addWaypoint(port.location, id);
+        } else if (s.game?.helm) {
+          // 航行中點港口：船頭轉向那個港口
+          const port = s.world!.ports.get(id)!;
+          s.steer(bearingDeg(s.game.ship.position, port.location));
         } else {
           s.selectPort(id);
         }
@@ -65,6 +74,7 @@ export function MapScreen() {
         const pending = s.world && s.game ? pendingInteraction(s.world, s.game) : null;
         if (pending?.data.type === 'locate' && !s.modals.length) s.locate(p);
         else if (s.planning) s.addWaypoint(p);
+        else if (s.game?.helm) s.steer(bearingDeg(s.game.ship.position, p));
         else s.selectPort(null);
       },
       onPointerLonLat: setPointer,
@@ -155,7 +165,21 @@ export function MapScreen() {
   useEffect(() => {
     const m = mapRef.current;
     if (!ready || !m) return;
-    m.setShip(game.ship.position, game.ship.heading, follow && !!game.voyage);
+    m.setShip(game.ship.position, game.ship.heading, follow && (!!game.voyage || !!game.helm));
+    const st = sailingStatus(world, game);
+    m.setSailing(
+      st && game.helm
+        ? {
+            windToward: st.wind.toward,
+            windStrength: st.wind.strength,
+            windRel: st.windRel,
+            angleOffWind: st.angleOffWind,
+            sail: game.helm.anchored ? 0 : game.helm.sail,
+            moving: st.motion.speed > 1,
+            course: game.helm.course,
+          }
+        : null,
+    );
     if (planning) {
       m.setRoute({
         done: [],
@@ -175,7 +199,16 @@ export function MapScreen() {
     } else {
       m.setRoute(null);
     }
-  }, [game.ship, game.voyage, planning, follow, ready]);
+  }, [game.ship, game.voyage, game.helm, planning, follow, ready, world, game]);
+
+  // ---- 出港時拉近鏡頭跟著船，入港時拉遠一些看港口周邊
+  const atSea = !!game.helm;
+  useEffect(() => {
+    const m = mapRef.current;
+    if (!ready || !m) return;
+    const pos = useGame.getState().game!.ship.position;
+    m.centerOn(pos, atSea ? SAIL_ZOOM : HOME_ZOOM * 2);
+  }, [atSea, ready]);
 
   useEffect(() => {
     if (ready) mapRef.current?.setMarks(mapMarks);
@@ -204,7 +237,7 @@ export function MapScreen() {
 
         <QuestTracker />
 
-        <div className="map-legend" aria-hidden="true">
+        <div className="map-legend" aria-hidden="true" hidden={atSea}>
           <span>
             <i className="dot home" />
             家鄉
@@ -227,9 +260,15 @@ export function MapScreen() {
           {pointer ? formatLonLat(pointer) : '滑過或拖曳地圖可查看經緯度'}
         </div>
 
-        {planning ? <PlanningPanel /> : game.voyage ? <SailBar /> : null}
+        {planning ? (
+          <PlanningPanel />
+        ) : game.voyage ? (
+          <SailBar />
+        ) : game.helm ? (
+          <HelmPanel />
+        ) : null}
 
-        <WindCompass />
+        {!game.helm && <WindCompass />}
         {interaction?.data.type === 'locate' && <LocateBanner step={interaction.data} />}
         <Toasts />
       </div>

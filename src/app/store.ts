@@ -19,6 +19,11 @@ import {
   ensureDaily,
   trackDaily,
   buyShip,
+  departPort,
+  hearRumor,
+  investigate,
+  enterPort,
+  setHelm,
   buyPaint,
   setAppearance,
   checkAchievements,
@@ -53,9 +58,12 @@ import { findSeaPath } from '@/geo/seaPath';
 import { play } from './sound';
 import type { World } from '@/game/world';
 import type { Appearance } from '@/game/cosmetics';
+import type { SailSetting } from '@/game/sailing';
 
 /** 1 倍速時，現實 1.2 秒 = 遊戲 1 天 */
 export const SECONDS_PER_DAY = 1.2;
+/** 親手駕船時時間走得慢一些，才來得及掌舵、看海岸 */
+export const SAIL_SECONDS_PER_DAY = 6;
 const AUTOSAVE_MS = 4000;
 
 type Screen = 'menu' | 'map';
@@ -129,6 +137,14 @@ interface GameStore {
   setSpeed: (s: 1 | 2 | 4) => void;
   setFollow: (f: boolean) => void;
   anchor: () => void;
+  /** 親手駕船 */
+  depart: () => void;
+  steer: (course: number) => void;
+  trimSail: (sail: SailSetting) => void;
+  toggleAnchor: () => void;
+  dock: (portId: string) => void;
+  hearRumor: (id: string) => void;
+  investigate: (id: string) => void;
 
   accept: (questId: string) => void;
   closeDialogue: (questId: string) => void;
@@ -392,8 +408,9 @@ export const useGame = create<GameStore>((set, get) => {
 
     advance: (realSeconds) => {
       const { world, game, paused, speed, modals } = get();
-      if (!world || !game?.voyage || paused || modals.length) return;
-      const days = (Math.min(realSeconds, 0.25) / SECONDS_PER_DAY) * speed;
+      if (!world || !game || (!game.voyage && !game.helm) || paused || modals.length) return;
+      const perDay = game.helm ? SAIL_SECONDS_PER_DAY : SECONDS_PER_DAY;
+      const days = (Math.min(realSeconds, 0.25) / perDay) * speed;
       apply(tick(world, game, days));
       scheduleSave();
     },
@@ -405,6 +422,83 @@ export const useGame = create<GameStore>((set, get) => {
     anchor: () => {
       const g = get().game;
       if (g) apply(stopVoyage(g));
+    },
+
+    depart: () => {
+      const { world, game } = get();
+      if (!world || !game || pendingInteraction(world, game)) return;
+      const next = departPort(world, game);
+      if (next === game) return;
+      set({ selectedPortId: null, paused: false, follow: true, planning: null });
+      commit(next);
+      play('depart');
+      if (game.stats.voyages === 0) {
+        // 第一次出海：說明舵盤與風（遊戲會暫停到按下繼續）
+        set((s) => ({
+          modals: [
+            ...s.modals,
+            {
+              type: 'info',
+              title: '親手掌舵',
+              text: '帆船不能往任何方向都開得一樣快，要看風從哪裡吹來。',
+              stats: [
+                '拖曳右下角舵盤上的紅色圓點設定航向，或直接點一下海面，船頭就會轉過去。',
+                '舵盤外圈的顏色：綠色最好開（順風到橫風），黃色開得動但慢（迎風），紅色是頂風，帆吃不到風，船會停住。',
+                '藍色箭頭是風吹去的方向。想往紅色那邊走，就要走之字形：先偏左、再偏右，一段一段前進。',
+                '收帆、半帆、滿帆控制速度；靠近港口會出現「入港」按鈕。',
+              ],
+              lesson:
+                '冬天（11–3 月）南海與東海吹東北季風，往西南順風好走，往東北就是頂風。鄭和船隊都是冬天出發、夏天返航，就是順著季風航行。',
+            },
+          ],
+        }));
+      } else {
+        toast({ text: '起錨出航！', kind: 'info' });
+      }
+    },
+
+    steer: (course) => {
+      const g = get().game;
+      if (g?.helm) set({ game: setHelm(g, { course }) });
+    },
+
+    trimSail: (sail) => {
+      const g = get().game;
+      if (g?.helm) set({ game: setHelm(g, { sail }) });
+    },
+
+    toggleAnchor: () => {
+      const g = get().game;
+      if (g?.helm) set({ game: setHelm(g, { anchored: !g.helm.anchored }) });
+    },
+
+    dock: (portId) => {
+      const { world, game } = get();
+      if (!world || !game) return;
+      const r = enterPort(world, game, portId);
+      if (r.state === game) return;
+      set({ follow: true });
+      apply(r);
+    },
+
+    hearRumor: (id) => {
+      const { world, game } = get();
+      if (!world || !game) return;
+      const next = hearRumor(world, game, id);
+      if (next === game) return;
+      commit(next);
+      toast({ text: '傳聞記下了。依線索推理位置，靠近後按「調查」。', kind: 'info' });
+    },
+
+    investigate: (id) => {
+      const { world, game } = get();
+      if (!world || !game) return;
+      const r = investigate(world, game, id);
+      if (r.state === game) return;
+      apply(r);
+      const c = world.codex.get(id)!;
+      toast({ text: `調查成功！傳聞中的地方就是「${c.name}」`, kind: 'success' });
+      play('achievement');
     },
 
     accept: (questId) => {

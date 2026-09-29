@@ -4,7 +4,7 @@
  * 所有函式都回傳新的狀態物件；唯一的例外是迷霧陣列（fog）會就地更新，
  * 以免每一幀複製整張格網。事件（GameEvent）交給介面顯示提示與對話框。
  */
-import type { LonLat, Quest, QuestStep } from '@/data/schema';
+import type { CodexEntry, LonLat, Quest, QuestStep } from '@/data/schema';
 import { bearingDeg, compass16, distanceKm } from '@/geo/geo';
 import { addXp, newCaptain, type Captain } from './captain';
 import { ACHIEVEMENT_MAP, EMPTY_STATS, newlyUnlocked, type AchievementStats } from './achievements';
@@ -80,7 +80,18 @@ import {
 } from './ship';
 import { createVoyage, isFinished, positionAt, type Harbor, type Voyage } from './voyage';
 import { destinationPoint } from './events';
-import { gustyWind, motion, turnToward, TURN_DEG_PER_DAY, type Helm } from './sailing';
+import {
+  angleDiff,
+  angleOffWind,
+  gustyWind,
+  motion,
+  NO_GO,
+  turnToward,
+  TURN_DEG_PER_DAY,
+  type Helm,
+  type Motion,
+} from './sailing';
+import type { Rig } from './progression';
 import { isLand } from '@/geo/landmask';
 import type { World } from './world';
 
@@ -170,6 +181,8 @@ export interface GameState {
   log: LogEntry[];
   /** 船長頭像、船旗、船身配色 */
   appearance: Appearance;
+  /** 聽過的傳聞（codex id） */
+  rumors: string[];
 }
 
 export interface HelmState extends Helm {
@@ -269,6 +282,7 @@ export function newGame(world: World, scenarioId: string, seed = newSeed()): Ste
     daily: null,
     log: [{ day: 0, text: `從${home.name}出發，展開航海生涯`, kind: 'arrive' }],
     appearance: defaultAppearance(),
+    rumors: [],
   };
   return { state, events: [], fogChanged };
 }
@@ -567,6 +581,43 @@ function seaNear(world: World, p: LonLat): { point: LonLat; bearing: number } | 
   return fallback;
 }
 
+export interface SailingStatus {
+  /** 此時此地的風（含緩慢變化） */
+  wind: Wind;
+  current: Current | null;
+  /** 以目前船頭與帆計算的運動 */
+  motion: Motion;
+  rig: Rig;
+  /** 頂風區的半角：船頭與風吹來方向的夾角小於此值就開不動 */
+  noGo: number;
+  /** 風吹向相對於船頭的角度 */
+  windRel: number;
+  angleOffWind: number;
+}
+
+/** 介面與畫面用：和航行物理使用同一套風與帆的計算 */
+export function sailingStatus(world: World, state: GameState): SailingStatus | null {
+  const helm = state.helm;
+  if (!helm) return null;
+  const { position, heading } = state.ship;
+  const env = environmentAt(state, position, heading);
+  const wind = gustyWind(env.wind, position, state.day);
+  const rig = shipDef(state.shipTypeId).rig;
+  const base = speedKmPerDay(world, state);
+  const mv = helm.anchored
+    ? { ...motion(heading, 0, wind, null, rig, base), speed: 0, throughWater: 0 }
+    : motion(heading, helm.sail, wind, env.current, rig, base);
+  return {
+    wind,
+    current: env.current,
+    motion: mv,
+    rig,
+    noGo: NO_GO[rig],
+    windRel: angleDiff(wind.toward, heading),
+    angleOffWind: angleOffWind(heading, wind),
+  };
+}
+
 /** 調整航向、帆或下錨 */
 export function setHelm(state: GameState, patch: Partial<Omit<HelmState, 'blocked'>>): GameState {
   if (!state.helm) return state;
@@ -575,6 +626,62 @@ export function setHelm(state: GameState, patch: Partial<Omit<HelmState, 'blocke
   // 升帆就自動起錨
   if (patch.sail) helm.anchored = false;
   return { ...state, helm };
+}
+
+// ---------------------------------------------------------------- 傳聞與調查
+
+/** 在這個港口可以聽到、還沒聽過也還沒發現的傳聞 */
+export function rumorsAt(world: World, state: GameState, portId: string): CodexEntry[] {
+  return world.rumors.filter(
+    (c) =>
+      c.rumor!.port === portId && !state.rumors.includes(c.id) && !state.discovered.includes(c.id),
+  );
+}
+
+export function hearRumor(world: World, state: GameState, id: string): GameState {
+  const c = world.codex.get(id);
+  if (!c?.rumor || state.rumors.includes(id) || state.dockedAt !== c.rumor.port) return state;
+  return { ...state, rumors: [...state.rumors, id] };
+}
+
+/** 聽過、還沒發現的傳聞 */
+export function openRumors(world: World, state: GameState): CodexEntry[] {
+  return state.rumors
+    .filter((id) => !state.discovered.includes(id))
+    .map((id) => world.codex.get(id)!)
+    .filter(Boolean);
+}
+
+/** 船附近可以調查的傳聞地點 */
+export function rumorInReach(world: World, state: GameState): string | null {
+  if (!state.helm) return null;
+  for (const c of openRumors(world, state)) {
+    if (distanceKm(state.ship.position, c.location!) <= c.rumor!.investigate_km) return c.id;
+  }
+  return null;
+}
+
+/** 調查發現傳聞中的地點：登錄圖鑑、獲得經驗與名聲 */
+export const INVESTIGATE_REWARD = { xp: 60, reputation: 5 };
+
+export function investigate(world: World, state: GameState, id: string): StepResult {
+  if (rumorInReach(world, state) !== id) return { state, events: [], fogChanged: [] };
+  const events: GameEvent[] = [{ type: 'discovered', codexId: id }];
+  const xp = gainXp(state, INVESTIGATE_REWARD.xp);
+  events.push(...xp.events);
+  const next: GameState = {
+    ...state,
+    discovered: [...state.discovered, id],
+    reputation: state.reputation + INVESTIGATE_REWARD.reputation,
+    captain: xp.captain,
+    skillPoints: xp.skillPoints,
+  };
+  const progressed = progressQuests(world, next);
+  return {
+    state: progressed.state,
+    events: [...events, ...progressed.events],
+    fogChanged: progressed.fogChanged,
+  };
 }
 
 /** 附近可以入港的港口（海圖上看得到、距離夠近） */

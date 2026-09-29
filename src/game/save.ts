@@ -65,6 +65,7 @@ export function deserialize(data: SerializedSave): GameState {
     appearance: { ...defaultAppearance(), ...data.appearance },
     // 第 7 版新增：親手駕船
     helm: data.helm ?? null,
+    rumors: data.rumors ?? [],
   };
 }
 
