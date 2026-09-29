@@ -5,6 +5,7 @@
 import type { LonLat } from '@/data/schema';
 import { exploredAreaKm2, FOG_COLS, FOG_RES } from './fog';
 import { destinationPoint } from './events';
+import { greetingFor } from '@/town/folkTalk';
 
 export type AchievementCategory = '探索' | '知識' | '技能' | '蒐集' | '成長' | '隱藏';
 
@@ -17,6 +18,10 @@ export interface AchievementStats {
   crossedTropic: boolean;
   /** 貿易累計利潤（只計賺錢的交易） */
   tradeProfit: number;
+  /** 測深次數 */
+  soundings: number;
+  /** 穿過海霧的次數 */
+  mistsCrossed: number;
 }
 
 export const EMPTY_STATS: AchievementStats = {
@@ -27,6 +32,8 @@ export const EMPTY_STATS: AchievementStats = {
   crossedEquator: false,
   crossedTropic: false,
   tradeProfit: 0,
+  soundings: 0,
+  mistsCrossed: 0,
 };
 
 /** 判斷成就所需的狀態（state.ts 的 GameState 符合這個介面） */
@@ -61,6 +68,11 @@ export interface AchievementDef {
   /** 隱藏成就：解鎖前不顯示條件 */
   hidden?: boolean;
   check: (s: AchievementInput) => boolean;
+}
+
+/** 造訪過的港口說幾種語言 */
+export function languagesHeard(visitedPorts: string[]): number {
+  return new Set(visitedPorts.map((id) => greetingFor(id)?.lang).filter(Boolean)).size;
 }
 
 const completed = (s: AchievementInput) =>
@@ -291,6 +303,52 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     description: '買下第一艘新船',
     category: '成長',
     check: (s) => s.shipTypeId !== s.startingShip,
+  },
+  {
+    id: 'ports-20',
+    name: '萬里行舟',
+    description: '造訪 20 個港口',
+    category: '探索',
+    title: '萬里行舟',
+    check: (s) => s.visitedPorts.length >= 20,
+  },
+  {
+    id: 'codex-50',
+    name: '百科全書',
+    description: '圖鑑收集 50 項',
+    category: '蒐集',
+    title: '百科船長',
+    check: (s) => s.discovered.length >= 50,
+  },
+  {
+    id: 'rumor-25',
+    name: '地理大發現',
+    description: '依傳聞找到並回報 25 個地方',
+    category: '探索',
+    title: '地理大發現者',
+    check: (s) => s.reported.length >= 25,
+  },
+  {
+    id: 'sounding-5',
+    name: '打水幾托',
+    description: '測深 5 次',
+    category: '技能',
+    check: (s) => s.stats.soundings >= 5,
+  },
+  {
+    id: 'mist',
+    name: '霧裡看花',
+    description: '穿過一片海霧',
+    category: '技能',
+    check: (s) => s.stats.mistsCrossed >= 1,
+  },
+  {
+    id: 'polyglot',
+    name: '通曉四方',
+    description: '在說 6 種不同語言的港口聽過當地的問候',
+    category: '知識',
+    title: '通譯',
+    check: (s) => languagesHeard(s.visitedPorts) >= 6,
   },
   {
     id: 'phoenix',

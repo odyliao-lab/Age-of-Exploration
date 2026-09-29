@@ -822,6 +822,7 @@ function seaLife(
     }
   } else if (misty) {
     events.push({ type: 'warning', text: '霧散了，視野又清楚起來。' });
+    stats = { ...stats, mistsCrossed: stats.mistsCrossed + 1 };
   }
 
   // 夥伴說話
@@ -1139,7 +1140,10 @@ export function takeSounding(
 } | null {
   if (!state.helm) return null;
   const sounding = soundAt(state.ship.position, (p) => landAt(world, p));
-  let next = state;
+  let next: GameState = {
+    ...state,
+    stats: { ...state.stats, soundings: state.stats.soundings + 1 },
+  };
   let fixed = false;
   const now = positionErrorKm(world, state);
   if (
