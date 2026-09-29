@@ -22,6 +22,7 @@ import { PlanningPanel } from './panels/PlanningPanel';
 import { SailBar } from './panels/SailBar';
 import { HelmPanel } from './panels/HelmPanel';
 import { StarSightModal } from './panels/StarSightModal';
+import { CoastSightModal } from './panels/CoastSightModal';
 import { TownView } from './town/TownView';
 import { BuildingPanel } from './town/BuildingPanel';
 import { cultureOf } from '@/town/layout';
@@ -53,6 +54,7 @@ export function MapScreen() {
   const building = useGame((s) => s.building);
   const lastBuilding = useGame((s) => s.lastBuilding);
   const stargazing = useGame((s) => s.stargazing);
+  const coastSight = useGame((s) => s.coastSight);
 
   const scenario = world.scenarios.get(game.scenarioId)!;
   const hostRef = useRef<HTMLDivElement>(null);
@@ -360,6 +362,7 @@ export function MapScreen() {
       {!planning && !showTown && selectedPortId && <PortPanel portId={selectedPortId} />}
       {showTown && building && <BuildingPanel kind={building} culture={culture} />}
       {stargazing && game.helm && <StarSightModal />}
+      {coastSight && game.helm && <CoastSightModal />}
 
       {panel === 'codex' && <CodexPanel />}
       {panel === 'captain' && <CaptainPanel />}

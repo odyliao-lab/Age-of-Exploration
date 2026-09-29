@@ -8,6 +8,7 @@ import {
   positionErrorKm,
   rumorInReach,
   sailingStatus,
+  coastSightBlocked,
   starSightBlocked,
 } from '@/game/state';
 import { isNight, timeLabel } from '@/game/navigation';
@@ -44,7 +45,7 @@ export function HelmPanel() {
   const speed = useGame((s) => s.speed);
   const { steer, trimSail, toggleAnchor, togglePause, setSpeed, dock, investigate } =
     useGame.getState();
-  const { openStargazing, greetMerchant } = useGame.getState();
+  const { openStargazing, openCoastSight, greetMerchant } = useGame.getState();
   const dial = useRef<SVGSVGElement>(null);
   const dragging = useRef(false);
 
@@ -68,6 +69,7 @@ export function HelmPanel() {
       : `${ns}約 ${Math.max(0, Math.abs(lat) - latSpread).toFixed(1)}°～${(Math.abs(lat) + latSpread).toFixed(1)}°`;
   const starBlocked = starSightBlocked(game);
   const night = isNight(game.day);
+  const coastBlocked = coastSightBlocked(world, game);
   const kn = knots(st.motion.speed);
   const sailClass =
     st.motion.pointOfSail === '頂風' ? 'bad' : st.motion.pointOfSail === '迎風' ? 'ok' : 'good';
@@ -109,6 +111,11 @@ export function HelmPanel() {
               🛢️ 向商船買補給（20 金幣）
             </button>
           </>
+        )}
+        {!coastBlocked && errKm > 10 && (
+          <button type="button" onClick={() => openCoastSight(true)}>
+            🔭 看岸形定位
+          </button>
         )}
         {night && !starBlocked && (
           <button type="button" onClick={() => openStargazing(true)}>

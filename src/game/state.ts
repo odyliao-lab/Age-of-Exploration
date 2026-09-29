@@ -229,6 +229,8 @@ export interface GameState {
   nav: NavFix;
   /** 上次觀星是第幾個夜晚（每晚一次） */
   starNight: number;
+  /** 上次看岸形定位是第幾天（每天一次） */
+  coastDay: number;
   /** 海上看得見的船隊與風暴雲團 */
   fleets: SeaFleet[];
   storms: StormCell[];
@@ -347,6 +349,7 @@ export function newGame(world: World, scenarioId: string, seed = newSeed()): Ste
     market: {},
     nav: { day: 0, errorKm: 2 },
     starNight: -1,
+    coastDay: -1,
     fleets: [],
     storms: [],
     nextEntityId: 1,
@@ -877,6 +880,91 @@ export function greetMerchant(
     lesson:
       '在沒有地圖和網路的年代，航海者靠彼此交換消息認識世界。港口、物產與航路的知識，都是一點一點累積起來的。',
   };
+}
+
+// ---------------------------------------------------------------- 看岸形辨位
+
+/** 附近有沒有陸地：在船的四周 10、20、35 公里取樣 */
+function coastNearby(world: World, p: LonLat): boolean {
+  for (const km of [10, 20, 35]) {
+    for (let b = 0; b < 360; b += 30) if (landAt(world, destinationPoint(p, b, km))) return true;
+  }
+  return false;
+}
+
+/** 為什麼現在不能看岸形（可以時回傳 null） */
+export function coastSightBlocked(world: World, state: GameState): string | null {
+  if (!state.helm) return '要在海上才能看岸形';
+  if (isNight(state.day)) return '天黑了看不清海岸，改用牽星術吧';
+  if (state.coastDay === Math.floor(state.day)) return '今天已經看過岸形了';
+  if (!coastNearby(world, state.ship.position)) return '附近看不到海岸';
+  return null;
+}
+
+export interface CoastChoice {
+  /** 地點（港口或地標）id */
+  id: string;
+  name: string;
+  location: LonLat;
+}
+
+/**
+ * 看岸形的選項：離船最近的已知地點（答案），加上兩個遠一點的干擾選項。
+ * 候選是所有港口與有位置的圖鑑地點。
+ */
+export function coastChoices(world: World, state: GameState, rand: () => number): CoastChoice[] {
+  const pos = state.ship.position;
+  const all: CoastChoice[] = [
+    ...world.content.ports.map((p) => ({ id: p.id, name: p.name, location: p.location })),
+    ...world.content.codex
+      .filter((c) => c.location && c.category !== 'goods')
+      .map((c) => ({ id: c.id, name: c.name, location: c.location! })),
+  ];
+  const byDist = [...all].sort((a, b) => distanceKm(a.location, pos) - distanceKm(b.location, pos));
+  const answer = byDist[0];
+  const decoys = byDist.filter((c) => {
+    const d = distanceKm(c.location, pos);
+    return d > 300 && d < 2500 && c.name !== answer.name;
+  });
+  const picked: CoastChoice[] = [];
+  while (picked.length < 2 && decoys.length) {
+    picked.push(decoys.splice(Math.floor(rand() * decoys.length), 1)[0]);
+  }
+  const choices = [answer, ...picked];
+  for (let i = choices.length - 1; i > 0; i--) {
+    const j = Math.floor(rand() * (i + 1));
+    [choices[i], choices[j]] = [choices[j], choices[i]];
+  }
+  return choices;
+}
+
+/** 看岸形定位：選對了就重新定位 */
+export function coastSighting(
+  world: World,
+  state: GameState,
+  choiceId: string,
+): { state: GameState; correct: boolean; answer: CoastChoice; events: GameEvent[] } | null {
+  if (coastSightBlocked(world, state)) return null;
+  const answer = coastChoices(world, state, () => 0)
+    .slice()
+    .sort(
+      (a, b) =>
+        distanceKm(a.location, state.ship.position) - distanceKm(b.location, state.ship.position),
+    )[0];
+  const correct = answer.id === choiceId;
+  let next: GameState = { ...state, coastDay: Math.floor(state.day) };
+  const events: GameEvent[] = [];
+  if (correct) {
+    const xp = gainXp(next, 10);
+    events.push(...xp.events);
+    next = {
+      ...next,
+      nav: { day: state.day, errorKm: Math.min(positionErrorKm(world, state), 10) },
+      captain: xp.captain,
+      skillPoints: xp.skillPoints,
+    };
+  }
+  return { state: next, correct, answer, events };
 }
 
 export interface StarSighting {

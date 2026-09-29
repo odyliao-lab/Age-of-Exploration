@@ -24,6 +24,9 @@ import {
 } from './navigation';
 import { motion } from './sailing';
 import {
+  coastChoices,
+  coastSightBlocked,
+  coastSighting,
   departPort,
   greetMerchant,
   investigateBlocked,
@@ -204,5 +207,30 @@ describe('merchant ships', () => {
     const sup = greetMerchant(world, low, 5, 'supplies')!;
     expect(sup.state.condition.supplies).toEqual({ water: 15, food: 15 });
     expect(sup.state.gold).toBe(s.gold - 20);
+  });
+});
+
+describe('看岸形', () => {
+  it('needs daylight and a coast in sight, and fixes the position when right', () => {
+    let s: GameState = departPort(world, newGame(world, 'treasure-fleet', 5).state);
+    s = { ...s, nav: { day: -3, errorKm: 2 } };
+    expect(coastSightBlocked(world, s)).toBeNull();
+    const choices = coastChoices(world, s, () => 0.3);
+    expect(choices).toHaveLength(3);
+    expect(new Set(choices.map((c) => c.name)).size).toBe(3);
+    const nearest = [...choices].sort(
+      (a, b) => distanceKm(a.location, s.ship.position) - distanceKm(b.location, s.ship.position),
+    )[0];
+    const wrong = choices.find((c) => c.id !== nearest.id)!;
+    const miss = coastSighting(world, s, wrong.id)!;
+    expect(miss.correct).toBe(false);
+    expect(coastSightBlocked(world, miss.state)).toContain('今天');
+    const hit = coastSighting(world, s, nearest.id)!;
+    expect(hit.correct).toBe(true);
+    expect(positionErrorKm(world, hit.state)).toBeLessThanOrEqual(10);
+    // 夜裡或遠洋都不行
+    expect(coastSightBlocked(world, { ...s, day: 14 / 24 })).toContain('天黑');
+    const ocean = { ...s, ship: { position: [128, 20] as [number, number], heading: 0 } };
+    expect(coastSightBlocked(world, ocean)).toContain('海岸');
   });
 });

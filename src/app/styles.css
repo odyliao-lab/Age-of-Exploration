@@ -1827,3 +1827,37 @@ table.market .tag {
   left: 12px;
   bottom: 140px;
 }
+
+.coast-modal {
+  width: min(620px, calc(100vw - 24px));
+}
+.coast-body {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+.coast-canvas {
+  width: 240px;
+  height: 240px;
+  flex: none;
+  border: 2px solid #5a3b20;
+  border-radius: 6px;
+  image-rendering: pixelated;
+}
+.coast-choices {
+  display: grid;
+  gap: 8px;
+}
+.coast-choices button {
+  min-height: 44px;
+}
+@media (max-height: 500px), (max-width: 560px) {
+  .coast-canvas {
+    width: 170px;
+    height: 170px;
+  }
+  .coast-modal {
+    max-height: calc(100vh - 16px);
+    overflow-y: auto;
+  }
+}
