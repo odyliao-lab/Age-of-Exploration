@@ -1,7 +1,7 @@
 # 部署卡關紀錄：Cloudflare
 
 - 建立日期：2026-09-29
-- 狀態：🟡 **首次部署成功，推送自動部署驗收中**
+- 狀態：🟢 **已解決**，公開網站與推送自動部署均驗證通過
 - 處理：Codex，2026-09-29
 - 公開網址：[Age of Exploration](https://age-of-exploration.odyliao-pikmin.workers.dev/)
 
@@ -73,6 +73,13 @@
 
 已從公開網址驗證劇本選單、瀏覽器主控台無 error/warning、首頁與 JS/CSS 為 HTTP 200、安全標頭、靜態資源 `max-age=31536000, immutable`，以及導航到其他路徑時的 SPA fallback。
 
+### 推送自動部署驗收
+
+- 推送提交 [`350f205`](https://github.com/odyliao-lab/Age-of-Exploration/commit/350f2054be51472869d5c939b45fef0bde9c6885) 後，Cloudflare 自動觸發建置 `ac118223-7e63-428c-83f9-2eeca0f9628e`，無需手動重試或再按部署。
+- GitHub 同一提交的 `check` 與 `Workers Builds: age-of-exploration` 均成功；Cloudflare 日誌再次通過 5 個測試、build 與 `wrangler deploy`。
+- 2026-09-29 11:16（Asia/Taipei）完成自動部署，Worker 版本更新為 `27838b6b-52c0-433e-afba-c9038bebded5`。
+- GitHub Actions 檢查：[run 36516377112](https://github.com/odyliao-lab/Age-of-Exploration/actions/runs/36516377112)。
+
 ## 5. 限制
 
 - 先前處理者執行於雲端容器，網路政策封鎖 `*.pages.dev` 與 `*.workers.dev`，無法直接開啟部署網址驗證；也無法操作擁有者的瀏覽器或 Cloudflare 後台。
@@ -102,6 +109,6 @@ repo 端需新增一個部署 workflow：在 `check` 通過後執行 `npm run bu
 ## 8. 完成標準
 
 - [x] 取得可公開存取的網址，開啟後看到「Age of Exploration」劇本選單，瀏覽器主控台無錯誤。
-- [ ] 推送到 production branch 後會自動重新部署。
+- [x] 推送到 production branch 後會自動重新部署。
 - [x] README「部署」段落記載實際採用的方式與網址。
-- [ ] `docs/DEVLOG.md` 記錄解決方式；本文件狀態改為 🟢 並補上根本原因。
+- [x] `docs/DEVLOG.md` 記錄解決方式；本文件狀態改為 🟢，並記載故障定位與根本原因的證據界限。

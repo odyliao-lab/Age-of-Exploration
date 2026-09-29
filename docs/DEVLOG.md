@@ -4,14 +4,14 @@
 
 ---
 
-## 2026-09-29 — Cloudflare Workers 首次部署成功
+## 2026-09-29 — Cloudflare 部署問題解決，推送自動部署驗收通過
 
 - 公開網址：https://age-of-exploration.odyliao-pikmin.workers.dev/ 。
 - 實際採用 Workers Builds 的 GitHub 整合，生產分支維持 `claude/gallant-bardeen-wewmq8`；組建命令為 `npm run check && npm run build`，成功後執行 `npx wrangler deploy`。
 - 排除同名專案、缺少 `workers.dev` 子網域及 repo 不可見；經擁有者同意，於匯入頁明確建立並指定 `age-of-exploration-build` Token 後成功部署，未改 Worker 名稱或遊戲內容。
 - 故障位於 Cloudflare 後台的專案／Git 建置初始化階段；原始未知錯誤未留下 API 錯誤碼，無法將更深層內部原因斷言為 Token 或暫時性後台錯誤。詳細證據見 `docs/03-deployment-blocker.md`。
 - Node 22 的完整檢查（5 個測試）、build、Wrangler dry-run 通過。公開網站顯示「Age of Exploration／東方寶船」，主控台無錯誤；HTTP、安全標頭、靜態資源快取與 SPA fallback 驗證通過。
-- 下一步：推送這次部署文件，確認 Cloudflare 自動重新部署後完成驗收。
+- 推送 `350f205` 自動觸發 Cloudflare 建置 `ac118223-7e63-428c-83f9-2eeca0f9628e`，11:16 完成；GitHub `check` 與 `Workers Builds: age-of-exploration` 均成功，Worker 版本更新為 `27838b6b-52c0-433e-afba-c9038bebded5`。未採用 GitHub Actions 部署備案，也未新增 repository secrets。
 
 ## 2026-09-29 — Cloudflare 部署卡關，交接處理
 
