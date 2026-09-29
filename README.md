@@ -57,7 +57,7 @@ npm run build            # 產出 dist/
 
 每次推送到上述 production branch，Cloudflare 會自動安裝依賴、執行完整檢查與建置，成功後才部署。GitHub Actions 的 `check` workflow 也會照常執行。
 
-`main` 為 GitHub 預設分支與正式版來源；開發分支推送由已啟用的 Worker Previews 建置獨立預覽，完成後以 PR 合併進 `main`。新版後台的預覽設定位於「設定 → 組建 → Previews Base」，部署命令為 `npx wrangler preview`。第 7 週外部服務設定與實際預覽網址見 [交接文件](docs/05-codex-handoff-week7-setup.md)。
+`main` 為 GitHub 預設分支與正式版來源；開發分支推送由已啟用的 Worker Previews 建置獨立預覽，完成後以 PR 合併進 `main`。新版後台的預覽設定位於「設定 → 組建 → Previews Base」，部署命令為 `npx wrangler preview`，並需要 `wrangler.jsonc` 的 `previews` 區塊。第 7 週外部服務設定與實際預覽網址見 [交接文件](docs/05-codex-handoff-week7-setup.md)。
 
 後台設定位置為「Workers 和 Pages → age-of-exploration → 設定 → 建置」。Worker 名稱須與 `wrangler.jsonc` 的 `name` 完全一致；改名時兩處及本段必須一起更新。
 

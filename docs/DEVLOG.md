@@ -8,6 +8,7 @@
 
 - GitHub 預設分支與 Cloudflare production branch 改為既有 `main`；開發分支維持 `claude/gallant-bardeen-wewmq8`。
 - 確認 Cloudflare「Previews Base → Worker 預覽的建置」已啟用，使用 `npx wrangler preview`；本次文件提交用於驗證開發分支 preview 與正式版隔離。
+- 實際建置發現新版 Worker Previews 要求 `wrangler.jsonc` 包含 `previews` 區塊，已補上空物件；未修改遊戲程式。
 - Supabase、Google OAuth 與前端建置變數將依交接文件順序處理，登入、憑證與個資步驟需先取得擁有者同意。詳細結果更新於 `docs/05-codex-handoff-week7-setup.md`。
 
 ## 2026-09-29 — 第 6 週：音效、外觀、離線遊玩

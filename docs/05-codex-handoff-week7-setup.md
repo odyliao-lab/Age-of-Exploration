@@ -100,7 +100,8 @@ Cloudflare → `age-of-exploration` → **Settings → Build → Variables and s
 - Cloudflare production branch 已改為 `main`。
 - 新版後台「設定 → 組建 → Previews Base」的「Worker 預覽的建置」已啟用，預覽命令為 `npx wrangler preview`，組建命令仍為 `npm run check && npm run build`。
 - 開發分支比 `main` 多出的原有提交只有第 7 週設定文件、`.env.example` 與 SQL，遊戲程式相同。
-- 正在以本次文件提交驗證 preview 自動建置與正式版隔離；驗證成功後補上實際網址與建置紀錄。
+- 第一次 preview 建置（提交 `5c04b5a`）的 check 與 build 成功，部署因缺少 `previews` 區塊失敗。已在 `wrangler.jsonc` 補上 `"previews": {}`；這是新版 Worker Previews 的必要設定，靜態資源仍使用頂層 `assets`。
+- 正在重新驗證 preview 自動建置與正式版隔離；驗證成功後補上實際網址與建置紀錄。
 
 ### B–D. 外部服務
 
