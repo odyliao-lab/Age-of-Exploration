@@ -108,10 +108,18 @@ export async function loadSave(scenarioId: string): Promise<GameState | null> {
   }
 }
 
-export async function listSaves(): Promise<Pick<SaveRecord, 'scenarioId' | 'updatedAt'>[]> {
+export async function listSaves(): Promise<
+  (Pick<SaveRecord, 'scenarioId' | 'updatedAt'> & { completedQuests: string[] })[]
+> {
   try {
     const all = (await getDb()?.saves.toArray()) ?? [];
-    return all.map(({ scenarioId, updatedAt }) => ({ scenarioId, updatedAt }));
+    return all.map(({ scenarioId, updatedAt, data }) => ({
+      scenarioId,
+      updatedAt,
+      completedQuests: Object.entries(data.quests ?? {})
+        .filter(([, q]) => q.status === 'completed')
+        .map(([id]) => id),
+    }));
   } catch {
     return [];
   }

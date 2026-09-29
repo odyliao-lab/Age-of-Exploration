@@ -1861,3 +1861,9 @@ table.market .tag {
     overflow-y: auto;
   }
 }
+
+.chapter-done {
+  color: #2f7d4a;
+  font-weight: 700;
+  font-size: 0.85rem;
+}

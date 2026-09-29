@@ -105,12 +105,24 @@ function ScenarioCard({ scenario: s }: { scenario: Scenario }) {
         學習領域：{s.domains.map((d) => LEARNING_DOMAIN_LABELS[d]).join('、')}
       </div>
       <ol className="chapters">
-        {s.chapters.map((c) => (
-          <li key={c.index}>
-            {c.title}
-            <span className="meta">（Tier {c.tier}）</span>
-          </li>
-        ))}
+        {s.chapters.map((c) => {
+          // 這一章的主線任務完成了幾個
+          const main = content.quests.filter(
+            (q) => q.scenario === s.id && q.chapter === c.index && q.kind === 'main',
+          );
+          const done = main.filter((q) => save?.completedQuests.includes(q.id)).length;
+          return (
+            <li key={c.index}>
+              {c.title}
+              <span className="meta">（Tier {c.tier}）</span>
+              {save && main.length > 0 && (
+                <span className={done === main.length ? 'chapter-done' : 'meta'}>
+                  {done === main.length ? ' ✔ 完成' : ` ${done}/${main.length}`}
+                </span>
+              )}
+            </li>
+          );
+        })}
       </ol>
       <div className="row">
         {save ? (

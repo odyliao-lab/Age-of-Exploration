@@ -20,6 +20,7 @@ import {
   trackDaily,
   buyShip,
   departPort,
+  chartedArea,
   coastSighting,
   autoSail,
   reportFinds,
@@ -108,6 +109,37 @@ export interface Planning {
 export interface SaveInfo {
   scenarioId: string;
   updatedAt: number;
+  /** 已完成的任務（主選單顯示各章進度） */
+  completedQuests: string[];
+}
+
+const ENDINGS: Record<string, { title: string; text: string }> = {
+  'tf-12-qilin': {
+    title: '航海誌：麒麟之國',
+    text: '你追隨寶船的航跡，從泉州一路航行到非洲東岸。鄭和船隊七下西洋，最遠就到這裡。海圖上的每一段海岸，都是你親眼看過、親手畫下的。',
+  },
+  'tf-13-cape': {
+    title: '航海誌：海的盡頭',
+    text: '在想像的航程中，你看見了非洲的最南端。半個多世紀後，葡萄牙人繞過這裡，從大西洋來到了印度洋；而你已經帶著一整張自己畫的海圖，走過了東西方的海上之路。',
+  },
+};
+
+function endingModal(world: World, g: GameState, e: { title: string; text: string }): Modal {
+  const done = Object.values(g.quests).filter((q) => q.status === 'completed').length;
+  return {
+    type: 'info',
+    title: e.title,
+    text: e.text,
+    stats: [
+      `航海 ${Math.floor(g.day) + 1} 天，船長等級 ${g.captain.level}`,
+      `造訪港口 ${g.visitedPorts.length} / ${world.content.ports.length}`,
+      `圖鑑 ${g.discovered.length} / ${world.content.codex.length} 張`,
+      `海圖面積約 ${chartedArea(g)} 萬平方公里`,
+      `完成任務 ${done} 個，回報傳聞發現 ${g.reported.length} 處`,
+      `甩開海盜 ${g.stats.piratesOutwitted} 次，牽星定位 ${g.stats.starsCorrect} 次`,
+    ],
+    lesson: '還有沒找到的傳聞、沒去過的港口嗎？海圖上的空白，就是下一段冒險。',
+  };
 }
 
 interface GameStore {
@@ -280,6 +312,12 @@ export const useGame = create<GameStore>((set, get) => {
     let selectedPortId = get().selectedPortId;
     for (const e of result.events)
       handleEvent(world, e, toasts, modals, (id) => (selectedPortId = id));
+    // 完成史實航程的終點（麻林）或想像航程（好望角）：航海誌總結
+    for (const e of result.events) {
+      if (e.type === 'questCompleted' && ENDINGS[e.questId]) {
+        modals.push(endingModal(world, result.state, ENDINGS[e.questId]));
+      }
+    }
     set((s) => ({
       game: result.state,
       toasts: [...s.toasts, ...toasts].slice(-5),
