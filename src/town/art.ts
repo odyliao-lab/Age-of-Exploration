@@ -30,8 +30,29 @@ interface Palette {
   leaf: string;
   leafDark: string;
   trunk: string;
+  /** 棕櫚樹（熱帶） */
   palm: boolean;
+  /** 茅草屋頂（否則是瓦片） */
+  thatch: boolean;
+  /** 屋頂兩端的樣式：燕尾脊、馬頭牆、鑊耳牆、交叉的屋脊木 */
+  gable: 'swallow' | 'horse' | 'wok' | 'cross' | 'none';
+  /** 高腳屋：牆面架在木樁上 */
+  stilts: boolean;
+  /** 重簷屋頂（上下兩層） */
+  tiered: boolean;
+  /** 廟宇畫成塔（占婆紅磚塔、爪哇石造神廟） */
+  templeTower: string | null;
+  /** 牆面顏色是否用在官府、書院（否則官府、書院用白牆） */
+  ownWalls: boolean;
 }
+
+const TILE_ROOF = {
+  thatch: false,
+  stilts: false,
+  tiered: false,
+  templeTower: null,
+  ownWalls: false,
+};
 
 export const PALETTES: Record<Culture, Palette> = {
   minnan: {
@@ -50,6 +71,48 @@ export const PALETTES: Record<Culture, Palette> = {
     leafDark: '#3b6329',
     trunk: '#6b4a2a',
     palm: false,
+    gable: 'swallow',
+    ...TILE_ROOF,
+  },
+  jiangnan: {
+    ground: '#c9c2a6',
+    groundDot: '#b3ab8d',
+    road: '#a9a79f',
+    roadLine: '#8a8880',
+    wall: '#ece8de',
+    wallShade: '#c9c3b5',
+    roof: '#474a50',
+    roofLine: '#2f3136',
+    ridge: '#26282c',
+    temple: '#c9702a',
+    office: '#474a50',
+    leaf: '#4d7a45',
+    leafDark: '#375d31',
+    trunk: '#5e4127',
+    palm: false,
+    gable: 'horse',
+    ...TILE_ROOF,
+    ownWalls: true,
+  },
+  guangfu: {
+    ground: '#cdb98a',
+    groundDot: '#b9a473',
+    road: '#aea797',
+    roadLine: '#8f8878',
+    wall: '#8e949a',
+    wallShade: '#6c7176',
+    roof: '#565b60',
+    roofLine: '#3f4347',
+    ridge: '#2f3336',
+    temple: '#c9702a',
+    office: '#565b60',
+    leaf: '#4a8040',
+    leafDark: '#35622e',
+    trunk: '#6b4a2a',
+    palm: false,
+    gable: 'wok',
+    ...TILE_ROOF,
+    ownWalls: true,
   },
   ryukyu: {
     ground: '#d6c697',
@@ -67,6 +130,75 @@ export const PALETTES: Record<Culture, Palette> = {
     leafDark: '#2d5c2b',
     trunk: '#5e4127',
     palm: false,
+    gable: 'none',
+    ...TILE_ROOF,
+  },
+  champa: {
+    ground: '#d2b57c',
+    groundDot: '#bd9d63',
+    road: '#c09a70',
+    roadLine: '#a37f58',
+    wall: '#a4492c',
+    wallShade: '#7d3520',
+    roof: '#9c4a2a',
+    roofLine: '#7a3620',
+    ridge: '#5e2716',
+    temple: '#a4492c',
+    office: '#8a3a24',
+    leaf: '#3f8a4a',
+    leafDark: '#2c6a36',
+    trunk: '#8a6a3a',
+    palm: true,
+    gable: 'none',
+    ...TILE_ROOF,
+    templeTower: '#a4492c',
+    ownWalls: true,
+  },
+  malay: {
+    ground: '#c8ae76',
+    groundDot: '#b3985f',
+    road: '#b89e76',
+    roadLine: '#9f865e',
+    wall: '#9a6a3d',
+    wallShade: '#6f4a28',
+    roof: '#b8995a',
+    roofLine: '#8f7338',
+    ridge: '#6f5226',
+    temple: '#b8995a',
+    office: '#a8864a',
+    leaf: '#3f8a4a',
+    leafDark: '#2c6a36',
+    trunk: '#8a6a3a',
+    palm: true,
+    gable: 'cross',
+    thatch: true,
+    stilts: true,
+    tiered: false,
+    templeTower: null,
+    ownWalls: true,
+  },
+  java: {
+    ground: '#cbb27c',
+    groundDot: '#b69a62',
+    road: '#b3a489',
+    roadLine: '#968870',
+    wall: '#e6dcc6',
+    wallShade: '#bfb39a',
+    roof: '#b5623b',
+    roofLine: '#8f4a2a',
+    ridge: '#6e3620',
+    temple: '#8a8378',
+    office: '#a0522d',
+    leaf: '#3f8a4a',
+    leafDark: '#2c6a36',
+    trunk: '#8a6a3a',
+    palm: true,
+    gable: 'none',
+    thatch: false,
+    stilts: false,
+    tiered: true,
+    templeTower: '#8a8378',
+    ownWalls: true,
   },
   nanyang: {
     ground: '#cdb27a',
@@ -84,6 +216,12 @@ export const PALETTES: Record<Culture, Palette> = {
     leafDark: '#2c6a36',
     trunk: '#8a6a3a',
     palm: true,
+    gable: 'none',
+    thatch: true,
+    stilts: false,
+    tiered: false,
+    templeTower: null,
+    ownWalls: false,
   },
 };
 
@@ -189,7 +327,43 @@ export function drawWater(ctx: Ctx, time: number) {
   }
 }
 
+/** 塔形廟宇：一層層往上收窄的磚塔或石造神廟 */
+function drawTower(ctx: Ctx, b: Building, color: string) {
+  const x = b.x * TILE;
+  const y = b.y * TILE;
+  const w = b.w * TILE;
+  const h = b.h * TILE;
+  const cx = x + w / 2;
+  const base = y + h;
+  // 兩側的矮牆
+  px(ctx, x + 4, base - 14, w - 8, 14, color);
+  px(ctx, x + 4, base - 14, w - 8, 2, 'rgba(255,255,255,0.18)');
+  px(ctx, x + 4, base - 2, w - 8, 2, 'rgba(0,0,0,0.3)');
+  // 塔身：四層往上收窄
+  let top = base - 6;
+  let half = 26;
+  for (let k = 0; k < 5; k++) {
+    const tierH = k === 0 ? 26 : 12;
+    px(ctx, cx - half, top - tierH, half * 2, tierH, color);
+    px(ctx, cx - half, top - tierH, half * 2, 2, 'rgba(255,255,255,0.2)');
+    px(ctx, cx + half - 4, top - tierH, 4, tierH, 'rgba(0,0,0,0.18)');
+    // 假門、壁龕
+    px(ctx, cx - 3, top - tierH + 4, 6, Math.min(8, tierH - 5), 'rgba(0,0,0,0.35)');
+    top -= tierH;
+    half -= 5;
+  }
+  px(ctx, cx - 2, top - 6, 4, 6, color);
+  px(ctx, cx - 1, top - 9, 2, 3, '#e0b94a');
+  // 入口
+  const dx = b.door.x * TILE + 3;
+  px(ctx, dx, base - 12, 10, 12, '#3a2414');
+}
+
 function drawBuilding(ctx: Ctx, b: Building, p: Palette, culture: Culture) {
+  if (b.kind === 'temple' && p.templeTower) {
+    drawTower(ctx, b, p.templeTower);
+    return;
+  }
   const x = b.x * TILE;
   const y = b.y * TILE;
   const w = b.w * TILE;
@@ -197,60 +371,116 @@ function drawBuilding(ctx: Ctx, b: Building, p: Palette, culture: Culture) {
   const roofColor = b.kind === 'temple' ? p.temple : b.kind === 'office' ? p.office : p.roof;
   const wallH = TILE + 2;
   const roofH = h - wallH + 4;
+  // 高腳屋：牆面底下留出木樁
+  const lift = p.stilts ? 5 : 0;
 
   // 牆面（正面）
-  const wall = b.kind === 'office' || b.kind === 'academy' ? '#eee4d2' : p.wall;
-  px(ctx, x + 1, y + h - wallH, w - 2, wallH, wall);
-  px(ctx, x + 1, y + h - 2, w - 2, 2, p.wallShade);
+  const wall = (b.kind === 'office' || b.kind === 'academy') && !p.ownWalls ? '#eee4d2' : p.wall;
+  px(ctx, x + 1, y + h - wallH - lift, w - 2, wallH, wall);
+  px(ctx, x + 1, y + h - 2 - lift, w - 2, 2, p.wallShade);
+  if (p.stilts) {
+    for (let c = x + 3; c < x + w - 3; c += 10) px(ctx, c, y + h - lift, 2, lift, '#4a301a');
+  }
   // 柱子
   const pillar = b.kind === 'temple' || b.kind === 'office' ? '#a8322a' : p.wallShade;
-  for (let c = x + 3; c < x + w - 3; c += 16) px(ctx, c, y + h - wallH, 2, wallH - 2, pillar);
+  for (let c = x + 3; c < x + w - 3; c += 16)
+    px(ctx, c, y + h - wallH - lift, 2, wallH - 2, pillar);
   // 窗戶
   for (let c = x + 8; c < x + w - 8; c += 16) {
     if (Math.abs(c - (b.door.x * TILE + 4)) < 10) continue;
-    px(ctx, c, y + h - wallH + 5, 6, 5, '#3a2a1c');
-    px(ctx, c + 1, y + h - wallH + 6, 4, 1, '#6a5238');
+    px(ctx, c, y + h - wallH - lift + 5, 6, 5, '#3a2a1c');
+    px(ctx, c + 1, y + h - wallH - lift + 6, 4, 1, '#6a5238');
   }
-  // 門
+  // 門（高腳屋的門前有梯子）
   const dx = b.door.x * TILE + 3;
-  px(ctx, dx, y + h - 12, 10, 12, '#3a2414');
+  px(ctx, dx, y + h - 12 - lift, 10, 12, '#3a2414');
   px(
     ctx,
     dx + 1,
-    y + h - 11,
+    y + h - 11 - lift,
     8,
     11,
     b.kind === 'temple' || b.kind === 'office' ? '#a8322a' : '#6b3f1f',
   );
-  px(ctx, dx + 4, y + h - 11, 1, 11, '#3a2414');
+  px(ctx, dx + 4, y + h - 11 - lift, 1, 11, '#3a2414');
+  if (p.stilts) {
+    for (let k = 0; k < lift; k += 2) px(ctx, dx + 1, y + h - lift + k, 8, 1, '#8a5a2b');
+  }
 
   // 屋頂
   const ry = y;
-  px(ctx, x, ry, w, roofH, roofColor);
-  if (p.palm && b.kind !== 'temple') {
-    // 茅草屋頂：斜線紋
-    for (let k = 0; k < w; k += 3) px(ctx, x + k, ry + ((k * 7) % roofH), 1, 4, p.roofLine);
-    for (let r = ry + 3; r < ry + roofH; r += 4) px(ctx, x, r, w, 1, p.roofLine);
+  const roofArea = roofH - lift;
+  const drawRoof = (rx: number, rw: number, top: number, rh: number) => {
+    px(ctx, rx, top, rw, rh, roofColor);
+    if (p.thatch && b.kind !== 'temple') {
+      // 茅草屋頂：斜線紋
+      for (let k = 0; k < rw; k += 3) px(ctx, rx + k, top + ((k * 7) % rh), 1, 4, p.roofLine);
+      for (let r = top + 3; r < top + rh; r += 4) px(ctx, rx, r, rw, 1, p.roofLine);
+    } else {
+      // 瓦片：一排一排
+      for (let r = top + 2; r < top + rh; r += 3) px(ctx, rx, r, rw, 1, p.roofLine);
+      for (let c = rx + 2; c < rx + rw; c += 4) px(ctx, c, top, 1, rh, 'rgba(0,0,0,0.12)');
+    }
+    px(ctx, rx, top + rh - 1, rw, 2, 'rgba(0,0,0,0.3)');
+  };
+  if (p.tiered) {
+    // 重簷：下層寬、上層窄
+    const upper = Math.floor(roofArea * 0.5);
+    drawRoof(x, w, ry + upper - 2, roofArea - upper + 2);
+    drawRoof(x + w * 0.2, w * 0.6, ry, upper);
   } else {
-    // 瓦片：一排一排
-    for (let r = ry + 2; r < ry + roofH; r += 3)
-      px(ctx, x, r, w, 1, culture === 'ryukyu' ? '#f1e6d6' : p.roofLine);
-    for (let c = x + 2; c < x + w; c += 4) px(ctx, c, ry, 1, roofH, 'rgba(0,0,0,0.12)');
+    drawRoof(x, w, ry, roofArea);
   }
-  // 屋脊與屋簷陰影
-  px(ctx, x + 2, ry + Math.floor(roofH / 2) - 1, w - 4, 2, p.ridge);
-  px(ctx, x, ry + roofH - 1, w, 2, 'rgba(0,0,0,0.3)');
-  // 燕尾脊：閩南屋頂兩端翹起
-  if (culture === 'minnan' && !p.palm) {
-    const ridgeY = ry + Math.floor(roofH / 2) - 1;
-    px(ctx, x - 2, ridgeY - 3, 3, 2, p.ridge);
-    px(ctx, x - 3, ridgeY - 5, 2, 2, p.ridge);
-    px(ctx, x + w - 1, ridgeY - 3, 3, 2, p.ridge);
-    px(ctx, x + w + 1, ridgeY - 5, 2, 2, p.ridge);
+  const ridgeY = ry + Math.floor(roofArea / 2) - 1;
+  // 屋脊
+  if (!p.tiered) px(ctx, x + 2, ridgeY, w - 4, 2, p.ridge);
+
+  switch (p.gable) {
+    case 'swallow':
+      // 燕尾脊：閩南屋頂兩端翹起
+      px(ctx, x - 2, ridgeY - 3, 3, 2, p.ridge);
+      px(ctx, x - 3, ridgeY - 5, 2, 2, p.ridge);
+      px(ctx, x + w - 1, ridgeY - 3, 3, 2, p.ridge);
+      px(ctx, x + w + 1, ridgeY - 5, 2, 2, p.ridge);
+      break;
+    case 'horse':
+      // 馬頭牆：屋頂兩端高出的白色階梯狀山牆
+      for (const ex of [x - 1, x + w - 6]) {
+        px(ctx, ex, ry + 4, 7, roofArea - 4, p.wall);
+        px(ctx, ex, ry - 2, 7, 6, p.wall);
+        px(ctx, ex - 1, ry - 3, 9, 2, p.ridge);
+        px(ctx, ex - 1, ry + 4, 9, 2, p.ridge);
+      }
+      break;
+    case 'wok':
+      // 鑊耳牆：像鍋耳一樣的圓弧山牆
+      for (const ex of [x - 1, x + w - 8]) {
+        px(ctx, ex, ry + 2, 9, roofArea - 2, p.wallShade);
+        px(ctx, ex + 1, ry - 2, 7, 4, p.wallShade);
+        px(ctx, ex + 2, ry - 4, 5, 2, p.wallShade);
+        px(ctx, ex + 2, ry - 5, 5, 1, p.ridge);
+        px(ctx, ex, ry - 2, 1, 4, p.ridge);
+        px(ctx, ex + 8, ry - 2, 1, 4, p.ridge);
+      }
+      break;
+    case 'cross':
+      // 馬來屋頂兩端交叉的屋脊木
+      for (const ex of [x + 3, x + w - 5]) {
+        for (let k = 0; k < 5; k++) {
+          px(ctx, ex - 2 + k, ry - 5 + k, 1, 1, p.ridge);
+          px(ctx, ex + 2 - k, ry - 5 + k, 1, 1, p.ridge);
+        }
+      }
+      break;
+    default:
+      break;
+  }
+  if (culture === 'ryukyu') {
+    // 琉球紅瓦：屋頂上的白灰縫
+    for (let r = ry + 2; r < ry + roofArea; r += 3) px(ctx, x, r, w, 1, '#f1e6d6');
   }
   // 廟宇屋脊上的金色裝飾
   if (b.kind === 'temple') {
-    const ridgeY = ry + Math.floor(roofH / 2) - 1;
     px(ctx, x + w / 2 - 3, ridgeY - 4, 6, 4, '#e0b94a');
     px(ctx, x + w / 2 - 1, ridgeY - 6, 2, 2, '#e0b94a');
   }

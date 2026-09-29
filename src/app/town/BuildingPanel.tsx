@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { LEARNING_DOMAIN_LABELS, type Quest } from '@/data/schema';
 import { formatLonLat } from '@/map/projection';
 import { drawPerson, type PersonLook } from '@/town/art';
-import { BUILDING_NAMES, type BuildingKind, type Culture } from '@/town/layout';
+import { BUILDING_NAMES, isChinese, type BuildingKind, type Culture } from '@/town/layout';
 import {
   PRAY_COST,
   availableCrew,
@@ -29,7 +29,7 @@ interface Npc {
 
 const NPCS: Record<BuildingKind, (c: Culture) => Npc> = {
   office: (c) => ({
-    name: c === 'nanyang' ? '宮廷書記官' : '港口官員',
+    name: isChinese(c) ? '港口官員' : c === 'malay' || c === 'java' ? '港務長官' : '宮廷書記官',
     look: { skin: '#e0b18a', coat: '#34507e', hat: '#2b2118', hair: '#2b2118' },
     greeting: '歡迎。這是本港的概況，還有需要人手的差事。',
   }),
@@ -39,15 +39,14 @@ const NPCS: Record<BuildingKind, (c: Culture) => Npc> = {
     greeting: '讀萬卷書，行萬里路。想挑戰看看你對海洋與地理的了解嗎？',
   }),
   temple: (c) => ({
-    name: c === 'nanyang' ? '廟祝' : '天妃宮廟公',
+    name: isChinese(c) ? '天妃宮廟公' : '廟祝',
     look: { skin: '#c68f63', coat: '#e0b94a', hat: null, hair: '#e8e8e8' },
-    greeting:
-      c === 'nanyang'
-        ? '遠來的船長，願神明保佑你一路平安。'
-        : '天妃娘娘（媽祖）是討海人的守護神。出海前上炷香，求個平安吧。',
+    greeting: isChinese(c)
+      ? '天妃娘娘（媽祖）是討海人的守護神。出海前上炷香，求個平安吧。'
+      : '遠來的船長，願神明保佑你一路平安。',
   }),
   tavern: (c) => ({
-    name: c === 'nanyang' ? '茶棚老闆' : '酒館老闆娘',
+    name: isChinese(c) ? '酒館老闆娘' : '茶棚老闆',
     look: { skin: '#e0b18a', coat: '#b5482b', hat: null, hair: '#2b2118' },
     greeting: '坐下來歇歇腳吧！這裡什麼消息都聽得到，也有人在找船上的差事。',
   }),
@@ -100,7 +99,7 @@ export function BuildingPanel({ kind, culture }: { kind: BuildingKind; culture: 
         <div className="building-body">
           {kind === 'office' && <Office />}
           {kind === 'academy' && <Academy />}
-          {kind === 'temple' && <Temple />}
+          {kind === 'temple' && <Temple culture={culture} />}
           {kind === 'tavern' && <Tavern />}
           {kind === 'market' && <Market />}
           {kind === 'shipyard' && <Shipyard />}
@@ -209,7 +208,18 @@ function Academy() {
   );
 }
 
-function Temple() {
+/** 各文化圈廟宇的地理小教室 */
+const TEMPLE_LESSONS: Partial<Record<Culture, string>> = {
+  champa:
+    '占婆人在中南半島中部沿海建立占城王國，深受印度文化影響，信奉印度教。他們用紅磚砌成一座座高塔祭祀神明，有些磚塔保存至今，例如芽莊的婆那加塔。',
+  java: '爪哇島上保存許多石造神廟（坎蒂），例如佛教的婆羅浮屠與印度教的普蘭巴南。印度的宗教與文字隨著季風貿易傳到東南亞，後來伊斯蘭教也沿著同樣的海路傳來。',
+  malay:
+    '麻六甲海峽是東西方商船的必經之路，印度教、佛教、伊斯蘭教都隨著商人傳到這裡。15 世紀初，麻六甲的統治者改信伊斯蘭教，之後伊斯蘭教在馬來半島與群島上逐漸傳開。',
+  nanyang:
+    '東南亞的島嶼上，各地原本有自己的信仰。隨著海上貿易，印度教、佛教、伊斯蘭教陸續傳入，不同地方的廟宇因此各有特色。',
+};
+
+function Temple({ culture }: { culture: Culture }) {
   const { game } = usePort();
   const pray = useGame((s) => s.pray);
   const full = game.condition.morale >= 100;
@@ -217,12 +227,13 @@ function Temple() {
     <>
       <ConditionBars game={game} compact />
       <button type="button" disabled={full || game.gold < PRAY_COST} onClick={pray}>
-        🙏 上香祈福（{PRAY_COST} 金幣，船員士氣回升）
+        🙏 {isChinese(culture) ? '上香祈福' : '祈求平安'}（{PRAY_COST} 金幣，船員士氣回升）
       </button>
       {full && <p className="meta">船員士氣正旺，不需要祈福。</p>}
       <p className="lesson">
         <strong>地理小教室：</strong>
-        媽祖信仰起源於福建湄洲島，隨著閩南人航海與移民傳到台灣、琉球與東南亞。鄭和出使前後都曾祭拜天妃，並在長樂立碑記錄。
+        {TEMPLE_LESSONS[culture] ??
+          '媽祖信仰起源於福建湄洲島，隨著閩南人航海與移民傳到台灣、琉球與東南亞。鄭和出使前後都曾祭拜天妃，並在長樂立碑記錄。'}
       </p>
     </>
   );

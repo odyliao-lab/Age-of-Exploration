@@ -59,5 +59,9 @@ describe('town layout', () => {
     expect(cultureOf('中國')).toBe('minnan');
     expect(cultureOf('琉球')).toBe('ryukyu');
     expect(cultureOf('滿剌加（麻六甲）')).toBe('nanyang');
+    expect(cultureOf('中國', 'guangzhou')).toBe('guangfu');
+    expect(cultureOf('中國', 'ningbo')).toBe('jiangnan');
+    expect(cultureOf('馬來西亞', 'malacca')).toBe('malay');
+    expect(cultureOf('印尼', 'semarang')).toBe('java');
   });
 });

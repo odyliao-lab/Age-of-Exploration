@@ -262,7 +262,7 @@ export function MapScreen() {
   const dockedPort =
     !game.helm && !game.voyage && game.dockedAt ? world.ports.get(game.dockedAt) : null;
   const showTown = !!dockedPort && townView && !locating && !planning;
-  const culture = dockedPort ? cultureOf(dockedPort.country) : 'minnan';
+  const culture = dockedPort ? cultureOf(dockedPort.country, dockedPort.id) : 'minnan';
   const shipColors = {
     hull: colorOf(HULL_PAINTS, look.hull),
     sail: colorOf(SAIL_PAINTS, look.sail),

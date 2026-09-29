@@ -142,42 +142,73 @@ export function destinationFor(
   return { target: { x, y }, enter: null };
 }
 
-/** 文化圈：決定建築顏色、屋頂、樹與招牌文字 */
-export type Culture = 'minnan' | 'nanyang' | 'ryukyu';
+/**
+ * 文化圈：決定建築顏色、屋頂、樹與招牌文字（企畫書 v2 4.4：各文化圈造型不同，本身就是文化地理）。
+ * - 閩南：紅磚、燕尾脊；江南：白牆黛瓦、馬頭牆；廣府：青磚、鑊耳牆；琉球：紅瓦白灰縫
+ * - 占城：紅磚塔；馬來：高腳木屋與茅草陡屋頂；爪哇：重簷屋頂與石造神廟；南洋：茅草屋與棕櫚
+ */
+export type Culture =
+  'minnan' | 'jiangnan' | 'guangfu' | 'ryukyu' | 'champa' | 'malay' | 'java' | 'nanyang';
 
-export function cultureOf(country: string): Culture {
+/** 中華文化圈（有天妃宮、書院） */
+export function isChinese(c: Culture): boolean {
+  return c === 'minnan' || c === 'jiangnan' || c === 'guangfu' || c === 'ryukyu';
+}
+
+const PORT_CULTURE: Record<string, Culture> = {
+  quanzhou: 'minnan',
+  fuzhou: 'minnan',
+  taicang: 'jiangnan',
+  ningbo: 'jiangnan',
+  guangzhou: 'guangfu',
+  naha: 'ryukyu',
+  champa: 'champa',
+  malacca: 'malay',
+  singapore: 'malay',
+  brunei: 'malay',
+  palembang: 'malay',
+  semarang: 'java',
+  manila: 'nanyang',
+};
+
+/** 港口的文化圈：先看港口本身，沒有指定時依國家判斷 */
+export function cultureOf(country: string, portId?: string): Culture {
+  if (portId && PORT_CULTURE[portId]) return PORT_CULTURE[portId];
   // 琉球王國在今日本沖繩
   if (country.includes('琉球') || country.includes('日本')) return 'ryukyu';
   if (country.includes('中國') || country.includes('明')) return 'minnan';
   return 'nanyang';
 }
 
+const CHINESE_NAMES: Record<BuildingKind, string> = {
+  office: '官府',
+  academy: '書院',
+  temple: '天妃宮',
+  tavern: '酒館',
+  market: '市集',
+  shipyard: '造船廠',
+  dock: '碼頭',
+};
+
+const TROPICAL_NAMES: Record<BuildingKind, string> = {
+  office: '王宮',
+  academy: '學者之家',
+  temple: '廟宇',
+  tavern: '茶棚',
+  market: '市集',
+  shipyard: '造船廠',
+  dock: '碼頭',
+};
+
 export const BUILDING_NAMES: Record<Culture, Record<BuildingKind, string>> = {
-  minnan: {
-    office: '官府',
-    academy: '書院',
-    temple: '天妃宮',
-    tavern: '酒館',
-    market: '市集',
-    shipyard: '造船廠',
-    dock: '碼頭',
-  },
-  ryukyu: {
-    office: '王府',
-    academy: '學堂',
-    temple: '天妃宮',
-    tavern: '酒館',
-    market: '市集',
-    shipyard: '造船廠',
-    dock: '碼頭',
-  },
-  nanyang: {
-    office: '王宮',
-    academy: '學者之家',
-    temple: '廟宇',
-    tavern: '茶棚',
-    market: '市集',
-    shipyard: '造船廠',
-    dock: '碼頭',
-  },
+  minnan: CHINESE_NAMES,
+  jiangnan: { ...CHINESE_NAMES, tavern: '酒樓' },
+  // 明朝在廣州設市舶司管理外國商船
+  guangfu: { ...CHINESE_NAMES, office: '市舶司', temple: '天妃廟', tavern: '茶樓' },
+  ryukyu: { ...CHINESE_NAMES, office: '王府', academy: '學堂' },
+  champa: { ...TROPICAL_NAMES, temple: '占婆塔' },
+  // 馬來港口由港務長官（Syahbandar）管理外國商船
+  malay: { ...TROPICAL_NAMES, office: '港務長官府' },
+  java: { ...TROPICAL_NAMES, office: '港務長官府', temple: '石造神廟' },
+  nanyang: TROPICAL_NAMES,
 };
