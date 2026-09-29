@@ -9,6 +9,7 @@ import {
   availableQuests,
   cargoCapacity,
   familiarRoutes,
+  gameDate,
   cargoUsed,
   crewSlots,
   marketQuotes,
@@ -21,6 +22,7 @@ import {
 import { PROFESSIONS } from '@/game/progression';
 import { repairCost, resupplyCost, shipType } from '@/game/ship';
 import { distanceKm } from '@/geo/geo';
+import { stormRiskAt, windAt } from '@/game/environment';
 import { ConditionBars } from '../panels/Condition';
 import { useGame } from '../store';
 
@@ -226,9 +228,61 @@ function Academy() {
           </button>
         </>
       )}
+      <MonsoonCalendar />
       <h3>學者的挑戰</h3>
       <p className="meta">學者的挑戰都是選擇性的；答錯的題目會在航海日誌裡安排複習。</p>
       <QuestList quests={quests} />
+    </>
+  );
+}
+
+const MONTHS = ['一', '二', '三', '四', '五', '六', '七', '八', '九', '十', '十一', '十二'];
+
+/** 季風月曆：這一帶全年各月的風向、風力與風暴季，讓玩家自己規劃出航時機 */
+function MonsoonCalendar() {
+  const { game, port } = usePort();
+  const now = gameDate(game).month;
+  const months = MONTHS.map((label, i) => {
+    const m = i + 1;
+    return { m, label, wind: windAt(port.location, m), storm: stormRiskAt(port.location, m) };
+  });
+  return (
+    <>
+      <h3>這一帶的季風月曆</h3>
+      <p className="meta">
+        箭頭是風吹去的方向，越粗風越強。順著風出航最快；🌀
+        是風暴好發的月份。學者說：「懂得等風，就懂了一半的航海。」
+      </p>
+      <ol className="monsoon-cal">
+        {months.map(({ m, label, wind, storm }) => (
+          <li key={m} className={m === now ? 'now' : undefined}>
+            <span className="mon">{label}月</span>
+            {wind.from.includes('不定') ? (
+              <span className="arrow" aria-hidden="true">
+                〜
+              </span>
+            ) : (
+              <span
+                className="arrow"
+                style={{
+                  transform: `rotate(${wind.toward}deg)`,
+                  fontWeight: wind.strength > 0.6 ? 900 : 400,
+                  opacity: 0.45 + wind.strength * 0.55,
+                }}
+                aria-hidden="true"
+              >
+                ↑
+              </span>
+            )}
+            <span className="wind">{wind.strength < 0.15 ? '無風' : `${wind.from}風`}</span>
+            {storm.kind !== 'none' && (
+              <span className="storm" title={storm.name}>
+                🌀
+              </span>
+            )}
+          </li>
+        ))}
+      </ol>
     </>
   );
 }

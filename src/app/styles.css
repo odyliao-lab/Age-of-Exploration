@@ -1868,3 +1868,43 @@ table.market .tag {
   font-weight: 700;
   font-size: 0.85rem;
 }
+
+/* 季風月曆 */
+.monsoon-cal {
+  list-style: none;
+  padding: 0;
+  margin: 6px 0 12px;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 4px;
+}
+.monsoon-cal li {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 4px 2px;
+  border: 1px solid rgba(58, 36, 20, 0.2);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.4);
+  font-size: 12px;
+}
+.monsoon-cal li.now {
+  border-color: #b5482b;
+  background: rgba(181, 72, 43, 0.12);
+}
+.monsoon-cal .arrow {
+  display: inline-block;
+  font-size: 20px;
+  line-height: 1.2;
+  color: #2c4a7a;
+}
+.monsoon-cal .storm {
+  position: absolute;
+  top: 1px;
+  right: 3px;
+  font-size: 11px;
+}
+.monsoon-cal .wind {
+  white-space: nowrap;
+}
