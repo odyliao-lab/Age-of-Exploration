@@ -89,6 +89,34 @@ export function crewTalk(ctx: TalkContext): Talk | null {
   }
   if (Math.abs(lat) < 2) lines.push('我們快到赤道了！再往南，北極星就要沉到海平面下看不見了。');
   if (ctx.night) lines.push('今晚星星真亮。船長，要不要拿牽星板量一量北極星有幾指高？');
+  // 海上的自然奇觀：依海域與日夜
+  const rid = ctx.region?.id;
+  if (Math.abs(lat) < 25) {
+    lines.push(
+      '看！海面上有魚飛起來了！飛魚張開大大的胸鰭，能在海面上滑翔好幾十公尺，是為了躲開水裡追牠的大魚。',
+    );
+    lines.push('船頭有一群海豚跟著我們跑！牠們喜歡在船頭推起的浪裡衝浪。');
+  }
+  if (ctx.night) {
+    lines.push('你看船尾的浪花在發藍光！那是海裡的夜光藻，被海水攪動時就會發光。');
+  }
+  if (rid === 'south-china-sea' || rid === 'malacca-java') {
+    lines.push(
+      '遠處有一根從雲裡垂到海面的水柱，那是海上的龍捲風把海水吸上去，古人叫它「龍吸水」。',
+    );
+  }
+  if (rid === 'east-china-sea' || rid === 'arabian-sea' || rid === 'east-africa') {
+    lines.push('右舷噴起一道水柱，是鯨魚在換氣！鯨魚跟人一樣是哺乳類，要浮上海面呼吸。');
+  }
+  if (rid === 'arabian-sea') {
+    lines.push('風裡帶著細細的沙，陸地那邊就是大沙漠了。這一帶一年下不了幾場雨。');
+  }
+  if (rid === 'bengal-malabar') {
+    lines.push('海水有點發黃，是大河帶來的泥沙。孟加拉灣北邊有好幾條大河出海。');
+  }
+  if (rid === 'southern-africa' || lat < -30) {
+    lines.push('好大的鳥！那是信天翁，翅膀張開比一個人還寬，在西風帶上幾乎不用拍翅膀就能飛很遠。');
+  }
   lines.push('老一輩的人說，看海的顏色也能知道水深：越藍越深，發綠發黃就要小心淺灘了。');
   lines.push('海鳥往陸地飛回去的時候，就是快天黑了，也表示附近有島。');
   return { speaker, text: pick(lines, ctx.roll), chat: true };
