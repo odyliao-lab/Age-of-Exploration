@@ -199,7 +199,45 @@ button.primary:hover {
 .map-legend {
   bottom: 48px;
   display: flex;
-  gap: 12px;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  max-width: calc(100% - 24px);
+}
+.map-legend .glyphs i {
+  display: inline-block;
+  margin-left: 6px;
+  font-style: normal;
+}
+.map-legend .glyphs i:first-child {
+  margin-left: 0;
+}
+.map-legend .g-mountain {
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-bottom: 9px solid #8a6a3a;
+}
+.map-legend .g-island {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #e6d09c;
+  border: 1.2px solid #5a3b20;
+}
+.map-legend .g-river {
+  color: #3f6f86;
+  font-weight: 700;
+}
+.map-legend .g-culture {
+  width: 7px;
+  height: 7px;
+  background: #b5482b;
+  border: 1px solid #5a3b20;
+}
+.map-legend .g-mark {
+  color: #5a3b20;
+  font-weight: 700;
 }
 
 .map-legend span {

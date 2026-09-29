@@ -361,6 +361,12 @@ export function MapScreen() {
             <i className="line dashed" />
             回歸線、極圈
           </span>
+          <span className="glyphs">
+            <i className="g-mountain" />山<i className="g-island" />島<i className="g-river">≈</i>
+            河口
+            <i className="g-culture" />
+            文化<i className="g-mark">＋</i>海峽、地標
+          </span>
         </div>
 
         <div className="map-coords" aria-live="off">
