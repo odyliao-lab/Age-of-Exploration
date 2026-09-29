@@ -94,4 +94,14 @@ Cloudflare → `age-of-exploration` → **Settings → Build → Variables and s
 
 ## 4. 設定結果
 
-（待 Codex 填寫）
+### A. 分支設定（2026-09-29）
+
+- GitHub 預設分支已改為 `main`，既有 `main` 仍指向 `857789284e80a796b7e9d9ebc1202ab0ea49e9ef`；本次沒有直接推送 `main`。
+- Cloudflare production branch 已改為 `main`。
+- 新版後台「設定 → 組建 → Previews Base」的「Worker 預覽的建置」已啟用，預覽命令為 `npx wrangler preview`，組建命令仍為 `npm run check && npm run build`。
+- 開發分支比 `main` 多出的原有提交只有第 7 週設定文件、`.env.example` 與 SQL，遊戲程式相同。
+- 正在以本次文件提交驗證 preview 自動建置與正式版隔離；驗證成功後補上實際網址與建置紀錄。
+
+### B–D. 外部服務
+
+待 A 驗收完成後依序設定；Supabase、Google OAuth 與 Cloudflare 建置變數尚未完成。
