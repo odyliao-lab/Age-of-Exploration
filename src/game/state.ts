@@ -103,6 +103,7 @@ import {
   HAIL_KM,
   MAX_FLEETS,
   MERCHANT_CHANCE_PER_DAY,
+  ENVOY_CHANCE_PER_DAY,
   insideStorm,
   pirateChancePerDay,
   spawnFleet,
@@ -735,7 +736,9 @@ function seaLife(
         ? 'pirate'
         : rand() < perStep(regionId ? MERCHANT_CHANCE_PER_DAY : 0)
           ? 'merchant'
-          : null;
+          : rand() < perStep(regionId && ENVOYS[regionId] ? ENVOY_CHANCE_PER_DAY : 0)
+            ? 'envoy'
+            : null;
     if (kind) {
       const f = spawnFleet(kind, nextEntityId, pos, day, rand, isLand);
       if (f) {
@@ -745,6 +748,12 @@ function seaLife(
           events.push({
             type: 'warning',
             text: `瞭望員：${compass16(bearingDeg(pos, f.position))}方遠處有一艘陌生的快船！`,
+          });
+        } else if (kind === 'envoy') {
+          events.push({
+            type: 'talk',
+            speaker: '瞭望員',
+            text: `${compass16(bearingDeg(pos, f.position))}方有一艘掛滿彩旗的大船，看起來像是外國的使節船！`,
           });
         }
       }
@@ -925,6 +934,75 @@ export function greetingQuestion(
     `「${g.phrase}」是${g.lang}的問候，意思是「${g.meaning}」。會說對方的語言，是化解緊張的第一步。`,
     rand,
   );
+}
+
+/** 各海域遇得到的朝貢使節：從哪裡來、帶了什麼（都依史料中各國的貢品） */
+export const ENVOYS: Record<string, { from: string; text: string }> = {
+  'east-china-sea': {
+    from: '琉球中山國',
+    text: '我們是琉球中山王派出的使節，船上載著馬匹和硫磺，要到泉州上岸，再前往京城朝貢。',
+  },
+  'south-china-sea': {
+    from: '占城國',
+    text: '我們奉占城國王之命前往大明，貢品有象牙、犀角和上好的沉香。',
+  },
+  'malacca-java': {
+    from: '滿剌加國',
+    text: '滿剌加國王派我們到大明朝貢，船上有瑪瑙、玳瑁和犀角，也要請皇帝保護我們不受鄰國欺負。',
+  },
+  'bengal-malabar': {
+    from: '榜葛剌國',
+    text: '我們是榜葛剌國的使節。船上最寶貝的是一頭脖子好長的「麒麟」——其實是從非洲麻林來的長頸鹿，要獻給大明皇帝！',
+  },
+  'arabian-sea': {
+    from: '忽魯謨斯國',
+    text: '我們從忽魯謨斯來，船上有獅子、駿馬和波斯灣的珍珠，要跟著寶船的航路前往大明。',
+  },
+  'east-africa': {
+    from: '麻林國',
+    text: '麻林國的使節向你行禮。船艙裡載著長頸鹿，要送到遙遠的大明，聽說那裡的人會把它當成傳說中的麒麟。',
+  },
+};
+
+export const ENVOY_REWARD = { xp: 15, reputation: 3 };
+
+/** 附近可以致意的使節船 */
+export function envoyInReach(state: GameState): SeaFleet | null {
+  if (!state.helm) return null;
+  return (
+    state.fleets.find(
+      (f) =>
+        f.kind === 'envoy' && !f.greeted && distanceKm(f.position, state.ship.position) <= HAIL_KM,
+    ) ?? null
+  );
+}
+
+/** 向使節船致意：聽他們說來自哪裡、帶了什麼貢品，得到名聲 */
+export function greetEnvoy(
+  world: World,
+  state: GameState,
+  fleetId: number,
+): (GreetResult & { events: GameEvent[] }) | null {
+  const f = envoyInReach(state);
+  if (!f || f.id !== fleetId) return null;
+  const regionId = regionAt(world, f.position);
+  const envoy = (regionId && ENVOYS[regionId]) || ENVOYS['south-china-sea'];
+  const fleets = state.fleets.map((x) => (x.id === fleetId ? { ...x, greeted: true } : x));
+  const xp = gainXp(state, ENVOY_REWARD.xp);
+  return {
+    state: {
+      ...state,
+      fleets,
+      captain: xp.captain,
+      skillPoints: xp.skillPoints,
+      reputation: state.reputation + ENVOY_REWARD.reputation,
+    },
+    events: xp.events,
+    title: `${envoy.from}的使節船`,
+    text: `${envoy.text}（名聲 +${ENVOY_REWARD.reputation}）`,
+    lesson:
+      '明朝用「朝貢」和各國往來：外國派使節帶著貢品來，皇帝回贈豐厚的禮物，並承認對方的國王。鄭和下西洋之後，來朝貢的國家大增，還帶來了長頸鹿、獅子等珍奇動物。',
+  };
 }
 
 /** 附近可以打招呼的商船 */

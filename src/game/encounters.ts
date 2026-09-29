@@ -14,7 +14,7 @@ import type { Wind, StormRisk } from './environment';
 import { destinationPoint } from './events';
 import { motion, normDeg } from './sailing';
 
-export type FleetKind = 'pirate' | 'merchant';
+export type FleetKind = 'pirate' | 'merchant' | 'envoy';
 
 export interface SeaFleet {
   id: number;
@@ -25,7 +25,7 @@ export interface SeaFleet {
   mode: 'roam' | 'chase' | 'leave';
   /** 出現的遊戲日（太久就離開） */
   spawnDay: number;
-  /** 商船：已經打過招呼 */
+  /** 商船、使節船：已經打過招呼 */
   greeted: boolean;
 }
 
@@ -59,6 +59,8 @@ export function pirateChancePerDay([lon, lat]: LonLat, inNamedSea: boolean): num
 }
 
 export const MERCHANT_CHANCE_PER_DAY = 0.35;
+/** 各國前往明朝的朝貢使節船，偶爾遇得到 */
+export const ENVOY_CHANCE_PER_DAY = 0.08;
 export const MAX_FLEETS = 2;
 /** 海盜發現你並開始追的距離 */
 export const PIRATE_SPOT_KM = 55;

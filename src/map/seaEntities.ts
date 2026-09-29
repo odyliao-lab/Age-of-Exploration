@@ -10,7 +10,7 @@ import type { View } from './viewport';
 
 export interface FleetView {
   id: number;
-  kind: 'pirate' | 'merchant';
+  kind: 'pirate' | 'merchant' | 'envoy';
   position: LonLat;
   heading: number;
   chasing: boolean;
@@ -34,7 +34,10 @@ const KM_PER_DEG = 111.32;
 const LOOKS = {
   pirate: { hull: 0x2b2118, sail: 0x7a2a1c, flag: 0x111111 },
   merchant: { hull: 0x8a5a33, sail: 0xe8d9b5, flag: 0x2f7d6a },
+  envoy: { hull: 0x6b2f1f, sail: 0xd9a93a, flag: 0xb5482b },
 };
+
+const FLEET_NAMES = { pirate: '海盜快船', merchant: '商船', envoy: '使節船' };
 
 interface FleetSprite {
   ship: ShipSprite;
@@ -92,7 +95,7 @@ export class SeaEntities {
         const ship = new ShipSprite(LOOKS[f.kind]);
         const root = new Container();
         const label = new Text({
-          text: f.kind === 'pirate' ? '海盜快船' : '商船',
+          text: FLEET_NAMES[f.kind],
           style: {
             fontFamily: 'Noto Sans TC, PingFang TC, sans-serif',
             fontSize: 12,
@@ -113,7 +116,7 @@ export class SeaEntities {
       s.root.position.set(p.x, p.y);
       s.ship.root.rotation = (f.heading * Math.PI) / 180;
       s.label.text =
-        f.kind === 'pirate' ? (f.chasing ? '海盜快船（追來了！）' : '海盜快船') : '商船';
+        f.kind === 'pirate' && f.chasing ? '海盜快船（追來了！）' : FLEET_NAMES[f.kind];
     }
     for (const [id, s] of this.fleets) {
       if (seen.has(id)) continue;

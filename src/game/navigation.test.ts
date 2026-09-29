@@ -37,6 +37,9 @@ import {
   greetMerchant,
   investigateBlocked,
   merchantInReach,
+  envoyInReach,
+  greetEnvoy,
+  ENVOYS,
   merchantOffer,
   sellToMerchant,
   newGame,
@@ -241,6 +244,36 @@ describe('merchant ships', () => {
     expect(r.text).toContain(offer.port.name);
     // 賣完貨還是可以打聽消息
     expect(merchantInReach(r.state)?.id).toBe(3);
+  });
+});
+
+describe('envoy ships', () => {
+  it('tell where they come from and what tribute they carry, once', () => {
+    let s: GameState = departPort(world, newGame(world, 'treasure-fleet', 4).state);
+    const e: SeaFleet = {
+      id: 7,
+      kind: 'envoy',
+      position: destinationPoint(s.ship.position, 90, 3),
+      heading: 0,
+      mode: 'roam',
+      spawnDay: 0,
+      greeted: false,
+    };
+    s = { ...s, fleets: [e] };
+    expect(envoyInReach(s)?.id).toBe(7);
+    expect(merchantInReach(s)).toBeNull();
+    const r = greetEnvoy(world, s, 7)!;
+    expect(r.title).toContain('琉球');
+    expect(r.state.reputation).toBe(s.reputation + 3);
+    expect(envoyInReach(r.state)).toBeNull();
+    expect(greetEnvoy(world, r.state, 7)).toBeNull();
+  });
+
+  it('come from every named sea except the imagined far south', () => {
+    for (const r of world.content.regions) {
+      if (r.id === 'southern-africa') continue;
+      expect(ENVOYS[r.id], r.id).toBeDefined();
+    }
   });
 });
 
