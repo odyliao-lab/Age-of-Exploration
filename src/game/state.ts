@@ -10,6 +10,19 @@ import { addXp, newCaptain, type Captain } from './captain';
 import { ACHIEVEMENT_MAP, EMPTY_STATS, newlyUnlocked, type AchievementStats } from './achievements';
 import { modifiersFor, type Modifiers } from './modifiers';
 import {
+  COLORS,
+  EMBLEMS,
+  HATS,
+  HULL_PAINTS,
+  PAINT_PRICE,
+  SAIL_PAINTS,
+  SKIN_TONES,
+  defaultAppearance,
+  optionUnlocked,
+  paintOwned,
+  type Appearance,
+} from './cosmetics';
+import {
   DAILY_REWARD,
   answerReview,
   bumpDaily,
@@ -68,7 +81,7 @@ import {
 import { createVoyage, isFinished, positionAt, type Harbor, type Voyage } from './voyage';
 import type { World } from './world';
 
-export const SAVE_VERSION = 5;
+export const SAVE_VERSION = 6;
 
 /** 航行中需要玩家處理的狀況：風暴或隨機事件 */
 export type Encounter = StormEncounter | VoyageEvent;
@@ -147,6 +160,8 @@ export interface GameState {
   daily: DailyVoyage | null;
   /** 航海紀錄（最近的事件） */
   log: LogEntry[];
+  /** 船長頭像、船旗、船身配色 */
+  appearance: Appearance;
 }
 
 export interface LogEntry {
@@ -237,6 +252,7 @@ export function newGame(world: World, scenarioId: string, seed = newSeed()): Ste
     reviews: [],
     daily: null,
     log: [{ day: 0, text: `從${home.name}出發，展開航海生涯`, kind: 'arrive' }],
+    appearance: defaultAppearance(),
   };
   return { state, events: [], fogChanged };
 }
@@ -1296,3 +1312,53 @@ export function appendLog(world: World, state: GameState, events: GameEvent[]): 
 }
 
 export type { LearningDomain };
+
+// ---------------------------------------------------------------- 外觀
+
+/** 更新頭像、船旗或已擁有的塗裝；未解鎖的樣式不會套用 */
+export function setAppearance(
+  state: GameState,
+  patch: Partial<Omit<Appearance, 'paints'>>,
+): GameState {
+  const a = { ...state.appearance };
+  const ach = state.achievements;
+  if (patch.skin !== undefined && patch.skin >= 0 && patch.skin < SKIN_TONES.length)
+    a.skin = patch.skin;
+  const pick = (list: typeof HATS, id: string | undefined) => {
+    const o = id ? list.find((x) => x.id === id) : undefined;
+    return o && optionUnlocked(o, ach) ? o.id : undefined;
+  };
+  a.hat = pick(HATS, patch.hat) ?? a.hat;
+  a.coat = pick(COLORS, patch.coat) ?? a.coat;
+  a.flagColor = pick(COLORS, patch.flagColor) ?? a.flagColor;
+  a.emblem = pick(EMBLEMS, patch.emblem) ?? a.emblem;
+  if (patch.hull) {
+    const o = HULL_PAINTS.find((x) => x.id === patch.hull);
+    if (o && paintOwned('hull', o, a, ach)) a.hull = o.id;
+  }
+  if (patch.sail) {
+    const o = SAIL_PAINTS.find((x) => x.id === patch.sail);
+    if (o && paintOwned('sail', o, a, ach)) a.sail = o.id;
+  }
+  return { ...state, appearance: a };
+}
+
+/** 在主港造船廠購買塗裝並立刻套用 */
+export function buyPaint(
+  world: World,
+  state: GameState,
+  kind: 'hull' | 'sail',
+  id: string,
+): GameState {
+  const port = state.dockedAt ? world.ports.get(state.dockedAt) : null;
+  const list = kind === 'hull' ? HULL_PAINTS : SAIL_PAINTS;
+  const o = list.find((x) => x.id === id);
+  if (port?.kind !== 'hub' || !o || o.achievement || state.gold < PAINT_PRICE) return state;
+  if (paintOwned(kind, o, state.appearance, state.achievements)) return state;
+  const appearance = {
+    ...state.appearance,
+    paints: [...state.appearance.paints, `${kind}:${id}`],
+    [kind]: id,
+  };
+  return { ...state, gold: state.gold - PAINT_PRICE, appearance };
+}

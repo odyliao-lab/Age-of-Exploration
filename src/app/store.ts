@@ -19,6 +19,8 @@ import {
   ensureDaily,
   trackDaily,
   buyShip,
+  buyPaint,
+  setAppearance,
   checkAchievements,
   dismissCrew,
   hireCrew,
@@ -48,7 +50,9 @@ import type { EventEffect } from '@/game/events';
 import { ACHIEVEMENT_MAP } from '@/game/achievements';
 import { SKILLS } from '@/game/progression';
 import { findSeaPath } from '@/geo/seaPath';
+import { play } from './sound';
 import type { World } from '@/game/world';
+import type { Appearance } from '@/game/cosmetics';
 
 /** 1 倍速時，現實 1.2 秒 = 遊戲 1 天 */
 export const SECONDS_PER_DAY = 1.2;
@@ -139,6 +143,8 @@ interface GameStore {
   dismiss: (crewId: string) => void;
   buy: (shipId: string) => void;
   chooseTitle: (achievementId: string | null) => void;
+  customize: (patch: Partial<Omit<Appearance, 'paints'>>) => void;
+  buyPaint: (kind: 'hull' | 'sail', id: string) => void;
   claimDaily: () => void;
   answerReview: (key: string, choice: number) => boolean;
   suggestRoute: (portId: string) => void;
@@ -355,6 +361,7 @@ export const useGame = create<GameStore>((set, get) => {
         follow: true,
       });
       toast({ text: '起錨出航！', kind: 'info' });
+      play('depart');
     },
 
     advance: (realSeconds) => {
@@ -388,6 +395,7 @@ export const useGame = create<GameStore>((set, get) => {
       const { world, game } = get();
       if (!world || !game) return false;
       const r = answerQuiz(world, game, questId, choice);
+      play(r.correct ? 'correct' : 'wrong');
       apply(r);
       if (!r.correct) scheduleSave(true);
       return r.correct;
@@ -407,6 +415,7 @@ export const useGame = create<GameStore>((set, get) => {
       const r = answerLocate(world, game, pending.questId, p);
       apply(r);
       const km = Math.round(r.result.distanceKm / 10) * 10;
+      play(r.result.correct ? 'correct' : 'wrong');
       if (r.result.correct) {
         set((s) => ({
           locateFeedback: null,
@@ -499,6 +508,20 @@ export const useGame = create<GameStore>((set, get) => {
       toast({ text: '新船下水！', kind: 'success' });
     },
 
+    customize: (patch) => {
+      const g = get().game;
+      if (g) commit(setAppearance(g, patch));
+    },
+
+    buyPaint: (kind, id) => {
+      const { world, game } = get();
+      if (!world || !game) return;
+      const next = buyPaint(world, game, kind, id);
+      if (next === game) return;
+      commit(next);
+      toast({ text: '新塗裝完成！', kind: 'success' });
+    },
+
     chooseTitle: (id) => {
       const g = get().game;
       if (g) commit(setTitle(g, id));
@@ -518,6 +541,7 @@ export const useGame = create<GameStore>((set, get) => {
       const g = get().game;
       if (!g) return false;
       const r = answerReviewItem(g, key, choice, Date.now());
+      play(r.correct ? 'correct' : 'wrong');
       apply(r);
       scheduleSave(true);
       return r.correct;
@@ -561,6 +585,7 @@ function handleEvent(
   select: (id: string) => void,
 ) {
   const push = (t: Omit<Toast, 'id'>) => toasts.push({ ...t, id: ++toastSeq });
+  playFor(e);
   switch (e.type) {
     case 'arrived': {
       const name = world.ports.get(e.portId)?.name ?? e.portId;
@@ -644,4 +669,28 @@ function effectStats(e: EventEffect): string[] {
   if (e.food) out.push(`糧食 ${sign(e.food)} 天份`);
   if (e.water) out.push(`淡水 ${sign(e.water)} 天份`);
   return out;
+}
+
+/** 遊戲事件對應的音效 */
+function playFor(e: GameEvent) {
+  switch (e.type) {
+    case 'arrived':
+      return play('arrive');
+    case 'discovered':
+      return play('discover');
+    case 'questCompleted':
+      return play('questComplete');
+    case 'levelUp':
+      return play('levelUp');
+    case 'achievement':
+      return play('achievement');
+    case 'warning':
+      return play('warn');
+    case 'encounter':
+      return play(e.encounter.kind === 'storm' ? 'storm' : 'warn');
+    case 'shipwreck':
+      return play('storm');
+    default:
+      return undefined;
+  }
 }

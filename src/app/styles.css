@@ -1304,3 +1304,43 @@ button.wide {
     overflow: visible;
   }
 }
+
+/* ---- 外觀 */
+.captain-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.captain-btn .avatar {
+  flex: none;
+}
+.looks-preview {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 8px 0;
+}
+.swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 6px 0;
+}
+.swatch {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 4px 8px;
+}
+.swatch.active {
+  outline: 2px solid var(--accent, #b5482b);
+  outline-offset: 1px;
+}
+.swatch .chip {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1px solid #2b2118;
+}

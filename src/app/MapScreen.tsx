@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { COLORS, HULL_PAINTS, SAIL_PAINTS, colorOf } from '@/game/cosmetics';
 import type { LonLat } from '@/data/schema';
 import { formatLonLat } from '@/map/projection';
 import { WorldMap, type PortMarker, type RouteView } from '@/map/WorldMap';
@@ -136,6 +137,18 @@ export function MapScreen() {
   useEffect(() => {
     if (ready) mapRef.current?.setSelected(selectedPortId);
   }, [selectedPortId, ready]);
+
+  // ---- 船隻配色
+  const look = game.appearance;
+  useEffect(() => {
+    if (!ready) return;
+    const hex = (c: string) => parseInt(c.slice(1), 16);
+    mapRef.current?.setShipStyle({
+      hull: hex(colorOf(HULL_PAINTS, look.hull)),
+      sail: hex(colorOf(SAIL_PAINTS, look.sail)),
+      flag: hex(colorOf(COLORS, look.flagColor)),
+    });
+  }, [ready, look.hull, look.sail, look.flagColor]);
 
   // ---- 船與航線
   useEffect(() => {

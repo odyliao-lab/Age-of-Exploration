@@ -5,8 +5,23 @@ import { SKILL_PATHS, SKILLS, type SkillPath } from '@/game/progression';
 import { exportSaveJson, importSaveJson } from '@/game/save';
 import { explorationPercent, skillStatus } from '@/game/state';
 import { useGame } from '../store';
+import { getSoundSettings, setSoundSettings } from '../sound';
+import {
+  COLORS,
+  EMBLEMS,
+  HATS,
+  HULL_PAINTS,
+  PAINT_PRICE,
+  SAIL_PAINTS,
+  SKIN_TONES,
+  optionUnlocked,
+  paintOwned,
+  type StyleOption,
+} from '@/game/cosmetics';
+import { ACHIEVEMENT_MAP } from '@/game/achievements';
+import { Avatar, Emblem, Flag } from './Avatar';
 
-type Tab = 'captain' | 'skills' | 'achievements';
+type Tab = 'captain' | 'skills' | 'achievements' | 'looks';
 
 export function CaptainPanel() {
   const game = useGame((s) => s.game)!;
@@ -33,10 +48,14 @@ export function CaptainPanel() {
           <TabButton id="achievements" tab={tab} setTab={setTab}>
             成就
           </TabButton>
+          <TabButton id="looks" tab={tab} setTab={setTab}>
+            外觀
+          </TabButton>
         </div>
         {tab === 'captain' && <CaptainTab />}
         {tab === 'skills' && <SkillsTab />}
         {tab === 'achievements' && <AchievementsTab />}
+        {tab === 'looks' && <LooksTab />}
       </section>
     </div>
   );
@@ -143,6 +162,8 @@ function CaptainTab() {
         </li>
         <li>度過風暴：{game.stats.stormsSurvived} 次</li>
       </ul>
+
+      <SoundSettings />
 
       <h3>存檔</h3>
       <p className="meta">
@@ -257,4 +278,162 @@ function AchievementsTab() {
       </div>
     </>
   );
+}
+
+function SoundSettings() {
+  const [s, setS] = useState(getSoundSettings());
+  const toggle = (key: 'sfx' | 'music') => {
+    setSoundSettings({ [key]: !s[key] });
+    setS(getSoundSettings());
+  };
+  return (
+    <>
+      <h3>聲音</h3>
+      <div className="row">
+        <button
+          type="button"
+          aria-pressed={s.sfx}
+          className={s.sfx ? 'active' : ''}
+          onClick={() => toggle('sfx')}
+        >
+          {s.sfx ? '🔊 音效：開' : '🔇 音效：關'}
+        </button>
+        <button
+          type="button"
+          aria-pressed={s.music}
+          className={s.music ? 'active' : ''}
+          onClick={() => toggle('music')}
+        >
+          {s.music ? '🎵 音樂：開' : '🎵 音樂：關'}
+        </button>
+      </div>
+    </>
+  );
+}
+
+function LooksTab() {
+  const world = useGame((s) => s.world)!;
+  const game = useGame((s) => s.game)!;
+  const customize = useGame((s) => s.customize);
+  const buyPaint = useGame((s) => s.buyPaint);
+  const look = game.appearance;
+  const ach = game.achievements;
+  const atHub = !!game.dockedAt && world.ports.get(game.dockedAt)?.kind === 'hub';
+  const lockText = (o: StyleOption) => (o.achievement ? achievementHint(o.achievement, ach) : '');
+
+  const choices = (
+    list: StyleOption[],
+    current: string,
+    onPick: (id: string) => void,
+    render: (o: StyleOption) => React.ReactNode,
+  ) => (
+    <div className="swatches">
+      {list.map((o) => {
+        const open = optionUnlocked(o, ach);
+        return (
+          <button
+            key={o.id}
+            type="button"
+            className={o.id === current ? 'swatch active' : 'swatch'}
+            aria-pressed={o.id === current}
+            disabled={!open}
+            title={open ? o.name : lockText(o)}
+            onClick={() => onPick(o.id)}
+          >
+            {render(o)}
+            <span>{open ? o.name : `🔒 ${o.name}`}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+  const chip = (o: StyleOption) => <i className="chip" style={{ background: o.color }} />;
+
+  const paints = (kind: 'hull' | 'sail', list: StyleOption[], current: string) => (
+    <div className="swatches">
+      {list.map((o) => {
+        const owned = paintOwned(kind, o, look, ach);
+        const buyable = !owned && !o.achievement;
+        return (
+          <button
+            key={o.id}
+            type="button"
+            className={o.id === current ? 'swatch active' : 'swatch'}
+            aria-pressed={o.id === current}
+            disabled={owned ? false : !buyable || !atHub || game.gold < PAINT_PRICE}
+            title={
+              owned ? o.name : o.achievement ? lockText(o) : `在主港造船廠購買（${PAINT_PRICE} 金）`
+            }
+            onClick={() => (owned ? customize({ [kind]: o.id }) : buyPaint(kind, o.id))}
+          >
+            {chip(o)}
+            <span>
+              {owned ? o.name : o.achievement ? `🔒 ${o.name}` : `${o.name} ${PAINT_PRICE}金`}
+            </span>
+          </button>
+        );
+      })}
+    </div>
+  );
+
+  return (
+    <>
+      <div className="looks-preview">
+        <Avatar look={look} size={96} />
+        <Flag look={look} size={72} />
+      </div>
+      <h3>頭像</h3>
+      <div className="swatches">
+        {SKIN_TONES.map((c, i) => (
+          <button
+            key={c}
+            type="button"
+            className={i === look.skin ? 'swatch active' : 'swatch'}
+            aria-pressed={i === look.skin}
+            aria-label={`膚色 ${i + 1}`}
+            onClick={() => customize({ skin: i })}
+          >
+            <i className="chip" style={{ background: c }} />
+          </button>
+        ))}
+      </div>
+      {choices(
+        HATS,
+        look.hat,
+        (id) => customize({ hat: id }),
+        () => null,
+      )}
+      <h3>衣服顏色</h3>
+      {choices(COLORS, look.coat, (id) => customize({ coat: id }), chip)}
+      <h3>船旗</h3>
+      {choices(COLORS, look.flagColor, (id) => customize({ flagColor: id }), chip)}
+      {choices(
+        EMBLEMS,
+        look.emblem,
+        (id) => customize({ emblem: id }),
+        (o) => (
+          <svg width="30" height="21" viewBox="0 0 60 42" aria-hidden="true">
+            <rect width="60" height="42" rx="3" fill="#5a4630" />
+            <Emblem id={o.id} color="#f4ecd8" />
+          </svg>
+        ),
+      )}
+      <h3>船身塗裝</h3>
+      {paints('hull', HULL_PAINTS, look.hull)}
+      <h3>船帆</h3>
+      {paints('sail', SAIL_PAINTS, look.sail)}
+      <p className="meta">
+        {atHub
+          ? `新塗裝每種 ${PAINT_PRICE} 金，買過就能隨時換回。`
+          : '新塗裝要停靠主港（泉州、麻六甲）時才能在造船廠購買。'}
+      </p>
+    </>
+  );
+}
+
+/** 解鎖提示；隱藏成就不透露名稱 */
+function achievementHint(id: string, unlocked: string[]): string {
+  const a = ACHIEVEMENT_MAP.get(id);
+  if (!a || (a.hidden && !unlocked.includes(id))) return '完成隱藏成就解鎖';
+  return `成就「${a.name}」解鎖`;
 }

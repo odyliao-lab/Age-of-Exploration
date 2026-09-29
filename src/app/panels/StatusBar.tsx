@@ -1,4 +1,5 @@
 import { xpToNext } from '@/game/captain';
+import { Avatar } from './Avatar';
 import { SEASON_OF_MONTH } from '@/game/calendar';
 import { gameDate } from '@/game/state';
 import { dailyComplete, dueReviews } from '@/game/learning';
@@ -58,8 +59,9 @@ export function StatusBar(props: {
         <button
           type="button"
           onClick={() => openPanel('captain')}
-          className={c.points ? 'has-badge' : ''}
+          className={c.points ? 'has-badge captain-btn' : 'captain-btn'}
         >
+          <Avatar look={game.appearance} size={22} />
           船長
           {c.points + game.skillPoints ? (
             <span className="badge-dot">{c.points + game.skillPoints}</span>

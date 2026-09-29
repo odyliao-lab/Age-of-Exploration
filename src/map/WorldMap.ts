@@ -28,6 +28,13 @@ import {
 } from './projection';
 import { centerOn, clampView, screenToWorld, zoomAt, type Size, type View } from './viewport';
 
+/** 船隻配色（Pixi 色碼） */
+export interface ShipStyle {
+  hull: number;
+  sail: number;
+  flag: number;
+}
+
 export interface PortMarker {
   id: string;
   /** 名稱未知時顯示「？」 */
@@ -96,6 +103,7 @@ export class WorldMap {
   private marksGfx = new Graphics();
   private marks: { lonLat: LonLat; kind: 'guess' | 'answer' }[] = [];
   private ship = new Container();
+  private shipStyle: ShipStyle = { hull: COLORS.hull, sail: COLORS.sail, flag: 0xb5482b };
   /** 原始迷霧格網（每格一像素） */
   private fogCanvas: HTMLCanvasElement;
   private fogCtx: CanvasRenderingContext2D;
@@ -233,15 +241,25 @@ export class WorldMap {
     return g;
   }
 
-  /** 簡化的中式帆船：船身、兩面帆 */
+  /** 簡化的中式帆船：船身、兩面帆、船尾旗 */
   private drawShip() {
+    const st = this.shipStyle;
+    this.ship.removeChildren().forEach((c) => c.destroy());
     const g = new Graphics();
     g.poly([0, -13, 6, -4, 6, 10, 0, 13, -6, 10, -6, -4], true)
-      .fill({ color: COLORS.hull })
+      .fill({ color: st.hull })
       .stroke({ width: 1.5, color: 0x2b2118 });
-    g.rect(-5, -7, 10, 5).fill({ color: COLORS.sail }).stroke({ width: 1, color: 0x2b2118 });
-    g.rect(-5, 1, 10, 5).fill({ color: COLORS.sail }).stroke({ width: 1, color: 0x2b2118 });
+    g.rect(-5, -7, 10, 5).fill({ color: st.sail }).stroke({ width: 1, color: 0x2b2118 });
+    g.rect(-5, 1, 10, 5).fill({ color: st.sail }).stroke({ width: 1, color: 0x2b2118 });
+    g.moveTo(0, 9).lineTo(0, 17).stroke({ width: 1, color: 0x2b2118 });
+    g.rect(0, 13, 7, 5).fill({ color: st.flag }).stroke({ width: 0.8, color: 0x2b2118 });
     this.ship.addChild(g);
+  }
+
+  /** 套用玩家選的船身、帆與旗色 */
+  setShipStyle(style: ShipStyle) {
+    this.shipStyle = style;
+    if (!this.destroyed) this.drawShip();
   }
 
   private drawMarker(m: MarkerView) {

@@ -9,6 +9,7 @@ import { newSeed } from './rng';
 import { fullCondition, shipType } from './ship';
 import { skillPointsEarned } from './progression';
 import { EMPTY_STATS } from './achievements';
+import { defaultAppearance } from './cosmetics';
 import { SAVE_VERSION, type GameState } from './state';
 
 export interface SerializedSave extends Omit<GameState, 'fog'> {
@@ -60,6 +61,8 @@ export function deserialize(data: SerializedSave): GameState {
     reviews: data.reviews ?? [],
     daily: data.daily ?? null,
     log: data.log ?? [],
+    // 第 6 版新增：外觀
+    appearance: { ...defaultAppearance(), ...data.appearance },
   };
 }
 
