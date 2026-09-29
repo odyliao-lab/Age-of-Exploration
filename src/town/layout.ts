@@ -143,16 +143,43 @@ export function destinationFor(
 }
 
 /** 文化圈：決定建築顏色、屋頂、樹與招牌文字 */
-export type Culture = 'minnan' | 'nanyang' | 'ryukyu';
+export type Culture = 'minnan' | 'nanyang' | 'ryukyu' | 'southasia' | 'arabia';
 
 export function cultureOf(country: string): Culture {
   // 琉球王國在今日本沖繩
   if (country.includes('琉球') || country.includes('日本')) return 'ryukyu';
   if (country.includes('中國') || country.includes('明')) return 'minnan';
+  if (['印度', '斯里蘭卡', '孟加拉', '馬爾地夫'].some((c) => country.includes(c)))
+    return 'southasia';
+  if (
+    ['伊朗', '阿曼', '葉門', '沙烏地', '索馬利亞', '肯亞', '坦尚尼亞'].some((c) =>
+      country.includes(c),
+    )
+  ) {
+    return 'arabia';
+  }
   return 'nanyang';
 }
 
 export const BUILDING_NAMES: Record<Culture, Record<BuildingKind, string>> = {
+  southasia: {
+    office: '王宮',
+    academy: '學者之家',
+    temple: '神廟',
+    tavern: '茶館',
+    market: '市集',
+    shipyard: '造船廠',
+    dock: '碼頭',
+  },
+  arabia: {
+    office: '總督府',
+    academy: '學者之家',
+    temple: '清真寺',
+    tavern: '咖啡館',
+    market: '市集',
+    shipyard: '造船廠',
+    dock: '碼頭',
+  },
   minnan: {
     office: '官府',
     academy: '書院',
