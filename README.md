@@ -35,19 +35,35 @@ npm run build            # 產出 dist/
 | `tools/`    | 命令列工具（內容驗證等）                                                |
 | `docs/`     | 企畫書、決策清單、開發日誌                                              |
 
-### 部署（Cloudflare Pages）
+### 部署（Cloudflare）
 
-Cloudflare Pages 已連接本 repo（Git 整合）：
+本 repo 同時支援 Cloudflare 的兩種 Git 部署方式，擇一即可。
 
-| 設定                   | 值                                       |
-| ---------------------- | ---------------------------------------- |
-| Framework preset       | None 或 Vite                             |
-| Build command          | `npm run build`                          |
-| Build output directory | `dist`                                   |
-| Node version           | 22（由 `.nvmrc` 指定，不需另設環境變數） |
+**方式 A：Workers（新版後台預設流程，建議）**
 
-- 每次推送到 production branch 會自動部署；其他分支會產生 preview 網址。
+後台「Workers & Pages → Create application → Import a repository」，選本 repo 後填：
+
+| 設定           | 值                    |
+| -------------- | --------------------- |
+| Project name   | `age-of-exploration`  |
+| Build command  | `npm run build`       |
+| Deploy command | `npx wrangler deploy` |
+
+部署設定由 `wrangler.jsonc` 提供（靜態資源目錄 `dist/`），網址為 `*.workers.dev`。
+
+**方式 B：Pages**
+
+| 設定                   | 值              |
+| ---------------------- | --------------- |
+| Framework preset       | None            |
+| Build command          | `npm run build` |
+| Build output directory | `dist`          |
+
+共通說明：
+
+- Node 22 由 `.nvmrc` 指定，不需另設環境變數。
 - `public/_headers` 設定安全標頭，並讓 `assets/` 下帶雜湊的檔案長期快取。
+- 本機可用 `npx wrangler deploy --dry-run` 確認部署設定正確（不需登入）。
 
 ## 專案流程
 
