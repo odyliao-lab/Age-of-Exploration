@@ -1,0 +1,12 @@
+{
+  "id": "mozambique-channel",
+  "category": "landmark",
+  "name": "莫三比克海峽",
+  "name_en": "Mozambique Channel",
+  "location": [41.5, -17.0],
+  "discover_radius_km": 200,
+  "domains": ["B", "A"],
+  "body": "莫三比克海峽位於非洲大陸與馬達加斯加島之間，是世界上最長的海峽之一，全長約 1600 公里。馬達加斯加是世界第四大島。",
+  "source": "維基百科「莫三比克海峽」「馬達加斯加」條目",
+  "reviewed": false
+}

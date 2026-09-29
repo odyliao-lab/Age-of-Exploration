@@ -16,7 +16,8 @@
     "malacca-java": 1,
     "bengal-malabar": 2,
     "arabian-sea": 2,
-    "east-africa": 3
+    "east-africa": 3,
+    "southern-africa": 4
   },
   "starting_ship": "junk",
   "ships": ["junk", "fuchuan", "baochuan"],
