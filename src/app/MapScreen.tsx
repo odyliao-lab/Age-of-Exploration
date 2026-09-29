@@ -89,6 +89,7 @@ export function MapScreen() {
         else s.selectPort(null);
       },
       onPointerLonLat: setPointer,
+      onPlaceTap: (id) => useGame.getState().openPanel('codex', id),
       onUserPan: () => useGame.getState().setFollow(false),
     }).then((m) => {
       if (cancelled) {
@@ -250,6 +251,18 @@ export function MapScreen() {
     if (ready) mapRef.current?.setMarks(mapMarks);
   }, [mapMarks, ready]);
 
+  // ---- 已發現地點的地名註記（親手畫出的海圖）
+  const discovered = game.discovered;
+  useEffect(() => {
+    if (!ready) return;
+    mapRef.current?.setPlaces(
+      discovered
+        .map((id) => world.codex.get(id))
+        .filter((c) => !!c?.location && c.category !== 'goods')
+        .map((c) => ({ id: c!.id, name: c!.name, location: c!.location!, category: c!.category })),
+    );
+  }, [ready, world, discovered]);
+
   const interaction = modals.length === 0 ? pendingInteraction(world, game) : null;
   const locating = interaction?.data.type === 'locate';
 
@@ -298,7 +311,7 @@ export function MapScreen() {
         {dockedPort && !locating && !planning && (
           <button
             type="button"
-            className="view-toggle"
+            className={showTown ? 'view-toggle in-town' : 'view-toggle on-chart'}
             onClick={() => useGame.getState().setTownView(!townView)}
           >
             {showTown ? '🗺️ 看海圖' : `🏘️ 回到${dockedPort.name}城裡`}

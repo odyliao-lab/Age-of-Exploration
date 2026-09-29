@@ -15,6 +15,7 @@ import { SeaFx } from './seaFx';
 import { ShipSprite } from './shipSprite';
 import { NightSky } from './nightSky';
 import { SeaEntities, type FleetView, type StormView } from './seaEntities';
+import { PlaceLabels, type PlaceLabel } from './placeLabels';
 import {
   DEG_PX,
   WORLD_HEIGHT,
@@ -56,6 +57,8 @@ export interface RouteView {
 
 export interface WorldMapOptions {
   onPortTap: (id: string) => void;
+  /** 點海圖上的地名註記（打開圖鑑） */
+  onPlaceTap?: (id: string) => void;
   onMapTap: (lonLat: LonLat) => void;
   onPointerLonLat: (lonLat: LonLat | null) => void;
   /** 玩家手動拖曳地圖（用來停止自動跟隨船隻） */
@@ -108,6 +111,7 @@ export class WorldMap {
   private portLayer = new Container();
   private routeGfx = new Graphics();
   private marksGfx = new Graphics();
+  private places = new PlaceLabels((id) => this.opts.onPlaceTap?.(id));
   private marks: { lonLat: LonLat; kind: 'guess' | 'answer' }[] = [];
   private ship = new Container();
   private shipSprite = new ShipSprite({ hull: COLORS.hull, sail: COLORS.sail, flag: 0xb5482b });
@@ -176,6 +180,7 @@ export class WorldMap {
       this.routeGfx,
       this.courseGfx,
       this.marksGfx,
+      this.places.container,
       this.portLayer,
       this.ship,
     );
@@ -307,7 +312,9 @@ export class WorldMap {
 
   /** 親手駕船的風與帆狀態；null 表示停在港口或自動航行 */
   setSailing(v: SailingView | null) {
+    const changed = !!v !== !!this.sailing;
     this.sailing = v;
+    if (changed) this.applyView(this.view);
     if (v) {
       this.fx.setWind(v.windToward, v.windStrength);
       this.shipSprite.setTrim({ windRel: v.windRel, angleOffWind: v.angleOffWind, sail: v.sail });
@@ -440,9 +447,10 @@ export class WorldMap {
       m.label.visible = showLabels || m.data.id === this.selectedId || m.data.target;
     }
     // 拉近航行時船畫大一點，看得到帆的角度
-    this.ship.scale.set(inv * (this.view.scale >= 4 ? 1.7 : 1.1));
+    this.ship.scale.set(inv * (this.view.scale >= 4 && this.sailing ? 1.7 : 1));
     this.fx.setView(this.view, this.size);
     this.entities.setView(this.view);
+    this.places.setScale(this.view.scale);
     this.drawRoute();
     this.drawMarks();
     this.drawCourse();
@@ -511,6 +519,12 @@ export class WorldMap {
   setRoute(route: RouteView | null) {
     this.route = route;
     this.drawRoute();
+  }
+
+  /** 已發現地點的地名註記 */
+  setPlaces(list: PlaceLabel[]) {
+    this.places.set(list);
+    this.places.setScale(this.view.scale);
   }
 
   setMarks(marks: { lonLat: LonLat; kind: 'guess' | 'answer' }[]) {

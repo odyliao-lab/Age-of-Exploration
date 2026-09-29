@@ -1820,3 +1820,10 @@ table.market .tag {
 .route-list button {
   text-align: left;
 }
+
+.view-toggle.on-chart {
+  right: auto;
+  top: auto;
+  left: 12px;
+  bottom: 140px;
+}
