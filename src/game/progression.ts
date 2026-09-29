@@ -109,6 +109,14 @@ export type Profession = keyof typeof PROFESSIONS;
 
 // ---------------------------------------------------------------- 船隻
 
+/**
+ * 帆裝種類：
+ * - lug：中國帆船的竹條撐帆（硬帆），能相當接近逆風
+ * - lateen：三角帆，最能逆風
+ * - square：橫帆，順風快，但無法接近逆風
+ */
+export type Rig = 'lug' | 'lateen' | 'square';
+
 export interface ShipDef {
   id: string;
   name: string;
@@ -116,6 +124,8 @@ export interface ShipDef {
   /** 淡水、糧食各可存放的天數 */
   supplyDays: number;
   speed: number;
+  /** 帆裝：決定能多接近逆風航行（親手駕船） */
+  rig: Rig;
   /** 船體強度：風暴損傷除以此值 */
   sturdiness: number;
   crewSlots: number;
@@ -128,6 +138,7 @@ export interface ShipDef {
 export const SHIPS: Record<string, ShipDef> = {
   junk: {
     id: 'junk',
+    rig: 'lug',
     name: '戎克船',
     name_en: 'Junk',
     supplyDays: 40,
@@ -140,6 +151,7 @@ export const SHIPS: Record<string, ShipDef> = {
   },
   fuchuan: {
     id: 'fuchuan',
+    rig: 'lug',
     name: '福船',
     name_en: 'Fuchuan',
     supplyDays: 55,
@@ -152,6 +164,7 @@ export const SHIPS: Record<string, ShipDef> = {
   },
   baochuan: {
     id: 'baochuan',
+    rig: 'lug',
     name: '寶船',
     name_en: 'Treasure Ship',
     supplyDays: 75,
@@ -164,6 +177,7 @@ export const SHIPS: Record<string, ShipDef> = {
   },
   caravel: {
     id: 'caravel',
+    rig: 'lateen',
     name: '卡拉維爾帆船',
     name_en: 'Caravel',
     supplyDays: 35,
@@ -176,6 +190,7 @@ export const SHIPS: Record<string, ShipDef> = {
   },
   carrack: {
     id: 'carrack',
+    rig: 'square',
     name: '克拉克帆船',
     name_en: 'Carrack',
     supplyDays: 60,
@@ -188,6 +203,7 @@ export const SHIPS: Record<string, ShipDef> = {
   },
   galleon: {
     id: 'galleon',
+    rig: 'square',
     name: '蓋倫帆船',
     name_en: 'Galleon',
     supplyDays: 70,

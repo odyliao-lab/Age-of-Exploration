@@ -1,18 +1,24 @@
 import { describe, expect, it } from 'vitest';
 import { revealAround } from './fog';
 import { deserialize, exportSaveJson, importSaveJson, serialize } from './save';
-import { newGame } from './state';
+import { newGame, type GameState } from './state';
 import { contentForTests } from './testContent';
 import { buildWorld } from './world';
 
 const world = buildWorld(contentForTests());
+
+/** 迷霧有四百萬格，逐格深比較太慢：分開比對位元組 */
+function expectSameState(a: GameState, b: GameState) {
+  expect(Buffer.from(a.fog).equals(Buffer.from(b.fog))).toBe(true);
+  expect({ ...a, fog: null }).toEqual({ ...b, fog: null });
+}
 
 describe('save', () => {
   it('round-trips a game state including fog', () => {
     const { state } = newGame(world, 'treasure-fleet', 1);
     revealAround(state.fog, [0, 0], 500);
     const back = deserialize(JSON.parse(JSON.stringify(serialize(state))));
-    expect(back).toEqual(state);
+    expectSameState(back, state);
   });
 
   it('fills defaults for older saves', () => {
@@ -25,7 +31,7 @@ describe('save', () => {
 
   it('exports and imports JSON files', () => {
     const { state } = newGame(world, 'treasure-fleet', 1);
-    expect(importSaveJson(exportSaveJson(state))).toEqual(state);
+    expectSameState(importSaveJson(exportSaveJson(state)), state);
     expect(() => importSaveJson('{"foo":1}')).toThrow('不是');
   });
 });

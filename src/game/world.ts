@@ -14,6 +14,7 @@ import type {
 import { distanceKm } from '@/geo/geo';
 import { isLand, MASK_RES } from '@/geo/landmask';
 import type { Harbor } from './voyage';
+import type { CoastIndex } from '@/geo/coast';
 
 export interface World {
   content: ContentBundle;
@@ -26,6 +27,8 @@ export interface World {
   /** 航經時可自動發現的地標 */
   landmarks: CodexEntry[];
   harbors: Map<string, Harbor>;
+  /** 1:50m 精確海岸（親手駕船的碰撞判定）；沒有時退回 0.25° 陸地遮罩 */
+  coast: CoastIndex | null;
 }
 
 /** 港區半徑 = 港口到最近海域格的距離 + 餘裕，讓河港（如廣州）也能出海 */
@@ -47,7 +50,7 @@ function harborFor(port: Port): Harbor {
   return { center: port.location, radiusKm: nearest + HARBOR_MARGIN_KM };
 }
 
-export function buildWorld(content: ContentBundle): World {
+export function buildWorld(content: ContentBundle, coast: CoastIndex | null = null): World {
   const byId = <T extends { id: string }>(xs: T[]) => new Map(xs.map((x) => [x.id, x]));
   const ports = byId(content.ports);
   return {
@@ -60,5 +63,6 @@ export function buildWorld(content: ContentBundle): World {
     crew: byId(content.crew),
     landmarks: content.codex.filter((c) => c.location && c.discover_radius_km),
     harbors: new Map(content.ports.map((p) => [p.id, harborFor(p)])),
+    coast,
   };
 }
