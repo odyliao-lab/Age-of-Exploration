@@ -26,6 +26,7 @@ import { CoastSightModal } from './panels/CoastSightModal';
 import { TownView } from './town/TownView';
 import { BuildingPanel } from './town/BuildingPanel';
 import { cultureOf } from '@/town/layout';
+import { setAmbience } from './sound';
 import { folkLines } from '@/town/folkTalk';
 import { QuestTracker } from './panels/QuestTracker';
 import { Toasts } from './panels/Toasts';
@@ -285,6 +286,16 @@ export function MapScreen() {
     !game.helm && !game.voyage && game.dockedAt ? world.ports.get(game.dockedAt) : null;
   const showTown = !!dockedPort && townView && !locating && !planning;
   const culture = dockedPort ? cultureOf(dockedPort.country) : 'minnan';
+
+  // ---- 環境音：海上聽得到浪和風（隨風力變化），港口裡是輕浪和海鷗
+  const ambMode = game.helm || game.voyage ? 'sea' : showTown ? 'town' : null;
+  const ambWind = game.helm
+    ? Math.round((sailingStatus(world, game)?.wind.strength ?? 0) * 10) / 10
+    : 0.4;
+  useEffect(() => {
+    setAmbience(ambMode, ambWind);
+  }, [ambMode, ambWind]);
+  useEffect(() => () => setAmbience(null), []);
   const shipColors = {
     hull: colorOf(HULL_PAINTS, look.hull),
     sail: colorOf(SAIL_PAINTS, look.sail),
