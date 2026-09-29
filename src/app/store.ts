@@ -20,6 +20,9 @@ import {
   trackDaily,
   buyShip,
   departPort,
+  pray,
+  tradeBuy,
+  tradeSell,
   hearRumor,
   investigate,
   enterPort,
@@ -59,6 +62,7 @@ import { play } from './sound';
 import type { World } from '@/game/world';
 import type { Appearance } from '@/game/cosmetics';
 import type { SailSetting } from '@/game/sailing';
+import type { BuildingKind } from '@/town/layout';
 
 /** 1 倍速時，現實 1.2 秒 = 遊戲 1 天 */
 export const SECONDS_PER_DAY = 1.2;
@@ -116,6 +120,12 @@ interface GameStore {
   /** 座標定位挑戰的回饋 */
   locateFeedback: string | null;
   mapMarks: MapMark[];
+  /** 停泊時顯示城鎮（false 為海圖） */
+  townView: boolean;
+  /** 目前在哪棟建築裡 */
+  building: BuildingKind | null;
+  /** 剛離開的建築：回到城裡時站在它門口 */
+  lastBuilding: BuildingKind | null;
 
   init: (world: World) => void;
   refreshSaves: () => Promise<void>;
@@ -144,6 +154,12 @@ interface GameStore {
   toggleAnchor: () => void;
   dock: (portId: string) => void;
   hearRumor: (id: string) => void;
+  setTownView: (on: boolean) => void;
+  enterBuilding: (kind: BuildingKind) => void;
+  leaveBuilding: () => void;
+  pray: () => void;
+  buyGood: (good: string, qty: number) => void;
+  sellGood: (good: string, qty: number) => void;
   investigate: (id: string) => void;
 
   accept: (questId: string) => void;
@@ -297,6 +313,9 @@ export const useGame = create<GameStore>((set, get) => {
     codexFocus: null,
     locateFeedback: null,
     mapMarks: [],
+    townView: true,
+    building: null,
+    lastBuilding: null,
 
     init: (world) => {
       set({ world });
@@ -324,6 +343,9 @@ export const useGame = create<GameStore>((set, get) => {
       const game = ensureDaily(state, Date.now());
       if (fromDisk) persisted = game;
       set({
+        townView: true,
+        building: null,
+        lastBuilding: null,
         screen: 'map',
         game,
         selectedPortId: state.dockedAt,
@@ -429,7 +451,7 @@ export const useGame = create<GameStore>((set, get) => {
       if (!world || !game || pendingInteraction(world, game)) return;
       const next = departPort(world, game);
       if (next === game) return;
-      set({ selectedPortId: null, paused: false, follow: true, planning: null });
+      set({ selectedPortId: null, paused: false, follow: true, planning: null, building: null });
       commit(next);
       play('depart');
       if (game.stats.voyages === 0) {
@@ -477,8 +499,47 @@ export const useGame = create<GameStore>((set, get) => {
       if (!world || !game) return;
       const r = enterPort(world, game, portId);
       if (r.state === game) return;
-      set({ follow: true });
+      set({ follow: true, townView: true, building: null, lastBuilding: null });
       apply(r);
+    },
+
+    setTownView: (on) => set({ townView: on, building: null }),
+    enterBuilding: (kind) => set({ building: kind, lastBuilding: kind }),
+    leaveBuilding: () => set({ building: null }),
+
+    pray: () => {
+      const g = get().game;
+      if (!g) return;
+      const next = pray(g);
+      if (next === g) return;
+      commit(next);
+      toast({ text: '上香祈求航海平安，船員士氣回升了。', kind: 'success' });
+    },
+
+    buyGood: (good, qty) => {
+      const { world, game } = get();
+      if (!world || !game) return;
+      const r = tradeBuy(world, game, good, qty);
+      if (!r.qty) return;
+      commit(r.state);
+      play('arrive');
+    },
+
+    sellGood: (good, qty) => {
+      const { world, game } = get();
+      if (!world || !game) return;
+      const r = tradeSell(world, game, good, qty);
+      if (!r.qty) return;
+      commit(r.state);
+      const name = world.codex.get(good)?.name ?? good;
+      toast({
+        text:
+          r.profit >= 0
+            ? `賣出${name} ${r.qty} 單位，賺了 ${r.profit} 金幣`
+            : `賣出${name} ${r.qty} 單位，虧了 ${-r.profit} 金幣`,
+        kind: r.profit >= 0 ? 'success' : 'warn',
+      });
+      play(r.profit >= 0 ? 'questComplete' : 'warn');
     },
 
     hearRumor: (id) => {

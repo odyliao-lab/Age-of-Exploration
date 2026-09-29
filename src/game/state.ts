@@ -94,6 +94,16 @@ import {
 import type { Rig } from './progression';
 import { isLand } from '@/geo/landmask';
 import type { World } from './world';
+import {
+  GOODS_PRICE,
+  buyGoods,
+  cargoUsed,
+  quote,
+  sellGoods,
+  type Cargo,
+  type Market,
+  type Quote,
+} from './trade';
 
 export const SAVE_VERSION = 7;
 
@@ -183,6 +193,10 @@ export interface GameState {
   appearance: Appearance;
   /** 聽過的傳聞（codex id） */
   rumors: string[];
+  /** 船上的貨物 */
+  cargo: Cargo;
+  /** 各港各貨因買賣造成的價格波動 */
+  market: Market;
 }
 
 export interface HelmState extends Helm {
@@ -283,6 +297,8 @@ export function newGame(world: World, scenarioId: string, seed = newSeed()): Ste
     log: [{ day: 0, text: `從${home.name}出發，展開航海生涯`, kind: 'arrive' }],
     appearance: defaultAppearance(),
     rumors: [],
+    cargo: {},
+    market: {},
   };
   return { state, events: [], fogChanged };
 }
@@ -628,6 +644,83 @@ export function setHelm(state: GameState, patch: Partial<Omit<HelmState, 'blocke
   return { ...state, helm };
 }
 
+// ---------------------------------------------------------------- 祈福
+
+export const PRAY_COST = 10;
+export const PRAY_MORALE = 15;
+
+/** 在天妃宮（媽祖廟）祈求航海平安：花一點香油錢，船員士氣回升 */
+export function pray(state: GameState): GameState {
+  if (!state.dockedAt || state.gold < PRAY_COST || state.condition.morale >= 100) return state;
+  return {
+    ...state,
+    gold: state.gold - PRAY_COST,
+    condition: {
+      ...state.condition,
+      morale: Math.min(100, state.condition.morale + PRAY_MORALE),
+    },
+  };
+}
+
+// ---------------------------------------------------------------- 貿易
+
+export function cargoCapacity(state: GameState): number {
+  return shipDef(state.shipTypeId).cargo;
+}
+
+export { cargoUsed };
+
+/** 港口市場的報價：這裡的特產可以買，所有貨物都可以賣 */
+export function marketQuotes(world: World, state: GameState, portId: string): Quote[] {
+  const port = world.ports.get(portId);
+  if (!port) return [];
+  return Object.keys(GOODS_PRICE)
+    .filter((g) => world.codex.has(g))
+    .map((g) => quote(world.content.ports, port, g, state.market, state.day));
+}
+
+export interface TradeResult {
+  state: GameState;
+  /** 成交數量 */
+  qty: number;
+  /** 買進花費或賣出收入 */
+  amount: number;
+  /** 賣出時這批貨的利潤 */
+  profit: number;
+}
+
+export function tradeBuy(world: World, state: GameState, good: string, qty: number): TradeResult {
+  const port = state.dockedAt ? world.ports.get(state.dockedAt) : null;
+  if (!port) return { state, qty: 0, amount: 0, profit: 0 };
+  const r = buyGoods(world.content.ports, port, state, good, qty, cargoCapacity(state), state.day);
+  if (!r.bought) return { state, qty: 0, amount: 0, profit: 0 };
+  return {
+    state: { ...state, gold: r.gold, cargo: r.cargo, market: r.market },
+    qty: r.bought,
+    amount: r.spent,
+    profit: 0,
+  };
+}
+
+export function tradeSell(world: World, state: GameState, good: string, qty: number): TradeResult {
+  const port = state.dockedAt ? world.ports.get(state.dockedAt) : null;
+  if (!port) return { state, qty: 0, amount: 0, profit: 0 };
+  const r = sellGoods(world.content.ports, port, state, good, qty, state.day);
+  if (!r.sold) return { state, qty: 0, amount: 0, profit: 0 };
+  return {
+    state: {
+      ...state,
+      gold: r.gold,
+      cargo: r.cargo,
+      market: r.market,
+      stats: { ...state.stats, tradeProfit: state.stats.tradeProfit + Math.max(0, r.profit) },
+    },
+    qty: r.sold,
+    amount: r.earned,
+    profit: r.profit,
+  };
+}
+
 // ---------------------------------------------------------------- 傳聞與調查
 
 /** 在這個港口可以聽到、還沒聽過也還沒發現的傳聞 */
@@ -947,6 +1040,8 @@ function shipwreck(world: World, state: GameState, cause: StormRisk, month: numb
       ship: { position: port.location, heading: state.ship.heading },
       condition: afterShipwreck(shipType(state.shipTypeId)),
       shipwrecks: state.shipwrecks + 1,
+      // 貨物隨船沉沒
+      cargo: {},
     },
     events: [{ type: 'shipwreck', cause, lostGold, portId: port.id, month }],
     fogChanged: [],

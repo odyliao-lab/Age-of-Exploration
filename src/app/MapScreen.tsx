@@ -18,6 +18,9 @@ import { PortPanel } from './panels/PortPanel';
 import { PlanningPanel } from './panels/PlanningPanel';
 import { SailBar } from './panels/SailBar';
 import { HelmPanel } from './panels/HelmPanel';
+import { TownView } from './town/TownView';
+import { BuildingPanel } from './town/BuildingPanel';
+import { cultureOf } from '@/town/layout';
 import { QuestTracker } from './panels/QuestTracker';
 import { Toasts } from './panels/Toasts';
 import { DialogueModal, EventModal, QuizModal, RewardModal, StormModal } from './panels/Modals';
@@ -42,6 +45,9 @@ export function MapScreen() {
   const modals = useGame((s) => s.modals);
   const panel = useGame((s) => s.panel);
   const mapMarks = useGame((s) => s.mapMarks);
+  const townView = useGame((s) => s.townView);
+  const building = useGame((s) => s.building);
+  const lastBuilding = useGame((s) => s.lastBuilding);
 
   const scenario = world.scenarios.get(game.scenarioId)!;
   const hostRef = useRef<HTMLDivElement>(null);
@@ -221,6 +227,17 @@ export function MapScreen() {
     mapRef.current?.setPlanning(!!planning || locating);
   }, [planning, locating]);
 
+  // 停泊時預設在城鎮裡走動；定位挑戰需要海圖時自動切回海圖
+  const dockedPort =
+    !game.helm && !game.voyage && game.dockedAt ? world.ports.get(game.dockedAt) : null;
+  const showTown = !!dockedPort && townView && !locating && !planning;
+  const culture = dockedPort ? cultureOf(dockedPort.country) : 'minnan';
+  const shipColors = {
+    hull: colorOf(HULL_PAINTS, look.hull),
+    sail: colorOf(SAIL_PAINTS, look.sail),
+    flag: colorOf(COLORS, look.flagColor),
+  };
+
   return (
     <div className={locating ? 'map-screen locating' : 'map-screen'}>
       <StatusBar
@@ -234,6 +251,29 @@ export function MapScreen() {
 
       <div className="map-area">
         <div className="map-host" ref={hostRef} />
+
+        {showTown && (
+          <>
+            <TownView
+              key={dockedPort!.id}
+              culture={culture}
+              appearance={game.appearance}
+              ship={shipColors}
+              returnFrom={lastBuilding}
+              onEnter={(kind) => useGame.getState().enterBuilding(kind)}
+            />
+            <div className="town-hint">點地面走路，走到門口進入建築；走到船邊可以補給、出港。</div>
+          </>
+        )}
+        {dockedPort && !locating && !planning && (
+          <button
+            type="button"
+            className="view-toggle"
+            onClick={() => useGame.getState().setTownView(!townView)}
+          >
+            {showTown ? '🗺️ 看海圖' : `🏘️ 回到${dockedPort.name}城裡`}
+          </button>
+        )}
 
         <QuestTracker />
 
@@ -268,13 +308,14 @@ export function MapScreen() {
           <HelmPanel />
         ) : null}
 
-        {!game.helm && <WindCompass />}
+        {!game.helm && !showTown && <WindCompass />}
         {interaction?.data.type === 'locate' && <LocateBanner step={interaction.data} />}
         <Toasts />
       </div>
 
       {/* 港口面板放在海圖區塊之外：手機版排在海圖下方，避免可捲動面板疊在 WebGL 畫布上造成空白 */}
-      {!planning && selectedPortId && <PortPanel portId={selectedPortId} />}
+      {!planning && !showTown && selectedPortId && <PortPanel portId={selectedPortId} />}
+      {showTown && building && <BuildingPanel kind={building} culture={culture} />}
 
       {panel === 'codex' && <CodexPanel />}
       {panel === 'captain' && <CaptainPanel />}
