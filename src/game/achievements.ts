@@ -3,7 +3,7 @@
  * 成就只看玩家「做到了什麼」：探索、知識、技能、蒐集、毅力；不以答錯率懲罰。
  */
 import type { LonLat } from '@/data/schema';
-import { exploredFraction, FOG_COLS, FOG_RES } from './fog';
+import { exploredAreaKm2, FOG_COLS, FOG_RES } from './fog';
 import { destinationPoint } from './events';
 
 export type AchievementCategory = '探索' | '知識' | '技能' | '蒐集' | '成長' | '隱藏';
@@ -45,6 +45,10 @@ export interface AchievementInput {
   ship: { position: LonLat };
   dockedAt: string | null;
   voyage: unknown;
+  /** 向學者回報過的傳聞發現 */
+  reported: string[];
+  /** 熟悉航線（兩個方向各算一條） */
+  routes: Record<string, unknown>;
 }
 
 export interface AchievementDef {
@@ -118,17 +122,17 @@ export const ACHIEVEMENTS: AchievementDef[] = [
   {
     id: 'explore-1',
     name: '開拓者',
-    description: '揭開世界 1% 的迷霧',
+    description: '海圖畫出 50 萬平方公里',
     category: '探索',
-    check: (s) => exploredFraction(s.fog) >= 0.01,
+    check: (s) => exploredAreaKm2(s.fog) >= 500_000,
   },
   {
     id: 'explore-5',
     name: '地圖繪製師',
-    description: '揭開世界 5% 的迷霧',
+    description: '海圖畫出 300 萬平方公里',
     category: '探索',
     title: '繪圖師',
-    check: (s) => exploredFraction(s.fog) >= 0.05,
+    check: (s) => exploredAreaKm2(s.fog) >= 3_000_000,
   },
   {
     id: 'tropic',
@@ -171,7 +175,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
   {
     id: 'stargazer',
     name: '觀星者',
-    description: '在觀星之夜答對 3 次',
+    description: '用牽星術準確定位 3 次',
     category: '知識',
     title: '觀星者',
     check: (s) => s.stats.starsCorrect >= 3,
@@ -179,7 +183,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
   {
     id: 'pirate-scholar',
     name: '以智退敵',
-    description: '用知識挑戰讓海盜放行',
+    description: '用知識或風向甩開海盜',
     category: '知識',
     check: (s) => s.stats.piratesOutwitted >= 1,
   },
@@ -198,6 +202,66 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     category: '成長',
     title: '資深船長',
     check: (s) => s.captain.level >= 5,
+  },
+  {
+    id: 'rumor-3',
+    name: '追尋傳聞的人',
+    description: '依傳聞找到並回報 3 個地方',
+    category: '探索',
+    check: (s) => s.reported.length >= 3,
+  },
+  {
+    id: 'rumor-10',
+    name: '解開地圖之謎',
+    description: '依傳聞找到並回報 10 個地方',
+    category: '探索',
+    title: '探險家',
+    check: (s) => s.reported.length >= 10,
+  },
+  {
+    id: 'star-10',
+    name: '牽星大師',
+    description: '用牽星術準確定位 10 次',
+    category: '知識',
+    title: '牽星師',
+    check: (s) => s.stats.starsCorrect >= 10,
+  },
+  {
+    id: 'escape-3',
+    name: '乘風而去',
+    description: '甩開或智退海盜 3 次',
+    category: '知識',
+    check: (s) => s.stats.piratesOutwitted >= 3,
+  },
+  {
+    id: 'routes-5',
+    name: '熟門熟路',
+    description: '親手開出 5 條熟悉航線',
+    category: '探索',
+    check: (s) => Object.keys(s.routes).length / 2 >= 5,
+  },
+  {
+    id: 'indian-ocean',
+    name: '橫渡孟加拉灣',
+    description: '抵達錫蘭山',
+    category: '探索',
+    check: (s) => s.visitedPorts.includes('galle'),
+  },
+  {
+    id: 'africa',
+    name: '西洋盡頭',
+    description: '抵達東非的港口',
+    category: '探索',
+    title: '西洋航海家',
+    check: (s) => s.visitedPorts.some((p) => ['mogadishu', 'malindi', 'kilwa'].includes(p)),
+  },
+  {
+    id: 'cape',
+    name: '海的盡頭',
+    description: '在想像的航程中看見非洲最南端',
+    category: '隱藏',
+    hidden: true,
+    check: (s) => s.discovered.includes('cape-of-good-hope'),
   },
   {
     id: 'first-profit',

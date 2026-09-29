@@ -108,7 +108,7 @@ function SummaryCard({ title, s }: { title: string; s: SaveSummary }) {
           完成任務 {s.questsDone}・造訪港口 {s.ports}
         </li>
         <li>
-          圖鑑 {s.codex} 張・探索率 {s.explored}%
+          圖鑑 {s.codex} 張・海圖 {s.explored} 萬平方公里
         </li>
       </ul>
     </div>

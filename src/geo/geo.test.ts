@@ -2,7 +2,14 @@ import { describe, expect, it } from 'vitest';
 import { bearingDeg, compass16, distanceKm, legLengthKm } from './geo';
 import { isLand } from './landmask';
 import { checkLeg, createVoyage, isFinished, positionAt } from '@/game/voyage';
-import { createFog, decodeFog, encodeFog, exploredFraction, revealAround } from '@/game/fog';
+import {
+  createFog,
+  decodeFog,
+  encodeFog,
+  exploredAreaKm2,
+  exploredFraction,
+  revealAround,
+} from '@/game/fog';
 
 describe('geo', () => {
   it('measures great-circle distance', () => {
@@ -96,6 +103,18 @@ describe('fog', () => {
     const changed = revealAround(fog, [118.67, 24.87], 450);
     expect(exploredFraction(fog)).toBeCloseTo(changed.length / fog.length, 12);
     expect(encodeFog(fog).length).toBeLessThan(2000);
+  });
+
+  it('measures the charted area in square kilometres', () => {
+    const fog = createFog();
+    revealAround(fog, [118.67, 24.87], 160);
+    const expected = Math.PI * 160 * 160;
+    expect(exploredAreaKm2(fog)).toBeGreaterThan(expected * 0.9);
+    expect(exploredAreaKm2(fog)).toBeLessThan(expected * 1.1);
+    // 再揭開一塊，快取也要跟著更新
+    revealAround(fog, [110, 10], 100);
+    const fresh = Uint8Array.from(fog);
+    expect(exploredAreaKm2(fog)).toBeCloseTo(exploredAreaKm2(fresh), 0);
   });
 
   it('upsamples legacy 0.5° saves', () => {

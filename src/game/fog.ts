@@ -43,11 +43,38 @@ export function revealAround(fog: Uint8Array, [lon, lat]: LonLat, radiusKm: numb
   }
   const n = counts.get(fog);
   if (n !== undefined) counts.set(fog, n + changed.length);
+  const a = areas.get(fog);
+  if (a !== undefined)
+    areas.set(
+      fog,
+      changed.reduce((sum, i) => sum + cellArea(i), a),
+    );
   return changed;
 }
 
-// 已探索格數的快取，避免每次檢查成就都掃描四百萬格
+// 已探索格數與面積的快取，避免每次檢查成就都掃描四百萬格
 const counts = new WeakMap<Uint8Array, number>();
+const areas = new WeakMap<Uint8Array, number>();
+
+/** 赤道上一格的面積（平方公里）；越往高緯度越小 */
+const CELL_KM2_AT_EQUATOR = (FOG_RES * 111.32) ** 2;
+
+function cellArea(index: number): number {
+  const row = Math.floor(index / FOG_COLS);
+  const lat = 90 - (row + 0.5) * FOG_RES;
+  return CELL_KM2_AT_EQUATOR * Math.cos((lat * Math.PI) / 180);
+}
+
+/** 已經揭開（畫進海圖）的面積，平方公里 */
+export function exploredAreaKm2(fog: Uint8Array): number {
+  let a = areas.get(fog);
+  if (a === undefined) {
+    a = 0;
+    for (let i = 0; i < fog.length; i++) if (fog[i]) a += cellArea(i);
+    areas.set(fog, a);
+  }
+  return a;
+}
 
 export function exploredFraction(fog: Uint8Array): number {
   let n = counts.get(fog);

@@ -60,7 +60,7 @@ import {
   type LocateResult,
   type VoyageEvent,
 } from './events';
-import { createFog, exploredFraction, revealAround } from './fog';
+import { createFog, exploredAreaKm2, exploredFraction, revealAround } from './fog';
 import { newSeed, nextRandom } from './rng';
 import {
   LOW_MORALE,
@@ -1892,6 +1892,11 @@ function completeQuest(world: World, state: GameState, quest: Quest): StepResult
 
 export function explorationPercent(state: GameState): number {
   return Math.round(exploredFraction(state.fog) * 1000) / 10;
+}
+
+/** 海圖上畫出的面積（萬平方公里，取一位小數） */
+export function chartedArea(state: GameState): number {
+  return Math.round(exploredAreaKm2(state.fog) / 1000) / 10;
 }
 
 // ---------------------------------------------------------------- 成長：經驗、技能、船員、船隻、成就
