@@ -45,6 +45,8 @@ export interface AchievementInput {
   ship: { position: LonLat };
   dockedAt: string | null;
   voyage: unknown;
+  /** 親手駕船：下錨時才算「在海上下錨」 */
+  helm?: { anchored: boolean } | null;
 }
 
 export interface AchievementDef {
@@ -64,7 +66,7 @@ const completed = (s: AchievementInput) =>
 
 /** 在海上下錨，而四周大多仍是未探索的迷霧（古地圖上「此處有龍」的地方） */
 function atEdgeOfKnownWorld(s: AchievementInput): boolean {
-  if (s.dockedAt || s.voyage) return false;
+  if (s.dockedAt || s.voyage || (s.helm && !s.helm.anchored)) return false;
   let unknown = 0;
   for (let b = 0; b < 360; b += 45) {
     const [lon, lat] = destinationPoint(s.ship.position, b, 450);

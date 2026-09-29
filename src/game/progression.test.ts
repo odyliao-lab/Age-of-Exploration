@@ -176,6 +176,12 @@ describe('achievements', () => {
     }
     s = stopVoyage(s).state;
     expect(checkAchievements(world, s).state.achievements).toContain('here-be-dragons');
+    // 親手駕船時要真的下錨才算
+    const helm = { course: 90, sail: 2 as const, anchored: false, blocked: false };
+    const sailing = { ...s, helm };
+    expect(checkAchievements(world, sailing).state.achievements).not.toContain('here-be-dragons');
+    const anchored = { ...s, helm: { ...helm, anchored: true } };
+    expect(checkAchievements(world, anchored).state.achievements).toContain('here-be-dragons');
   });
 
   it('gives every titled achievement a unique title', () => {
