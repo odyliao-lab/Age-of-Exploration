@@ -1494,13 +1494,25 @@ button.wide {
   stroke: #fbf6ea;
   stroke-width: 3;
 }
-.sea-actions {
+.sea-dock {
   position: absolute;
   /* 舵盤面板左邊空白區域的中央 */
   left: calc((100% - 560px) / 2);
   bottom: 60px;
   transform: translateX(-50%);
   z-index: 4;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: max-content;
+  max-width: 520px;
+  pointer-events: none;
+}
+.sea-dock > * {
+  pointer-events: auto;
+}
+.sea-actions {
   display: flex;
   gap: 10px;
 }
@@ -1540,10 +1552,11 @@ button.wide {
     width: 130px;
     height: 130px;
   }
-  .sea-actions {
+  .sea-dock {
     left: 50%;
     bottom: auto;
     top: 60px;
+    max-width: calc(100vw - 24px);
   }
 }
 .map-legend[hidden] {
@@ -1558,11 +1571,6 @@ button.wide {
   font-size: 0.8rem;
 }
 .sea-note {
-  position: absolute;
-  left: calc((100% - 560px) / 2);
-  bottom: 120px;
-  transform: translateX(-50%);
-  z-index: 4;
   max-width: 360px;
   background: rgba(43, 33, 24, 0.85);
   color: #fbf6ea;
@@ -1596,10 +1604,23 @@ button.wide {
   .helm-nav .meta {
     display: none;
   }
-  .sea-note {
-    bottom: auto;
-    top: 60px;
-    left: 50%;
+  /* 手機橫放：動作按鈕放在左下角，避開上方的提示與右邊的舵盤 */
+  .sea-dock {
+    left: 8px;
+    top: auto;
+    bottom: 44px;
+    transform: none;
+    align-items: flex-start;
+    max-width: min(420px, calc(100vw - 440px));
+  }
+  .sea-actions {
+    justify-content: flex-start;
+    gap: 6px;
+  }
+  .sea-actions button {
+    min-height: 38px;
+    padding: 4px 10px;
+    font-size: 0.85rem;
   }
   .star-modal {
     max-height: calc(100vh - 16px);

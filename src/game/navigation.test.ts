@@ -37,6 +37,8 @@ import {
   greetMerchant,
   investigateBlocked,
   merchantInReach,
+  merchantOffer,
+  sellToMerchant,
   newGame,
   positionErrorKm,
   setHelm,
@@ -214,6 +216,31 @@ describe('merchant ships', () => {
     const sup = greetMerchant(world, low, 5, 'supplies')!;
     expect(sup.state.condition.supplies).toEqual({ water: 15, food: 15 });
     expect(sup.state.gold).toBe(s.gold - 20);
+  });
+
+  it('buy your whole cargo at the price of the port they are heading to', () => {
+    let s: GameState = departPort(world, newGame(world, 'treasure-fleet', 4).state);
+    const m: SeaFleet = {
+      id: 3,
+      kind: 'merchant',
+      position: destinationPoint(s.ship.position, 90, 3),
+      heading: 0,
+      mode: 'roam',
+      spawnDay: 0,
+      greeted: false,
+    };
+    s = { ...s, fleets: [m] };
+    expect(merchantOffer(world, s, 3)).toBeNull();
+    s = { ...s, cargo: { silk: { qty: 10, cost: 250 } } };
+    const offer = merchantOffer(world, s, 3)!;
+    expect(offer.port.id).not.toBe('quanzhou');
+    expect(offer.items).toEqual([{ good: 'silk', qty: 10, price: expect.any(Number) }]);
+    const r = sellToMerchant(world, s, 3)!;
+    expect(r.state.cargo).toEqual({});
+    expect(r.state.gold).toBe(s.gold + offer.total);
+    expect(r.text).toContain(offer.port.name);
+    // 賣完貨還是可以打聽消息
+    expect(merchantInReach(r.state)?.id).toBe(3);
   });
 });
 

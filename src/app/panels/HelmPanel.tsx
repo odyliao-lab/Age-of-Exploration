@@ -5,6 +5,7 @@ import {
   approachHint,
   investigateBlocked,
   merchantInReach,
+  merchantOffer,
   portInReach,
   positionErrorKm,
   rumorInReach,
@@ -46,7 +47,8 @@ export function HelmPanel() {
   const speed = useGame((s) => s.speed);
   const { steer, trimSail, toggleAnchor, togglePause, setSpeed, dock, investigate } =
     useGame.getState();
-  const { openStargazing, openCoastSight, greetMerchant, sound } = useGame.getState();
+  const { openStargazing, openCoastSight, greetMerchant, sound, sellToMerchant } =
+    useGame.getState();
   const dial = useRef<SVGSVGElement>(null);
   const dragging = useRef(false);
 
@@ -61,6 +63,7 @@ export function HelmPanel() {
   const approachPort = approach ? world.ports.get(approach.portId) : null;
   const blocked = rumorHere ? investigateBlocked(world, game, rumorHere) : null;
   const merchant = merchantInReach(game);
+  const offer = merchant ? merchantOffer(world, game, merchant.id) : null;
   const errKm = Math.round(positionErrorKm(world, game));
   const lat = game.ship.position[1];
   // 誤差換算成緯度的不確定範圍（1° 約 111 公里）
@@ -93,54 +96,61 @@ export function HelmPanel() {
 
   return (
     <>
-      <div className="sea-actions">
-        {rumorHere && (
-          <button
-            type="button"
-            className="primary"
-            disabled={!!blocked}
-            title={blocked ?? undefined}
-            onClick={() => investigate(rumorHere)}
-          >
-            🔍 調查這一帶
-          </button>
+      <div className="sea-dock">
+        {blocked && <div className="sea-note">{blocked}</div>}
+        {!blocked && approach && approachPort && (
+          <div className="sea-note">
+            {approachPort.name}的港口入口在{compass16(approach.bearing)}方約{' '}
+            {Math.round(approach.km)} 公里，開過去就能入港。
+          </div>
         )}
-        {merchant && (
-          <>
-            <button type="button" onClick={() => greetMerchant(merchant.id, 'news')}>
-              🤝 向商船打聽消息
+        <div className="sea-actions">
+          {rumorHere && (
+            <button
+              type="button"
+              className="primary"
+              disabled={!!blocked}
+              title={blocked ?? undefined}
+              onClick={() => investigate(rumorHere)}
+            >
+              🔍 調查這一帶
             </button>
-            <button type="button" onClick={() => greetMerchant(merchant.id, 'supplies')}>
-              🛢️ 向商船買補給（20 金幣）
+          )}
+          {merchant && (
+            <>
+              <button type="button" onClick={() => greetMerchant(merchant.id, 'news')}>
+                🤝 向商船打聽消息
+              </button>
+              <button type="button" onClick={() => greetMerchant(merchant.id, 'supplies')}>
+                🛢️ 向商船買補給（20 金幣）
+              </button>
+              {offer && (
+                <button type="button" onClick={() => sellToMerchant(merchant.id)}>
+                  💰 把貨賣給開往{offer.port.name}的商船（{offer.total} 金幣）
+                </button>
+              )}
+            </>
+          )}
+          {!coastBlocked && errKm > 10 && (
+            <button type="button" onClick={() => openCoastSight(true)}>
+              🔭 看岸形定位
             </button>
-          </>
-        )}
-        {!coastBlocked && errKm > 10 && (
-          <button type="button" onClick={() => openCoastSight(true)}>
-            🔭 看岸形定位
+          )}
+          <button type="button" onClick={sound} title="放下測深錘，量水深、看海底">
+            🪢 測深
           </button>
-        )}
-        <button type="button" onClick={sound} title="放下測深錘，量水深、看海底">
-          🪢 測深
-        </button>
-        {night && !starBlocked && (
-          <button type="button" onClick={() => openStargazing(true)}>
-            ✨ 觀星定位（牽星術）
-          </button>
-        )}
-        {port && (
-          <button type="button" className="primary" onClick={() => dock(port.id)}>
-            ⚓ 入港：{port.name}
-          </button>
-        )}
-      </div>
-      {blocked && <div className="sea-note">{blocked}</div>}
-      {!blocked && approach && approachPort && (
-        <div className="sea-note">
-          {approachPort.name}的港口入口在{compass16(approach.bearing)}方約 {Math.round(approach.km)}{' '}
-          公里，開過去就能入港。
+          {night && !starBlocked && (
+            <button type="button" onClick={() => openStargazing(true)}>
+              ✨ 觀星定位（牽星術）
+            </button>
+          )}
+          {port && (
+            <button type="button" className="primary" onClick={() => dock(port.id)}>
+              ⚓ 入港：{port.name}
+            </button>
+          )}
         </div>
-      )}
+      </div>
       <section className="helm-panel" aria-label="掌舵">
         <div className="helm-left">
           <div className="seg" role="group" aria-label="帆">

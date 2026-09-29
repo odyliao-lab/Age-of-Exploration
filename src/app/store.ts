@@ -26,6 +26,7 @@ import {
   autoSail,
   reportFinds,
   greetMerchant,
+  sellToMerchant,
   takeSounding,
   sightStars,
   pray,
@@ -208,6 +209,8 @@ interface GameStore {
   greetMerchant: (fleetId: number, choice: 'news' | 'supplies') => void;
   /** 測深（打水） */
   sound: () => void;
+  /** 把船上的貨賣給商船 */
+  sellToMerchant: (fleetId: number) => void;
   setTownView: (on: boolean) => void;
   enterBuilding: (kind: BuildingKind) => void;
   leaveBuilding: () => void;
@@ -601,6 +604,17 @@ export const useGame = create<GameStore>((set, get) => {
       const r = greetMerchant(world, game, fleetId, choice);
       if (!r) return;
       commit(r.state);
+      set((s) => ({
+        modals: [...s.modals, { type: 'info', title: r.title, text: r.text, lesson: r.lesson }],
+      }));
+    },
+    sellToMerchant: (fleetId) => {
+      const { world, game } = get();
+      if (!world || !game) return;
+      const r = sellToMerchant(world, game, fleetId);
+      if (!r) return;
+      commit(r.state);
+      play('correct');
       set((s) => ({
         modals: [...s.modals, { type: 'info', title: r.title, text: r.text, lesson: r.lesson }],
       }));

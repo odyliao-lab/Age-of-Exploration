@@ -4,7 +4,7 @@
  * 所有函式都回傳新的狀態物件；唯一的例外是迷霧陣列（fog）會就地更新，
  * 以免每一幀複製整張格網。事件（GameEvent）交給介面顯示提示與對話框。
  */
-import type { CodexEntry, LonLat, Quest, QuestStep } from '@/data/schema';
+import type { CodexEntry, LonLat, Port, Quest, QuestStep } from '@/data/schema';
 import { bearingDeg, compass16, distanceKm } from '@/geo/geo';
 import { addXp, newCaptain, type Captain } from './captain';
 import { ACHIEVEMENT_MAP, EMPTY_STATS, newlyUnlocked, type AchievementStats } from './achievements';
@@ -947,6 +947,80 @@ export interface GreetResult {
   title: string;
   text: string;
   lesson?: string;
+}
+
+/** 商船收購貨物的價格：目的港收購價的幾成（他們要賺一手） */
+export const MERCHANT_BUY_FACTOR = 0.8;
+
+/** 商船要開往哪個港口：依船的編號，從附近 3000 公里內的港口挑一個（固定不變） */
+export function merchantDestination(world: World, f: SeaFleet): Port | null {
+  const near = world.content.ports
+    .map((p) => ({ p, km: distanceKm(p.location, f.position) }))
+    .filter((x) => x.km > 150 && x.km < 3000)
+    .sort((a, b) => a.km - b.km)
+    .slice(0, 8);
+  return near.length ? near[f.id % near.length].p : null;
+}
+
+export interface MerchantOffer {
+  port: Port;
+  items: { good: string; qty: number; price: number }[];
+  total: number;
+  profit: number;
+}
+
+/** 商船願意用什麼價錢收下你船上所有的貨 */
+export function merchantOffer(
+  world: World,
+  state: GameState,
+  fleetId: number,
+): MerchantOffer | null {
+  const f = state.fleets.find((x) => x.id === fleetId);
+  if (!f || f.kind !== 'merchant' || cargoUsed(state.cargo) === 0) return null;
+  if (distanceKm(f.position, state.ship.position) > HAIL_KM) return null;
+  const port = merchantDestination(world, f);
+  if (!port) return null;
+  const items = Object.entries(state.cargo)
+    .filter(([, lot]) => lot.qty > 0)
+    .map(([good, lot]) => ({
+      good,
+      qty: lot.qty,
+      price: Math.max(
+        1,
+        Math.round(
+          quote(world.content.ports, port, good, state.market, state.day).sell *
+            MERCHANT_BUY_FACTOR,
+        ),
+      ),
+    }));
+  const total = items.reduce((n, i) => n + i.price * i.qty, 0);
+  const cost = Object.values(state.cargo).reduce((n, l) => n + l.cost, 0);
+  return { port, items, total, profit: total - cost };
+}
+
+/** 把船上的貨全部賣給商船 */
+export function sellToMerchant(
+  world: World,
+  state: GameState,
+  fleetId: number,
+): GreetResult | null {
+  const offer = merchantOffer(world, state, fleetId);
+  if (!offer) return null;
+  const list = offer.items
+    .map((i) => `${world.codex.get(i.good)?.name ?? i.good} ${i.qty} 擔`)
+    .join('、');
+  return {
+    state: {
+      ...state,
+      cargo: {},
+      gold: state.gold + offer.total,
+      stats: { ...state.stats, tradeProfit: state.stats.tradeProfit + Math.max(0, offer.profit) },
+    },
+    title: '和商船做買賣',
+    text: `商船要開往${offer.port.name}。他們收下${list}，付了你 ${offer.total} 金幣（${offer.profit >= 0 ? `賺 ${offer.profit}` : `虧 ${-offer.profit}`}）。「${offer.port.name}缺這些貨，我們到了還有得賺！」`,
+    lesson:
+      '貨物離產地越遠越值錢。商人在海上轉手，雖然價錢比親自運到目的港低一些，卻省下了航程的時間與風險，這就是「轉口貿易」。',
+  };
 }
 
 /**
