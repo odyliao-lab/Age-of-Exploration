@@ -3,7 +3,7 @@
 一款以「大航海時代」為題材的教育遊戲，讓學生透過航海、探險、任務與角色成長，
 在遊玩過程中自然學會世界地理（大洲、國家、海洋、地形、氣候、經緯度、文化與物產）。
 
-> 目前狀態：**M1 專案骨架完成**，第一週可玩切片開發中。[劇本選單已上線](https://age-of-exploration.odyliao-pikmin.workers.dev/)，部署驗證紀錄見 [docs/03-deployment-blocker.md](docs/03-deployment-blocker.md)。
+> 目前狀態：**MVP 已上線**（`main`）；玩法重新設計（親手駕船、港口城鎮、辨位與遭遇、傳聞發現）在開發分支完成階段 1～4，等待試玩驗收，見 [docs/06-redesign-proposal.md](docs/06-redesign-proposal.md)。[正式站](https://age-of-exploration.odyliao-pikmin.workers.dev/)。
 >
 > 授權：程式碼 MIT，遊戲內容（知識卡、任務文本）CC BY-SA 4.0。
 
@@ -14,6 +14,7 @@
 | [docs/01-game-design-document.md](docs/01-game-design-document.md) | 完整企畫書（遊戲設計文件，GDD）    |
 | [docs/02-open-questions.md](docs/02-open-questions.md)             | 動工前需要逐項討論、定案的問題清單 |
 | [docs/03-deployment-blocker.md](docs/03-deployment-blocker.md)     | Cloudflare 部署卡關紀錄與交接說明  |
+| [docs/06-redesign-proposal.md](docs/06-redesign-proposal.md)       | 企畫書 v2 修訂提案：玩法重新設計   |
 | [docs/DEVLOG.md](docs/DEVLOG.md)                                   | 開發進度日誌                       |
 
 ## 開發
