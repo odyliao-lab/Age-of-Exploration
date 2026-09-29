@@ -1,4 +1,6 @@
 import { xpToNext } from '@/game/captain';
+import { SEASON_OF_MONTH } from '@/game/calendar';
+import { gameDate } from '@/game/state';
 import { useGame } from '../store';
 
 export function StatusBar(props: {
@@ -12,6 +14,7 @@ export function StatusBar(props: {
   const openPanel = useGame((s) => s.openPanel);
   const scenario = world.scenarios.get(game.scenarioId)!;
   const c = game.captain;
+  const d = gameDate(game);
 
   return (
     <header className="map-toolbar">
@@ -20,7 +23,9 @@ export function StatusBar(props: {
       </button>
       <strong className="map-title">{scenario.name}</strong>
       <div className="stats-inline" aria-label="船長狀態">
-        <span title="航海天數">第 {Math.floor(game.day) + 1} 天</span>
+        <span title={`航海第 ${Math.floor(game.day) + 1} 天`}>
+          {d.year}/{d.month}/{d.day}（{SEASON_OF_MONTH[d.month]}）
+        </span>
         <span title="金幣">💰 {game.gold}</span>
         <span title={`經驗 ${c.xp}/${xpToNext(c.level)}`}>Lv {c.level}</span>
       </div>

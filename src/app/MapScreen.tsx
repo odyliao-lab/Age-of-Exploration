@@ -15,7 +15,8 @@ import { PlanningPanel } from './panels/PlanningPanel';
 import { SailBar } from './panels/SailBar';
 import { QuestTracker } from './panels/QuestTracker';
 import { Toasts } from './panels/Toasts';
-import { DialogueModal, QuizModal, RewardModal } from './panels/Modals';
+import { DialogueModal, QuizModal, RewardModal, StormModal } from './panels/Modals';
+import { WindCompass } from './panels/WindCompass';
 import { CodexPanel } from './panels/CodexPanel';
 import { CaptainPanel } from './panels/CaptainPanel';
 import { StatusBar } from './panels/StatusBar';
@@ -200,6 +201,7 @@ export function MapScreen() {
         {planning ? <PlanningPanel /> : game.voyage ? <SailBar /> : null}
         {!planning && selectedPortId && <PortPanel portId={selectedPortId} />}
 
+        <WindCompass />
         <Toasts />
       </div>
 
@@ -207,6 +209,7 @@ export function MapScreen() {
       {panel === 'captain' && <CaptainPanel />}
 
       {modals[0] && <RewardModal modal={modals[0]} />}
+      {!modals[0] && game.encounter && <StormModal encounter={game.encounter} />}
       {interaction?.data.type === 'dialogue' && (
         <DialogueModal questId={interaction.questId} step={interaction.data} />
       )}

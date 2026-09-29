@@ -769,8 +769,7 @@ button.wide {
   }
 
   .toasts {
-    top: auto;
-    bottom: 140px;
+    top: 110px;
     width: calc(100vw - 24px);
     align-items: center;
   }
@@ -795,5 +794,185 @@ button.wide {
   .attrs li {
     grid-template-columns: 4.5em 1.5em 1fr auto;
     font-size: 0.85rem;
+  }
+}
+
+/* ---- 第 2 週：船況、風向、風暴 ---- */
+
+.condition {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 4px 12px;
+  margin: 6px 0;
+  font-size: 0.8rem;
+}
+
+.condition.compact {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.cond {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 4px;
+}
+
+.cond-bar {
+  height: 6px;
+  background: var(--parchment-dark);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.cond-bar span {
+  display: block;
+  height: 100%;
+  background: #2f7d4a;
+}
+
+.cond.low .cond-bar span {
+  background: #c0392b;
+}
+
+.cond.low .cond-value {
+  color: #c0392b;
+  font-weight: 700;
+}
+
+.cond-value {
+  font-variant-numeric: tabular-nums;
+  min-width: 2.5em;
+  text-align: right;
+}
+
+.env-line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  margin-top: 6px;
+  font-size: 0.8rem;
+}
+
+.tag {
+  border-radius: 999px;
+  padding: 1px 8px;
+  background: var(--parchment-dark);
+}
+
+.tag.順風,
+.tag.順流 {
+  background: #d7eedb;
+  color: #1f5c33;
+}
+
+.tag.逆風,
+.tag.逆流 {
+  background: #f8dcd5;
+  color: #8a2b16;
+}
+
+.tag.無風 {
+  background: #e6e1d4;
+}
+
+.wind-compass {
+  position: absolute;
+  left: 12px;
+  bottom: 84px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(251, 246, 234, 0.92);
+  border: 1px solid var(--parchment-dark);
+  border-radius: 8px;
+  padding: 4px 10px 4px 4px;
+  font-size: 0.75rem;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.wind-compass .rose {
+  fill: #fff;
+  stroke: var(--ink-soft);
+  stroke-width: 1;
+}
+
+.wind-compass .n {
+  font-size: 8px;
+  text-anchor: middle;
+  fill: var(--accent);
+}
+
+.wind-compass .arrow {
+  stroke: #1f5c8a;
+  stroke-width: 3;
+}
+
+.wind-compass .arrow-head {
+  fill: #1f5c8a;
+}
+
+.wind-compass .calm {
+  fill: var(--ink-soft);
+}
+
+.wind-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.35;
+}
+
+.wind-text .warm {
+  color: #b5482b;
+}
+
+.wind-text .cold {
+  color: #1f5c8a;
+}
+
+.lesson {
+  background: #eef3f6;
+  border-left: 4px solid #1f5c8a;
+  border-radius: 4px;
+  padding: 8px 10px;
+  line-height: 1.6;
+  font-size: 0.9rem;
+}
+
+@media (max-width: 600px) {
+  .wind-compass {
+    left: auto;
+    bottom: auto;
+    top: 12px;
+    right: 12px;
+  }
+
+  .quest-tracker {
+    width: calc(100vw - 150px);
+  }
+
+  .wind-compass {
+    max-width: 118px;
+    padding-right: 6px;
+  }
+
+  .wind-compass svg {
+    width: 36px;
+    height: 36px;
+    flex: none;
+  }
+
+  .wind-text span {
+    display: none;
+  }
+
+  .condition.compact {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .map-coords {
+    display: none;
   }
 }

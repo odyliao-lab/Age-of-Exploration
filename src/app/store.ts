@@ -5,15 +5,21 @@
 import { create } from 'zustand';
 import type { LonLat } from '@/data/schema';
 import { KM_PER_NM } from '@/geo/geo';
+import type { StormRisk } from '@/game/environment';
+import type { StormChoice } from '@/game/ship';
+import { STORM_CHOICES } from '@/game/ship';
 import { spendPoint, type AttributeKey } from '@/game/captain';
 import { deleteSave, listSaves, loadSave, writeSave } from '@/game/save';
 import {
   acceptQuest,
   answerQuiz,
+  estimateVoyage,
   finishDialogue,
   harborsFor,
   newGame,
-  speedKmPerDay,
+  portRepair,
+  portResupply,
+  resolveEncounter,
   startVoyage,
   stopVoyage,
   tick,
@@ -22,7 +28,7 @@ import {
   type QuestReward,
   type StepResult,
 } from '@/game/state';
-import { checkLeg, createVoyage } from '@/game/voyage';
+import { checkLeg } from '@/game/voyage';
 import type { World } from '@/game/world';
 
 /** 1 倍速時，現實 1.2 秒 = 遊戲 1 天 */
@@ -41,7 +47,8 @@ export interface Toast {
 
 export type Modal =
   | { type: 'questComplete'; questId: string; reward: QuestReward }
-  | { type: 'levelUp'; level: number };
+  | { type: 'levelUp'; level: number }
+  | { type: 'shipwreck'; cause: StormRisk; lostGold: number; portId: string; month: number };
 
 export interface Planning {
   waypoints: LonLat[];
@@ -94,6 +101,9 @@ interface GameStore {
   closeDialogue: (questId: string) => void;
   answer: (questId: string, choice: number) => boolean;
   spend: (key: AttributeKey) => void;
+  weatherStorm: (choice: StormChoice) => void;
+  resupply: () => void;
+  repair: () => void;
 
   dismissModal: () => void;
   dismissToast: (id: number) => void;
@@ -116,12 +126,17 @@ let saveTimer: ReturnType<typeof setTimeout> | null = null;
 let lastSave = 0;
 
 export function planSummary(world: World, game: GameState, planning: Planning) {
-  const v = createVoyage(planning.waypoints, planning.destinationPortId);
-  const days = v.totalKm / speedKmPerDay(game);
+  const est = estimateVoyage(game, planning.waypoints);
+  const supplyDays = Math.min(game.condition.supplies.water, game.condition.supplies.food);
   return {
-    km: Math.round(v.totalKm),
-    nm: Math.round(v.totalKm / KM_PER_NM),
-    days: Math.round(days * 10) / 10,
+    km: Math.round(est.km),
+    nm: Math.round(est.km / KM_PER_NM),
+    days: Math.round(est.days * 10) / 10,
+    tailwindPct: Math.round(est.tailwindShare * 100),
+    headwindPct: Math.round(est.headwindShare * 100),
+    storm: est.storm && est.storm.kind !== 'none' ? est.storm : null,
+    supplyShort: est.days > supplyDays,
+    supplyDays: Math.floor(supplyDays),
     destination: planning.destinationPortId
       ? world.ports.get(planning.destinationPortId)?.name
       : null,
@@ -324,6 +339,27 @@ export const useGame = create<GameStore>((set, get) => {
       return r.correct;
     },
 
+    weatherStorm: (choice) => {
+      const { world, game } = get();
+      if (world && game) apply(resolveEncounter(world, game, choice));
+    },
+
+    resupply: () => {
+      const g = get().game;
+      if (!g) return;
+      set({ game: portResupply(g) });
+      toast({ text: '補給完成：淡水與糧食已裝滿', kind: 'info' });
+      scheduleSave(true);
+    },
+
+    repair: () => {
+      const g = get().game;
+      if (!g) return;
+      set({ game: portRepair(g) });
+      toast({ text: '船體修理完成', kind: 'info' });
+      scheduleSave(true);
+    },
+
     spend: (key) => {
       const g = get().game;
       if (!g) return;
@@ -370,6 +406,30 @@ function handleEvent(
       modals.push({ type: 'levelUp', level: e.level });
       break;
     case 'portUnlocked':
+      break;
+    case 'warning':
+      push({ text: e.text, kind: 'warn' });
+      break;
+    case 'encounter':
+      break;
+    case 'stormResolved':
+      push({
+        text:
+          e.hullLoss > 0
+            ? `${STORM_CHOICES[e.choice].label}：船體受損 ${e.hullLoss}${e.days ? `，耽擱 ${e.days} 天` : ''}`
+            : `${STORM_CHOICES[e.choice].label}：平安度過風暴${e.days ? `，耽擱 ${e.days} 天` : ''}`,
+        kind: e.hullLoss >= 20 ? 'warn' : 'info',
+      });
+      break;
+    case 'shipwreck':
+      modals.push({
+        type: 'shipwreck',
+        cause: e.cause,
+        lostGold: e.lostGold,
+        portId: e.portId,
+        month: e.month,
+      });
+      select(e.portId);
       break;
   }
 }

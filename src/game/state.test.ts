@@ -84,7 +84,7 @@ describe('captain', () => {
 
 describe('Treasure Fleet prologue and chapter 1', () => {
   it('starts docked at home with the home region revealed', () => {
-    const { state, fogChanged } = newGame(world, 'treasure-fleet');
+    const { state, fogChanged } = newGame(world, 'treasure-fleet', 1);
     expect(state.dockedAt).toBe('quanzhou');
     expect(fogChanged.length).toBeGreaterThan(50);
     expect(state.discovered).toEqual(expect.arrayContaining(['silk', 'porcelain']));
@@ -92,7 +92,7 @@ describe('Treasure Fleet prologue and chapter 1', () => {
   });
 
   it('plays the first two quests end to end', () => {
-    let s = newGame(world, 'treasure-fleet').state;
+    let s = newGame(world, 'treasure-fleet', 1).state;
 
     // 泉州任務板
     expect(availableQuests(world, s, 'quanzhou').map((q) => q.id)).toEqual(['tf-00-first-voyage']);
@@ -161,7 +161,7 @@ describe('Treasure Fleet prologue and chapter 1', () => {
   });
 
   it('hides the name of a hint-level-2 destination until visited', () => {
-    let s = newGame(world, 'treasure-fleet').state;
+    let s = newGame(world, 'treasure-fleet', 1).state;
     s = {
       ...s,
       quests: { 'tf-00-first-voyage': { status: 'completed', step: 3 } },

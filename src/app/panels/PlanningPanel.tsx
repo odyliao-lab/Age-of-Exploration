@@ -20,6 +20,8 @@ export function PlanningPanel() {
         <p>
           {legs} 段航線，全長約 <strong>{sum.nm}</strong> 海里（{sum.km} 公里），預計{' '}
           <strong>{sum.days}</strong> 天。
+          {legs > 0 && sum.tailwindPct >= 50 && ` 約 ${sum.tailwindPct}% 航程順風。`}
+          {legs > 0 && sum.headwindPct >= 50 && ` 約 ${sum.headwindPct}% 航程逆風，會比較慢。`}
           {sum.destination ? (
             <>
               {' '}
@@ -29,6 +31,14 @@ export function PlanningPanel() {
             ' 終點不是港口，抵達後會在海上下錨。'
           )}
         </p>
+      )}
+      {legs > 0 && sum.storm && (
+        <p className="warn">
+          ⚠ 航線經過{sum.storm.name}好發海域。{sum.storm.lesson}
+        </p>
+      )}
+      {legs > 0 && sum.supplyShort && (
+        <p className="warn">⚠ 補給只剩 {sum.supplyDays} 天份，可能撐不到目的地。先在港口補給吧。</p>
       )}
       {planning.error && (
         <p className="warn" role="alert">

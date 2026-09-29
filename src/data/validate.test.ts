@@ -43,6 +43,7 @@ const base = (): ContentBundle => ({
       starting_ports: [],
       region_tiers: { 'east-china-sea': 0 },
       starting_ship: 'junk',
+      start_date: '1405-12-15',
       recommended: true,
       domains: ['A'],
       estimated_hours: 1,

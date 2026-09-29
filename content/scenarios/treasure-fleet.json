@@ -16,6 +16,7 @@
     "malacca-java": 1
   },
   "starting_ship": "junk",
+  "start_date": "1405-12-15",
   "recommended": true,
   "domains": ["A", "B", "D", "E", "F"],
   "estimated_hours": 6,

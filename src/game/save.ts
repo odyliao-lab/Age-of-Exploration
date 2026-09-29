@@ -5,6 +5,8 @@
 import Dexie, { type Table } from 'dexie';
 import { newCaptain } from './captain';
 import { decodeFog, encodeFog } from './fog';
+import { newSeed } from './rng';
+import { fullCondition, shipType } from './ship';
 import { SAVE_VERSION, type GameState } from './state';
 
 export interface SerializedSave extends Omit<GameState, 'fog'> {
@@ -33,6 +35,14 @@ export function deserialize(data: SerializedSave): GameState {
     discovered: data.discovered ?? [],
     visitedPorts: data.visitedPorts ?? [],
     unlockedPorts: data.unlockedPorts ?? [],
+    // 第 2 版新增：曆法、船況、遭遇、亂數
+    startDate: data.startDate ?? '1405-12-15',
+    shipTypeId: data.shipTypeId ?? 'junk',
+    condition: data.condition ?? fullCondition(shipType(data.shipTypeId ?? 'junk')),
+    lastPortId: data.lastPortId ?? data.dockedAt ?? data.visitedPorts?.[0] ?? '',
+    encounter: data.encounter ?? null,
+    shipwrecks: data.shipwrecks ?? 0,
+    seed: data.seed ?? newSeed(),
   };
 }
 

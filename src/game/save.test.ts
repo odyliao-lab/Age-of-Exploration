@@ -9,14 +9,14 @@ const world = buildWorld(contentForTests());
 
 describe('save', () => {
   it('round-trips a game state including fog', () => {
-    const { state } = newGame(world, 'treasure-fleet');
+    const { state } = newGame(world, 'treasure-fleet', 1);
     revealAround(state.fog, [0, 0], 500);
     const back = deserialize(JSON.parse(JSON.stringify(serialize(state))));
     expect(back).toEqual(state);
   });
 
   it('fills defaults for older saves', () => {
-    const { state } = newGame(world, 'treasure-fleet');
+    const { state } = newGame(world, 'treasure-fleet', 1);
     const old = serialize(state) as unknown as Record<string, unknown>;
     delete old.quizLog;
     const back = deserialize(old as never);
@@ -24,7 +24,7 @@ describe('save', () => {
   });
 
   it('exports and imports JSON files', () => {
-    const { state } = newGame(world, 'treasure-fleet');
+    const { state } = newGame(world, 'treasure-fleet', 1);
     expect(importSaveJson(exportSaveJson(state))).toEqual(state);
     expect(() => importSaveJson('{"foo":1}')).toThrow('不是');
   });

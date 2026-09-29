@@ -1,6 +1,10 @@
 import { useState, type ReactNode } from 'react';
 import type { QuestStep } from '@/data/schema';
 import { ATTRIBUTE_INFO } from '@/game/captain';
+import { STORM_CHOICES, shipwreckLoss, type StormChoice, type StormEncounter } from '@/game/ship';
+import { regionAt } from '@/game/state';
+import { formatLonLat } from '@/map/projection';
+import { ConditionBars } from './Condition';
 import { useGame, type Modal } from '../store';
 
 function ModalFrame({
@@ -94,6 +98,10 @@ export function RewardModal({ modal }: { modal: Modal }) {
   const dismiss = useGame((s) => s.dismissModal);
   const openPanel = useGame((s) => s.openPanel);
 
+  if (modal.type === 'shipwreck') {
+    return <ShipwreckModal modal={modal} />;
+  }
+
   if (modal.type === 'levelUp') {
     return (
       <ModalFrame title={`升級！船長等級 ${modal.level}`}>
@@ -156,6 +164,72 @@ export function RewardModal({ modal }: { modal: Modal }) {
       <div className="row end">
         <button type="button" className="primary" autoFocus onClick={dismiss}>
           太好了
+        </button>
+      </div>
+    </ModalFrame>
+  );
+}
+
+export function StormModal({ encounter }: { encounter: StormEncounter }) {
+  const game = useGame((s) => s.game)!;
+  const weather = useGame((s) => s.weatherStorm);
+  const r = encounter.risk;
+  return (
+    <ModalFrame title={`遭遇${r.name}！`} label="風暴">
+      <p>
+        {encounter.month} 月，船隊在 {formatLonLat(encounter.position, 0)} 附近遇上{r.name}
+        ，狂風巨浪撲向甲板。船長，要怎麼做？
+      </p>
+      <p className="lesson">
+        <strong>地理小教室：</strong>
+        {r.lesson}
+      </p>
+      <ConditionBars game={game} compact />
+      <div className="choices">
+        {(Object.keys(STORM_CHOICES) as StormChoice[]).map((c) => (
+          <button type="button" key={c} className="choice" onClick={() => weather(c)}>
+            <strong>{STORM_CHOICES[c].label}</strong>
+            <span className="meta"> — {STORM_CHOICES[c].hint}</span>
+          </button>
+        ))}
+      </div>
+    </ModalFrame>
+  );
+}
+
+function ShipwreckModal({ modal }: { modal: Extract<Modal, { type: 'shipwreck' }> }) {
+  const world = useGame((s) => s.world)!;
+  const game = useGame((s) => s.game)!;
+  const dismiss = useGame((s) => s.dismissModal);
+  const port = world.ports.get(modal.portId);
+  const scenario = world.scenarios.get(game.scenarioId)!;
+  const region = regionAt(world, game.ship.position);
+  const tier = region ? (scenario.region_tiers[region] ?? 3) : 3;
+  return (
+    <ModalFrame title="船難！" label="船難事後檢討">
+      <p>
+        {modal.month} 月，船隊遭遇{modal.cause.name}
+        ，船體不堪負荷而沉沒。所幸船員都被附近的漁船救起， 你們回到了<strong>{port?.name}</strong>。
+      </p>
+      <ul className="reward-list">
+        <li>
+          損失金幣 {modal.lostGold}（約 {Math.round(shipwreckLoss(tier) * 100)}%）
+        </li>
+        <li>船員、圖鑑、任務進度與經驗都保留下來了</li>
+      </ul>
+      <h3>事後檢討</h3>
+      <p className="lesson">
+        <strong>為什麼會遇到{modal.cause.name}？</strong>
+        {modal.cause.lesson}
+      </p>
+      <ul className="objectives">
+        <li>規劃航線時留意警告：避開{modal.cause.name}的好發季節與海域。</li>
+        <li>遇到風暴時，「下錨等待」最安全，只是會多花幾天和補給。</li>
+        <li>出航前在船塢把船修好，船體越完整越能撐過風浪。</li>
+      </ul>
+      <div className="row end">
+        <button type="button" className="primary" autoFocus onClick={dismiss}>
+          重新振作
         </button>
       </div>
     </ModalFrame>

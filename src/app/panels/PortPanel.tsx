@@ -1,6 +1,8 @@
 import { LEARNING_DOMAIN_LABELS } from '@/data/schema';
 import { formatLonLat } from '@/map/projection';
 import { availableQuests, portNameKnown } from '@/game/state';
+import { repairCost, resupplyCost, shipType } from '@/game/ship';
+import { ConditionBars } from './Condition';
 import { useGame } from '../store';
 
 export function PortPanel({ portId }: { portId: string }) {
@@ -9,6 +11,8 @@ export function PortPanel({ portId }: { portId: string }) {
   const selectPort = useGame((s) => s.selectPort);
   const beginPlanning = useGame((s) => s.beginPlanning);
   const accept = useGame((s) => s.accept);
+  const resupply = useGame((s) => s.resupply);
+  const repair = useGame((s) => s.repair);
   const openPanel = useGame((s) => s.openPanel);
 
   const port = world.ports.get(portId);
@@ -96,6 +100,27 @@ export function PortPanel({ portId }: { portId: string }) {
               ))}
             </ul>
           )}
+          <h3>船塢與市集</h3>
+          <ConditionBars game={game} />
+          <div className="row">
+            <button
+              type="button"
+              disabled={
+                resupplyCost(game.condition, shipType(game.shipTypeId)) === 0 || game.gold === 0
+              }
+              onClick={resupply}
+            >
+              補給（{resupplyCost(game.condition, shipType(game.shipTypeId))} 金幣）
+            </button>
+            <button
+              type="button"
+              disabled={repairCost(game.condition) === 0 || game.gold === 0}
+              onClick={repair}
+            >
+              修船（{repairCost(game.condition)} 金幣）
+            </button>
+          </div>
+          <p className="meta">淡水每天份 1 金幣、糧食每天份 2 金幣；錢不夠時會先補淡水。</p>
           <button type="button" className="primary wide" onClick={beginPlanning}>
             規劃航線
           </button>

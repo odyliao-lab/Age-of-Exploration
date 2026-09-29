@@ -7,11 +7,40 @@
 import type { LonLat, Quest, QuestStep } from '@/data/schema';
 import { bearingDeg, compass16, distanceKm } from '@/geo/geo';
 import { addXp, newCaptain, type Captain } from './captain';
+import { dateOf, type GameDate } from './calendar';
+import {
+  currentAt,
+  speedFactors,
+  stormRiskAt,
+  windAt,
+  type Current,
+  type SpeedFactors,
+  type StormRisk,
+  type Wind,
+} from './environment';
 import { createFog, exploredFraction, revealAround } from './fog';
+import { newSeed, nextRandom } from './rng';
+import {
+  LOW_MORALE,
+  LOW_SUPPLY_DAYS,
+  afterShipwreck,
+  conditionSpeedFactor,
+  fullCondition,
+  passTime,
+  repair,
+  resolveStormChoice,
+  resupply,
+  rest,
+  shipType,
+  shipwreckLoss,
+  type Encounter,
+  type ShipCondition,
+  type StormChoice,
+} from './ship';
 import { createVoyage, isFinished, positionAt, type Harbor, type Voyage } from './voyage';
 import type { World } from './world';
 
-export const SAVE_VERSION = 1;
+export const SAVE_VERSION = 2;
 
 /** 基礎航速：每日 100 海里（約 4 節），接近鄭和寶船的歷史估計 */
 export const BASE_SPEED_KM_PER_DAY = 185;
@@ -52,6 +81,17 @@ export interface GameState {
   gold: number;
   reputation: number;
   quizLog: QuizRecord[];
+  /** 劇本開始日期（YYYY-MM-DD），搭配 day 換算月份與季節 */
+  startDate: string;
+  shipTypeId: string;
+  condition: ShipCondition;
+  /** 最後停泊的港口：沉船時被救回這裡 */
+  lastPortId: string;
+  /** 航行中遇到、需要玩家決定的狀況；未處理前船不會前進 */
+  encounter: Encounter | null;
+  shipwrecks: number;
+  /** 可重現亂數的種子 */
+  seed: number;
 }
 
 export interface QuestReward {
@@ -69,7 +109,17 @@ export type GameEvent =
   | { type: 'questAccepted'; questId: string }
   | { type: 'questCompleted'; questId: string; reward: QuestReward }
   | { type: 'levelUp'; level: number }
-  | { type: 'portUnlocked'; portId: string };
+  | { type: 'portUnlocked'; portId: string }
+  | { type: 'warning'; text: string }
+  | { type: 'encounter'; encounter: Encounter }
+  | { type: 'stormResolved'; choice: StormChoice; hullLoss: number; days: number }
+  | {
+      type: 'shipwreck';
+      cause: StormRisk;
+      lostGold: number;
+      portId: string;
+      month: number;
+    };
 
 export interface StepResult {
   state: GameState;
@@ -80,7 +130,7 @@ export interface StepResult {
 
 // ---------------------------------------------------------------- 開局
 
-export function newGame(world: World, scenarioId: string): StepResult {
+export function newGame(world: World, scenarioId: string, seed = newSeed()): StepResult {
   const scenario = world.scenarios.get(scenarioId);
   if (!scenario) throw new Error(`未知的劇本：${scenarioId}`);
   const home = world.ports.get(scenario.home_port)!;
@@ -106,14 +156,89 @@ export function newGame(world: World, scenarioId: string): StepResult {
     gold: 200,
     reputation: 0,
     quizLog: [],
+    startDate: scenario.start_date,
+    shipTypeId: scenario.starting_ship,
+    condition: fullCondition(shipType(scenario.starting_ship)),
+    lastPortId: home.id,
+    encounter: null,
+    shipwrecks: 0,
+    seed,
   };
   return { state, events: [], fogChanged };
 }
 
 // ---------------------------------------------------------------- 航行
 
+/** 不含風與洋流的基礎航速（船型、航海術、船況） */
 export function speedKmPerDay(state: GameState): number {
-  return BASE_SPEED_KM_PER_DAY * (1 + 0.05 * (state.captain.attrs.navigation - 1));
+  return (
+    BASE_SPEED_KM_PER_DAY *
+    shipType(state.shipTypeId).speed *
+    (1 + 0.05 * (state.captain.attrs.navigation - 1)) *
+    conditionSpeedFactor(state.condition)
+  );
+}
+
+export function gameDate(state: GameState, extraDays = 0): GameDate {
+  return dateOf(state.startDate, state.day + extraDays);
+}
+
+export interface Environment {
+  wind: Wind;
+  current: Current | null;
+  factors: SpeedFactors;
+  storm: StormRisk;
+}
+
+export function environmentAt(
+  state: GameState,
+  position: LonLat,
+  heading: number,
+  extraDays = 0,
+): Environment {
+  const month = gameDate(state, extraDays).month;
+  const wind = windAt(position, month);
+  const current = currentAt(position, month);
+  return {
+    wind,
+    current,
+    factors: speedFactors(heading, wind, current),
+    storm: stormRiskAt(position, month),
+  };
+}
+
+/** 依目前月份的風與洋流估算航程天數（規劃航線時顯示） */
+export function estimateVoyage(state: GameState, waypoints: LonLat[]) {
+  const v = createVoyage(waypoints, null);
+  const base = speedKmPerDay(state);
+  let days = 0;
+  let tailwind = 0;
+  let headwind = 0;
+  let maxStorm: StormRisk | null = null;
+  const stepKm = 50;
+  for (let km = 0; km < v.totalKm; km += stepKm) {
+    const seg = Math.min(stepKm, v.totalKm - km);
+    const pos = positionAt(v, km + seg / 2);
+    const env = environmentAt(state, pos.position, pos.heading, days);
+    days += seg / (base * env.factors.total);
+    if (env.factors.windLabel === '順風') tailwind += seg;
+    if (env.factors.windLabel === '逆風') headwind += seg;
+    if (env.storm.chancePerDay > (maxStorm?.chancePerDay ?? 0)) maxStorm = env.storm;
+  }
+  return {
+    km: v.totalKm,
+    days,
+    tailwindShare: v.totalKm ? tailwind / v.totalKm : 0,
+    headwindShare: v.totalKm ? headwind / v.totalKm : 0,
+    storm: maxStorm,
+  };
+}
+
+export function regionAt(world: World, [lon, lat]: LonLat): string | null {
+  const r = world.content.regions.find(
+    (x) => lon >= x.bbox[0] && lat >= x.bbox[1] && lon <= x.bbox[2] && lat <= x.bbox[3],
+  );
+  return r?.id ?? null;
 }
 
 export function sightKm(state: GameState): number {
@@ -148,39 +273,68 @@ export function stopVoyage(state: GameState): StepResult {
   };
 }
 
-/** 推進遊戲時間（天）。航行中才會移動。 */
+/** 推進遊戲時間（天）。航行中才會移動；有待處理的遭遇時暫停。 */
 export function tick(world: World, state: GameState, days: number): StepResult {
-  if (!state.voyage || days <= 0) return { state, events: [], fogChanged: [] };
+  if (!state.voyage || state.encounter || days <= 0) {
+    return { state, events: [], fogChanged: [] };
+  }
   const events: GameEvent[] = [];
   const fogChanged: number[] = [];
 
-  const speed = speedKmPerDay(state);
-  const remainingKm = state.voyage.totalKm - state.voyage.traveledKm;
-  const moveKm = Math.min(remainingKm, speed * days);
-  const usedDays = speed > 0 ? moveKm / speed : days;
-
-  // 分小步前進，避免高速時跳過地標或留下迷霧空洞
-  const stepKm = 25;
-  const steps = Math.max(1, Math.ceil(moveKm / stepKm));
+  // 以時間分小步前進：每步約 25 公里，避免高速時跳過地標或留下迷霧空洞
+  const steps = Math.max(1, Math.ceil((days * BASE_SPEED_KM_PER_DAY * 1.5) / 25));
+  const dt = days / steps;
+  let s: GameState = state;
   let voyage = state.voyage;
   let discovered = state.discovered;
-  let ship = state.ship;
-  for (let i = 1; i <= steps; i++) {
-    const traveledKm = state.voyage.traveledKm + (moveKm * i) / steps;
-    voyage = { ...voyage, traveledKm };
-    const pos = positionAt(voyage, traveledKm);
-    ship = { position: pos.position, heading: pos.heading };
-    fogChanged.push(...revealAround(state.fog, pos.position, sightKm(state)));
-    const found = landmarksInSight(world, discovered, pos.position, state);
+  let usedDays = 0;
+  let encounter: Encounter | null = null;
+
+  for (let i = 0; i < steps && !isFinished(voyage); i++) {
+    const here = positionAt(voyage, voyage.traveledKm);
+    const env = environmentAt(s, here.position, here.heading, usedDays);
+    const speed = speedKmPerDay(s) * env.factors.total;
+    const remaining = voyage.totalKm - voyage.traveledKm;
+    const km = Math.min(remaining, speed * dt);
+    const stepDays = speed > 0 ? km / speed : dt;
+    voyage = { ...voyage, traveledKm: voyage.traveledKm + km };
+    usedDays += stepDays;
+
+    const pos = positionAt(voyage, voyage.traveledKm);
+    const before = s.condition;
+    const condition = passTime(before, stepDays, s.captain.attrs.leadership);
+    s = { ...s, ship: { position: pos.position, heading: pos.heading }, condition };
+    warnConditionChanges(before, condition, events);
+
+    fogChanged.push(...revealAround(state.fog, pos.position, sightKm(s)));
+    const found = landmarksInSight(world, discovered, pos.position, s);
     if (found.length) {
       discovered = [...discovered, ...found];
       for (const id of found) events.push({ type: 'discovered', codexId: id });
     }
+
+    // 風暴：依每天的機率換算這一小步的機率
+    const chance = 1 - Math.pow(1 - env.storm.chancePerDay, stepDays);
+    if (chance > 0) {
+      const [r, seed] = nextRandom(s.seed);
+      s = { ...s, seed };
+      if (r < chance) {
+        encounter = {
+          kind: 'storm',
+          risk: env.storm,
+          position: pos.position,
+          month: gameDate(s, usedDays).month,
+        };
+        break;
+      }
+    }
   }
 
-  let next: GameState = { ...state, day: state.day + usedDays, voyage, ship, discovered };
-
-  if (isFinished(voyage)) {
+  let next: GameState = { ...s, day: state.day + usedDays, voyage, discovered };
+  if (encounter) {
+    next = { ...next, encounter };
+    events.push({ type: 'encounter', encounter });
+  } else if (isFinished(voyage)) {
     const dest = voyage.destinationPortId;
     if (dest) {
       const arrived = arrive(world, next, dest);
@@ -199,6 +353,93 @@ export function tick(world: World, state: GameState, days: number): StepResult {
     events: [...events, ...progressed.events],
     fogChanged: [...fogChanged, ...progressed.fogChanged],
   };
+}
+
+function warnConditionChanges(before: ShipCondition, after: ShipCondition, events: GameEvent[]) {
+  const crossed = (a: number, b: number, limit: number) => a > limit && b <= limit;
+  if (crossed(before.supplies.water, after.supplies.water, LOW_SUPPLY_DAYS)) {
+    events.push({ type: 'warning', text: `淡水只剩 ${LOW_SUPPLY_DAYS} 天份，盡快靠港補給！` });
+  }
+  if (crossed(before.supplies.food, after.supplies.food, LOW_SUPPLY_DAYS)) {
+    events.push({ type: 'warning', text: `糧食只剩 ${LOW_SUPPLY_DAYS} 天份，盡快靠港補給！` });
+  }
+  if (
+    crossed(before.supplies.water, after.supplies.water, 0) ||
+    crossed(before.supplies.food, after.supplies.food, 0)
+  ) {
+    events.push({ type: 'warning', text: '補給耗盡！船員士氣快速下降，航速變慢。' });
+  }
+  if (crossed(before.morale, after.morale, LOW_MORALE)) {
+    events.push({ type: 'warning', text: '船員士氣低落，有人提議返航……' });
+  }
+}
+
+/** 處理遭遇（目前只有風暴） */
+export function resolveEncounter(world: World, state: GameState, choice: StormChoice): StepResult {
+  const enc = state.encounter;
+  if (!enc) return { state, events: [], fogChanged: [] };
+  const [roll, seed] = nextRandom(state.seed);
+  const severity = enc.risk.kind === 'gale' ? 0.8 : 1;
+  const out = resolveStormChoice(
+    state.condition,
+    choice,
+    roll,
+    state.captain.attrs.leadership,
+    severity,
+  );
+  let next: GameState = {
+    ...state,
+    seed,
+    encounter: null,
+    condition: out.condition,
+    day: state.day + out.days,
+  };
+  const events: GameEvent[] = [
+    { type: 'stormResolved', choice, hullLoss: out.hullLoss, days: out.days },
+  ];
+  if (next.condition.hull <= 0) return shipwreck(world, next, enc.risk, enc.month);
+  if (next.voyage && isFinished(next.voyage)) {
+    const r = tick(world, next, 0.001);
+    next = r.state;
+    events.push(...r.events);
+  }
+  return { state: next, events, fogChanged: [] };
+}
+
+function shipwreck(world: World, state: GameState, cause: StormRisk, month: number): StepResult {
+  const scenario = world.scenarios.get(state.scenarioId)!;
+  const region = regionAt(world, state.ship.position);
+  const tier = region ? (scenario.region_tiers[region] ?? 3) : 3;
+  const lostGold = Math.floor(state.gold * shipwreckLoss(tier));
+  const port = world.ports.get(state.lastPortId)!;
+  return {
+    state: {
+      ...state,
+      gold: state.gold - lostGold,
+      voyage: null,
+      encounter: null,
+      dockedAt: port.id,
+      ship: { position: port.location, heading: state.ship.heading },
+      condition: afterShipwreck(shipType(state.shipTypeId)),
+      shipwrecks: state.shipwrecks + 1,
+    },
+    events: [{ type: 'shipwreck', cause, lostGold, portId: port.id, month }],
+    fogChanged: [],
+  };
+}
+
+// ---------------------------------------------------------------- 港口服務
+
+export function portResupply(state: GameState): GameState {
+  if (!state.dockedAt) return state;
+  const { condition, cost } = resupply(state.condition, shipType(state.shipTypeId), state.gold);
+  return { ...state, condition, gold: state.gold - cost };
+}
+
+export function portRepair(state: GameState): GameState {
+  if (!state.dockedAt) return state;
+  const { condition, cost } = repair(state.condition, state.gold);
+  return { ...state, condition, gold: state.gold - cost };
 }
 
 function landmarksInSight(
@@ -229,6 +470,8 @@ function arrive(world: World, state: GameState, portId: string): StepResult {
       ...state,
       voyage: null,
       dockedAt: portId,
+      lastPortId: portId,
+      condition: rest(state.condition),
       ship: { position: port.location, heading: state.ship.heading },
       discovered: [...state.discovered, ...newGoods],
       visitedPorts: firstVisit ? [...state.visitedPorts, portId] : state.visitedPorts,
