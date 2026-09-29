@@ -1,7 +1,16 @@
 import { useRef } from 'react';
 import { compass16 } from '@/geo/geo';
 import { knots, normDeg, type SailSetting } from '@/game/sailing';
-import { portInReach, rumorInReach, sailingStatus } from '@/game/state';
+import {
+  investigateBlocked,
+  merchantInReach,
+  portInReach,
+  positionErrorKm,
+  rumorInReach,
+  sailingStatus,
+  starSightBlocked,
+} from '@/game/state';
+import { isNight, timeLabel } from '@/game/navigation';
 import { useGame } from '../store';
 import { ConditionBars } from './Condition';
 
@@ -35,6 +44,7 @@ export function HelmPanel() {
   const speed = useGame((s) => s.speed);
   const { steer, trimSail, toggleAnchor, togglePause, setSpeed, dock, investigate } =
     useGame.getState();
+  const { openStargazing, greetMerchant } = useGame.getState();
   const dial = useRef<SVGSVGElement>(null);
   const dragging = useRef(false);
 
@@ -45,6 +55,19 @@ export function HelmPanel() {
   const nearPort = portInReach(world, game);
   const port = nearPort ? world.ports.get(nearPort) : null;
   const rumorHere = rumorInReach(world, game);
+  const blocked = rumorHere ? investigateBlocked(world, game, rumorHere) : null;
+  const merchant = merchantInReach(game);
+  const errKm = Math.round(positionErrorKm(world, game));
+  const lat = game.ship.position[1];
+  // 誤差換算成緯度的不確定範圍（1° 約 111 公里）
+  const latSpread = errKm / 111;
+  const ns = lat >= 0 ? '北緯' : '南緯';
+  const latText =
+    latSpread < 0.15
+      ? `${ns} ${Math.abs(lat).toFixed(1)}°`
+      : `${ns}約 ${Math.max(0, Math.abs(lat) - latSpread).toFixed(0)}°～${(Math.abs(lat) + latSpread).toFixed(0)}°`;
+  const starBlocked = starSightBlocked(game);
+  const night = isNight(game.day);
   const kn = knots(st.motion.speed);
   const sailClass =
     st.motion.pointOfSail === '頂風' ? 'bad' : st.motion.pointOfSail === '迎風' ? 'ok' : 'good';
@@ -67,8 +90,29 @@ export function HelmPanel() {
     <>
       <div className="sea-actions">
         {rumorHere && (
-          <button type="button" className="primary" onClick={() => investigate(rumorHere)}>
+          <button
+            type="button"
+            className="primary"
+            disabled={!!blocked}
+            title={blocked ?? undefined}
+            onClick={() => investigate(rumorHere)}
+          >
             🔍 調查這一帶
+          </button>
+        )}
+        {merchant && (
+          <>
+            <button type="button" onClick={() => greetMerchant(merchant.id, 'news')}>
+              🤝 向商船打聽消息
+            </button>
+            <button type="button" onClick={() => greetMerchant(merchant.id, 'supplies')}>
+              🛢️ 向商船買補給（20 金幣）
+            </button>
+          </>
+        )}
+        {night && !starBlocked && (
+          <button type="button" onClick={() => openStargazing(true)}>
+            ✨ 觀星定位（牽星術）
           </button>
         )}
         {port && (
@@ -77,6 +121,7 @@ export function HelmPanel() {
           </button>
         )}
       </div>
+      {blocked && <div className="sea-note">{blocked}</div>}
       <section className="helm-panel" aria-label="掌舵">
         <div className="helm-left">
           <div className="seg" role="group" aria-label="帆">
@@ -118,6 +163,14 @@ export function HelmPanel() {
                       ? '頂風：帆吃不到風！'
                       : `${st.motion.pointOfSail}・帆效率 ${Math.round(st.motion.efficiency * 100)}%`}
             </span>
+          </div>
+          <div className="helm-nav">
+            <span>🕰️ {timeLabel(game.day)}</span>
+            <span title="航位推算：沒有定位時，誤差每天累積">
+              📍 {latText}
+              {errKm > 8 && <span className="meta">（誤差 ±{errKm} 公里）</span>}
+            </span>
+            {night && starBlocked && <span className="meta">{starBlocked}</span>}
           </div>
           <div className="helm-env">
             <span className="tag">

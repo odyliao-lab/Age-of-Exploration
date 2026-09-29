@@ -13,6 +13,8 @@ import { FogLayer } from './fogLayer';
 import { getDetailedLand, getLandRings } from './land';
 import { SeaFx } from './seaFx';
 import { ShipSprite } from './shipSprite';
+import { NightSky } from './nightSky';
+import { SeaEntities, type FleetView, type StormView } from './seaEntities';
 import {
   DEG_PX,
   WORLD_HEIGHT,
@@ -112,6 +114,8 @@ export class WorldMap {
   private fog = new FogLayer();
   private fx = new SeaFx();
   private courseGfx = new Graphics();
+  private entities = new SeaEntities();
+  private sky = new NightSky();
   private sailing: SailingView | null = null;
   private shipWorld: Point | null = null;
   private shipHeading = 0;
@@ -167,6 +171,7 @@ export class WorldMap {
       this.drawLand(),
       this.fx.over,
       this.fog.container,
+      this.entities.container,
       this.drawGraticule(),
       this.routeGfx,
       this.courseGfx,
@@ -174,6 +179,7 @@ export class WorldMap {
       this.portLayer,
       this.ship,
     );
+    this.app.stage.addChild(this.sky.container);
     this.app.ticker.add((t) => this.frame(Math.min(0.1, t.deltaMS / 1000)));
 
     const stage = this.app.stage;
@@ -265,6 +271,38 @@ export class WorldMap {
       (this.shipHeading * Math.PI) / 180 + Math.sin(this.time * 1.9) * 0.035 * sway;
     this.shipSprite.drawRig(this.time);
     this.fx.update(dt);
+    this.entities.update(dt);
+    this.sky.setSize(this.size.width, this.size.height);
+    this.sky.setShipScreen(
+      this.shipWorld && this.ship.visible
+        ? {
+            x: this.shipWorld.x * this.view.scale + this.view.x,
+            y: this.shipWorld.y * this.view.scale + this.view.y,
+          }
+        : null,
+    );
+    this.sky.update(dt);
+  }
+
+  /** 海上看得見的其他船隊 */
+  setFleets(list: FleetView[]) {
+    this.entities.setFleets(list);
+  }
+
+  /** 看得見的風暴雲團 */
+  setStorms(list: StormView[]) {
+    this.entities.setStorms(list);
+  }
+
+  /** 位置誤差圈（公里）；null 表示不顯示 */
+  setPositionError(center: LonLat | null, km: number) {
+    this.entities.setError(center, km);
+  }
+
+  /** 日夜：0 白天到 1 深夜；rain 為船在風暴雲團裡 */
+  setSky(darkness: number, rain: boolean) {
+    this.sky.setDarkness(darkness);
+    this.sky.setRain(rain);
   }
 
   /** 親手駕船的風與帆狀態；null 表示停在港口或自動航行 */
@@ -404,6 +442,7 @@ export class WorldMap {
     // 拉近航行時船畫大一點，看得到帆的角度
     this.ship.scale.set(inv * (this.view.scale >= 4 ? 1.7 : 1.1));
     this.fx.setView(this.view, this.size);
+    this.entities.setView(this.view);
     this.drawRoute();
     this.drawMarks();
     this.drawCourse();

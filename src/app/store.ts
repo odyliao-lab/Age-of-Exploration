@@ -20,6 +20,8 @@ import {
   trackDaily,
   buyShip,
   departPort,
+  greetMerchant,
+  sightStars,
   pray,
   tradeBuy,
   tradeSell,
@@ -62,6 +64,7 @@ import { play } from './sound';
 import type { World } from '@/game/world';
 import type { Appearance } from '@/game/cosmetics';
 import type { SailSetting } from '@/game/sailing';
+import type { SightingResult } from '@/game/navigation';
 import type { BuildingKind } from '@/town/layout';
 
 /** 1 倍速時，現實 1.2 秒 = 遊戲 1 天 */
@@ -126,6 +129,8 @@ interface GameStore {
   building: BuildingKind | null;
   /** 剛離開的建築：回到城裡時站在它門口 */
   lastBuilding: BuildingKind | null;
+  /** 正在用牽星板觀星（遊戲暫停） */
+  stargazing: boolean;
 
   init: (world: World) => void;
   refreshSaves: () => Promise<void>;
@@ -154,6 +159,9 @@ interface GameStore {
   toggleAnchor: () => void;
   dock: (portId: string) => void;
   hearRumor: (id: string) => void;
+  openStargazing: (on: boolean) => void;
+  sightStars: (zhi: number) => SightingResult | null;
+  greetMerchant: (fleetId: number, choice: 'news' | 'supplies') => void;
   setTownView: (on: boolean) => void;
   enterBuilding: (kind: BuildingKind) => void;
   leaveBuilding: () => void;
@@ -316,6 +324,7 @@ export const useGame = create<GameStore>((set, get) => {
     townView: true,
     building: null,
     lastBuilding: null,
+    stargazing: false,
 
     init: (world) => {
       set({ world });
@@ -431,6 +440,7 @@ export const useGame = create<GameStore>((set, get) => {
     advance: (realSeconds) => {
       const { world, game, paused, speed, modals } = get();
       if (!world || !game || (!game.voyage && !game.helm) || paused || modals.length) return;
+      if (get().stargazing) return;
       const perDay = game.helm ? SAIL_SECONDS_PER_DAY : SECONDS_PER_DAY;
       const days = (Math.min(realSeconds, 0.25) / perDay) * speed;
       apply(tick(world, game, days));
@@ -504,6 +514,29 @@ export const useGame = create<GameStore>((set, get) => {
     },
 
     setTownView: (on) => set({ townView: on, building: null }),
+
+    openStargazing: (on) => set({ stargazing: on }),
+
+    sightStars: (zhi) => {
+      const { world, game } = get();
+      if (!world || !game) return null;
+      const r = sightStars(world, game, zhi);
+      if (!r) return null;
+      apply({ state: r.state, events: r.events, fogChanged: [] });
+      play(r.result.quality === 'miss' ? 'wrong' : 'correct');
+      return r.result;
+    },
+
+    greetMerchant: (fleetId, choice) => {
+      const { world, game } = get();
+      if (!world || !game) return;
+      const r = greetMerchant(world, game, fleetId, choice);
+      if (!r) return;
+      commit(r.state);
+      set((s) => ({
+        modals: [...s.modals, { type: 'info', title: r.title, text: r.text, lesson: r.lesson }],
+      }));
+    },
     enterBuilding: (kind) => set({ building: kind, lastBuilding: kind }),
     leaveBuilding: () => set({ building: null }),
 

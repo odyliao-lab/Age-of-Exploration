@@ -7,9 +7,12 @@ import {
   activeNavigateTargets,
   pendingInteraction,
   portNameKnown,
+  positionErrorKm,
   sailingStatus,
   visiblePortIds,
 } from '@/game/state';
+import { darkness } from '@/game/navigation';
+import { insideStorm } from '@/game/encounters';
 import { bearingDeg } from '@/geo/geo';
 import { positionAt } from '@/game/voyage';
 import { isDebug } from './debug';
@@ -18,6 +21,7 @@ import { PortPanel } from './panels/PortPanel';
 import { PlanningPanel } from './panels/PlanningPanel';
 import { SailBar } from './panels/SailBar';
 import { HelmPanel } from './panels/HelmPanel';
+import { StarSightModal } from './panels/StarSightModal';
 import { TownView } from './town/TownView';
 import { BuildingPanel } from './town/BuildingPanel';
 import { cultureOf } from '@/town/layout';
@@ -48,6 +52,7 @@ export function MapScreen() {
   const townView = useGame((s) => s.townView);
   const building = useGame((s) => s.building);
   const lastBuilding = useGame((s) => s.lastBuilding);
+  const stargazing = useGame((s) => s.stargazing);
 
   const scenario = world.scenarios.get(game.scenarioId)!;
   const hostRef = useRef<HTMLDivElement>(null);
@@ -207,6 +212,31 @@ export function MapScreen() {
     }
   }, [game.ship, game.voyage, game.helm, planning, follow, ready, world, game]);
 
+  // ---- 海上的船隊、風暴、日夜與位置誤差
+  useEffect(() => {
+    const m = mapRef.current;
+    if (!ready || !m) return;
+    const g = game;
+    m.setFleets(
+      g.helm
+        ? g.fleets.map((f) => ({
+            id: f.id,
+            kind: f.kind,
+            position: f.position,
+            heading: f.heading,
+            chasing: f.mode === 'chase',
+          }))
+        : [],
+    );
+    m.setStorms(
+      g.helm
+        ? g.storms.map((c) => ({ id: c.id, center: c.center, radiusKm: c.radiusKm, name: c.name }))
+        : [],
+    );
+    m.setPositionError(g.helm ? g.ship.position : null, g.helm ? positionErrorKm(world, g) : 0);
+    m.setSky(g.helm ? darkness(g.day) : 0, !!g.helm && !!insideStorm(g.storms, g.ship.position));
+  }, [ready, world, game]);
+
   // ---- 出港時拉近鏡頭跟著船，入港時拉遠一些看港口周邊
   const atSea = !!game.helm;
   useEffect(() => {
@@ -316,6 +346,7 @@ export function MapScreen() {
       {/* 港口面板放在海圖區塊之外：手機版排在海圖下方，避免可捲動面板疊在 WebGL 畫布上造成空白 */}
       {!planning && !showTown && selectedPortId && <PortPanel portId={selectedPortId} />}
       {showTown && building && <BuildingPanel kind={building} culture={culture} />}
+      {stargazing && game.helm && <StarSightModal />}
 
       {panel === 'codex' && <CodexPanel />}
       {panel === 'captain' && <CaptainPanel />}
