@@ -3,7 +3,7 @@
 - 建立日期：2026-09-29
 - 交接人：Claude（負責遊戲程式開發）
 - 接手：Codex（負責需要登入後台的設定）
-- 狀態：🟡 待處理
+- 狀態：🟡 A 已完成；B–D 待登入同意與 OAuth 測試名單
 
 ---
 
@@ -82,8 +82,8 @@ Cloudflare → `age-of-exploration` → **Settings → Build → Variables and s
 
 把以下內容寫在本文件最後的「4. 設定結果」，並把狀態改為 🟢；同時在 `docs/DEVLOG.md` 最上方加一筆紀錄：
 
-- [ ] GitHub 預設分支已改為 `main`
-- [ ] Cloudflare production branch 已改為 `main`，開發分支推送會產生 preview（附一個 preview 網址範例與其格式）
+- [x] GitHub 預設分支已改為 `main`
+- [x] Cloudflare production branch 已改為 `main`，開發分支推送會產生 preview（附一個 preview 網址範例與其格式）
 - [ ] Supabase Project URL：`https://<project-ref>.supabase.co`
 - [ ] Supabase Publishable（anon）key：`...`（公開值，可直接寫）
 - [ ] `saves` 表已建立，RLS 開啟，4 條 policy 存在
@@ -101,8 +101,12 @@ Cloudflare → `age-of-exploration` → **Settings → Build → Variables and s
 - 新版後台「設定 → 組建 → Previews Base」的「Worker 預覽的建置」已啟用，預覽命令為 `npx wrangler preview`，組建命令仍為 `npm run check && npm run build`。
 - 開發分支比 `main` 多出的原有提交只有第 7 週設定文件、`.env.example` 與 SQL，遊戲程式相同。
 - 第一次 preview 建置（提交 `5c04b5a`）的 check 與 build 成功，部署因缺少 `previews` 區塊失敗。已在 `wrangler.jsonc` 補上 `"previews": {}`；這是新版 Worker Previews 的必要設定，靜態資源仍使用頂層 `assets`。
-- 正在重新驗證 preview 自動建置與正式版隔離；驗證成功後補上實際網址與建置紀錄。
+- 提交 `c312abb` 的 GitHub `check` 與 `Workers Builds: age-of-exploration` 都成功；Cloudflare build ID 為 `a59383a4-748f-4356-b081-973fd7d9be5d`，預覽部署 ID 為 `5a256a6a`。
+- 固定分支 preview：<https://claude-gallant-bardeen-wewmq8-age-of-exploration.odyliao-pikmin.workers.dev/>。
+- 單次部署網址：<https://5a256a6a-age-of-exploration.odyliao-pikmin.workers.dev/>。
+- Preview 網址格式為 `https://<preview-name>-age-of-exploration.odyliao-pikmin.workers.dev`；本分支的 `/` 轉為 `-`。單次部署網址則以 `<deployment-id>` 取代 `<preview-name>`。
+- 已用瀏覽器開啟正式站與 preview，均出現「Age of Exploration」劇本選單，主控台沒有錯誤。正式部署在 preview 推送前後均為 `b91f6cb9`、100% 流量；正式站 HTTP 200，HTML SHA-256 亦保持一致，確認沒有被開發分支覆蓋。
 
 ### B–D. 外部服務
 
-待 A 驗收完成後依序設定；Supabase、Google OAuth 與 Cloudflare 建置變數尚未完成。
+A 已驗收完成。Supabase 登入頁已開啟，依擁有者規則等待登入同意；Google OAuth 等待擁有者提供測試使用者及支援／開發者聯絡信箱並同意填入。Supabase 專案、Google OAuth 用戶端與 Cloudflare 建置變數尚未建立，Project URL 與 Publishable key 尚無可交接的值。

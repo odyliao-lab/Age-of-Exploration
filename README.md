@@ -59,6 +59,8 @@ npm run build            # 產出 dist/
 
 `main` 為 GitHub 預設分支與正式版來源；開發分支推送由已啟用的 Worker Previews 建置獨立預覽，完成後以 PR 合併進 `main`。新版後台的預覽設定位於「設定 → 組建 → Previews Base」，部署命令為 `npx wrangler preview`，並需要 `wrangler.jsonc` 的 `previews` 區塊。第 7 週外部服務設定與實際預覽網址見 [交接文件](docs/05-codex-handoff-week7-setup.md)。
 
+目前開發分支預覽：<https://claude-gallant-bardeen-wewmq8-age-of-exploration.odyliao-pikmin.workers.dev/>。
+
 後台設定位置為「Workers 和 Pages → age-of-exploration → 設定 → 建置」。Worker 名稱須與 `wrangler.jsonc` 的 `name` 完全一致；改名時兩處及本段必須一起更新。
 
 此次建立流程為「Workers 和 Pages → 建立應用程式 → Continue with GitHub → 選取 `Age-of-Exploration` → 下一步」，填入上述命令，再於「進階設定 → API Token」選「建立新 Token」，名稱為 `age-of-exploration-build`，按「部署」。Token 由 Cloudflare 管理，密鑰不寫入 repo。

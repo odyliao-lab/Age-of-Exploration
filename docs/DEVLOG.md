@@ -4,12 +4,13 @@
 
 ---
 
-## 2026-09-29 — 第 7 週外部服務設定進行中
+## 2026-09-29 — 第 7 週：分支與 preview 設定完成，外部服務待授權
 
 - GitHub 預設分支與 Cloudflare production branch 改為既有 `main`；開發分支維持 `claude/gallant-bardeen-wewmq8`。
-- 確認 Cloudflare「Previews Base → Worker 預覽的建置」已啟用，使用 `npx wrangler preview`；本次文件提交用於驗證開發分支 preview 與正式版隔離。
+- 確認 Cloudflare「Previews Base → Worker 預覽的建置」已啟用，使用 `npx wrangler preview`。提交 `c312abb` 的 GitHub 與 Cloudflare 檢查均成功，並產生固定分支 preview：<https://claude-gallant-bardeen-wewmq8-age-of-exploration.odyliao-pikmin.workers.dev/>。
 - 實際建置發現新版 Worker Previews 要求 `wrangler.jsonc` 包含 `previews` 區塊，已補上空物件；未修改遊戲程式。
-- Supabase、Google OAuth 與前端建置變數將依交接文件順序處理，登入、憑證與個資步驟需先取得擁有者同意。詳細結果更新於 `docs/05-codex-handoff-week7-setup.md`。
+- 正式版保持版本 `b91f6cb9`、100% 流量；正式站與 preview 均可看到劇本選單，主控台沒有錯誤。每次推送前的 `npm run check`（91 個測試）與 `npm run build` 均通過。
+- Supabase、Google OAuth 與前端建置變數尚未完成；目前等待 Supabase 登入同意、Google 試玩者名單及聯絡信箱。詳細結果更新於 `docs/05-codex-handoff-week7-setup.md`。
 
 ## 2026-09-29 — 第 6 週：音效、外觀、離線遊玩
 
