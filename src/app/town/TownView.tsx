@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { isDebug } from '../debug';
 import { COLORS, SKIN_TONES, colorOf, type Appearance } from '@/game/cosmetics';
 import {
   drawGulls,
@@ -82,19 +83,33 @@ interface Props {
   onEnter: (kind: BuildingKind) => void;
   /** 回到城裡時，玩家站在哪棟建築的門口 */
   returnFrom: BuildingKind | null;
+  /** 點路人時說的話（第一句是當地語言的問候） */
+  talk: string[];
+}
+
+/** 對話泡泡：最多幾個字換行 */
+const BUBBLE_CHARS = 15;
+
+function wrapText(text: string, n: number): string[] {
+  const out: string[] = [];
+  const chars = [...text];
+  for (let i = 0; i < chars.length; i += n) out.push(chars.slice(i, i + n).join(''));
+  return out;
 }
 
 /** 可以走動的港口城鎮：點地面走路，走進門口就進入建築 */
-export function TownView({ culture, appearance, ship, onEnter, returnFrom }: Props) {
+export function TownView({ culture, appearance, ship, onEnter, returnFrom, talk }: Props) {
   const hostRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const onEnterRef = useRef(onEnter);
   const lookRef = useRef(playerLook(appearance));
   const shipRef = useRef(ship);
+  const talkRef = useRef(talk);
   useEffect(() => {
     onEnterRef.current = onEnter;
     lookRef.current = playerLook(appearance);
     shipRef.current = ship;
+    talkRef.current = talk;
   });
 
   useEffect(() => {
@@ -133,6 +148,10 @@ export function TownView({ culture, appearance, ship, onEnter, returnFrom }: Pro
       return { x: p.x * TILE, y: p.y * TILE, path: [], facing: 'down', step: 0, look };
     });
     let marker: Point | null = null;
+    // 自動化測試用：?debug 時可以查到路人的位置
+    if (isDebug()) Object.assign(window, { __townFolks: folks, __townView: () => view });
+    let bubble: { who: Walker; lines: string[]; until: number } | null = null;
+    let nextLine = 0;
     let view = { scale: 1, ox: 0, oy: 0, dpr: 1 };
 
     const resize = () => {
@@ -194,7 +213,9 @@ export function TownView({ culture, appearance, ship, onEnter, returnFrom }: Pro
         onEnterRef.current(kind);
       }
       if (!walking && marker) marker = null;
+      if (bubble && time > bubble.until) bubble = null;
       for (const f of folks) {
+        if (bubble?.who === f) continue;
         if (!f.path.length && Math.random() < dt * 0.4) {
           const from = { x: Math.round(f.x / TILE), y: Math.round(f.y / TILE) };
           f.path = findPath(from, randomWalkable())?.slice(0, 8) ?? [];
@@ -241,6 +262,33 @@ export function TownView({ culture, appearance, ship, onEnter, returnFrom }: Pro
         ctx.fillStyle = '#3a2414';
         ctx.fillText(name, cx, cy + 1);
       }
+      // 路人說話的泡泡
+      if (bubble) {
+        const bfs = Math.max(12, Math.round(4.6 * view.scale));
+        ctx.font = `500 ${bfs}px "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif`;
+        const lh = bfs * 1.35;
+        const bw = Math.max(...bubble.lines.map((l) => ctx.measureText(l).width)) + bfs * 1.2;
+        const bh = lh * bubble.lines.length + bfs * 0.8;
+        const px = view.ox + (bubble.who.x + TILE / 2) * view.scale;
+        const py = view.oy + (bubble.who.y - 8) * view.scale;
+        const bx = Math.min(Math.max(4, px - bw / 2), canvas.width - bw - 4);
+        const by = Math.max(4, py - bh - 10);
+        ctx.fillStyle = 'rgba(58,36,20,0.9)';
+        ctx.fillRect(bx - 2, by - 2, bw + 4, bh + 4);
+        ctx.fillStyle = '#fbf6ea';
+        ctx.fillRect(bx, by, bw, bh);
+        ctx.beginPath();
+        ctx.moveTo(px - 7, by + bh);
+        ctx.lineTo(px + 7, by + bh);
+        ctx.lineTo(px, by + bh + 10);
+        ctx.closePath();
+        ctx.fill();
+        ctx.fillStyle = '#2b2118';
+        ctx.textAlign = 'left';
+        bubble.lines.forEach((l, i) =>
+          ctx.fillText(l, bx + bfs * 0.6, by + bfs * 0.4 + lh * (i + 0.5)),
+        );
+      }
       raf = requestAnimationFrame(loop);
     };
     raf = requestAnimationFrame(loop);
@@ -249,6 +297,24 @@ export function TownView({ culture, appearance, ship, onEnter, returnFrom }: Pro
       const r = canvas.getBoundingClientRect();
       const lx = ((e.clientX - r.left) * view.dpr - view.ox) / view.scale;
       const ly = ((e.clientY - r.top) * view.dpr - view.oy) / view.scale;
+      // 點到路人：停下來說一句話
+      const who = folks.find(
+        (f) =>
+          Math.abs(f.x + TILE / 2 - lx) < TILE * 0.8 && Math.abs(f.y + TILE / 2 - 4 - ly) < TILE,
+      );
+      const lines = talkRef.current;
+      if (who && lines.length) {
+        const text = lines[nextLine % lines.length];
+        nextLine = nextLine === 0 ? 1 + Math.floor(Math.random() * lines.length) : nextLine + 1;
+        who.path = [];
+        who.step = 0;
+        const dx = player.x - who.x;
+        const dy = player.y - who.y;
+        who.facing =
+          Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'right' : 'left') : dy > 0 ? 'down' : 'up';
+        bubble = { who, lines: wrapText(text, BUBBLE_CHARS), until: time + 5 };
+        return;
+      }
       const tx = Math.floor(lx / TILE);
       const ty = Math.floor(ly / TILE);
       const dest = destinationFor(tx, ty);

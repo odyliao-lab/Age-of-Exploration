@@ -26,6 +26,7 @@ import { CoastSightModal } from './panels/CoastSightModal';
 import { TownView } from './town/TownView';
 import { BuildingPanel } from './town/BuildingPanel';
 import { cultureOf } from '@/town/layout';
+import { folkLines } from '@/town/folkTalk';
 import { QuestTracker } from './panels/QuestTracker';
 import { Toasts } from './panels/Toasts';
 import { DialogueModal, EventModal, QuizModal, RewardModal, StormModal } from './panels/Modals';
@@ -312,9 +313,12 @@ export function MapScreen() {
               appearance={game.appearance}
               ship={shipColors}
               returnFrom={lastBuilding}
+              talk={folkLines(dockedPort!.id, culture, dockedPort!.gossip)}
               onEnter={(kind) => useGame.getState().enterBuilding(kind)}
             />
-            <div className="town-hint">點地面走路，走到門口進入建築；走到船邊可以補給、出港。</div>
+            <div className="town-hint">
+              點地面走路，點路人聊天；走到門口進入建築，走到船邊可以補給、出港。
+            </div>
           </>
         )}
         {dockedPort && !locating && !planning && (
