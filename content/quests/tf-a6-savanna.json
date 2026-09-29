@@ -1,0 +1,42 @@
+{
+  "id": "tf-a6-savanna",
+  "title": "學者的考驗：莽原與季風",
+  "scenario": "treasure-fleet",
+  "chapter": 4,
+  "tier": 3,
+  "kind": "academy",
+  "giver_port": "malindi",
+  "objectives": [
+    { "domain": "D", "text": "能說出熱帶莽原氣候的特色。" },
+    { "domain": "D", "text": "能判斷從東非北上阿拉伯要等哪一種季風。" }
+  ],
+  "prerequisites": ["tf-12-qilin"],
+  "steps": [
+    {
+      "type": "quiz",
+      "question": "長頸鹿生活的熱帶莽原，氣候有什麼特色？",
+      "choices": [
+        "終年炎熱，一年分成明顯的乾季與雨季，草原上散生著樹木",
+        "終年下雨，森林茂密得看不見天空",
+        "冬天很冷會下雪",
+        "一年到頭都不下雨，完全沒有植物"
+      ],
+      "answer": 0,
+      "explanation": "熱帶莽原（熱帶草原）位在熱帶雨林與沙漠之間，雨季時草長得很茂盛，乾季時草原枯黃。長頸鹿用長脖子吃高處的樹葉，就是適應這種環境。"
+    },
+    {
+      "type": "quiz",
+      "question": "麻林的商船想沿著海岸北上到阿拉伯，應該等哪一種季風？",
+      "choices": ["夏季的西南季風", "冬季的東北季風", "赤道無風帶的微風", "極地東風"],
+      "answer": 0,
+      "explanation": "西南季風從西南吹向東北，正好把船往北、往東推；冬季的東北季風則適合從阿拉伯與印度南下東非。印度洋的商人就是這樣順著季風來回。"
+    }
+  ],
+  "reward": {
+    "xp": 140,
+    "gold": 180,
+    "reputation": 8,
+    "unlock_ports": [],
+    "codex": []
+  }
+}

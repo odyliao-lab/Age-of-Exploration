@@ -22,6 +22,7 @@ import {
   departPort,
   chartedArea,
   coastSighting,
+  coastChoices,
   autoSail,
   reportFinds,
   greetMerchant,
@@ -167,8 +168,8 @@ interface GameStore {
   lastBuilding: BuildingKind | null;
   /** 正在用牽星板觀星（遊戲暫停） */
   stargazing: boolean;
-  /** 正在看岸形（遊戲暫停） */
-  coastSight: boolean;
+  /** 正在看岸形（遊戲暫停）：這次的三個選項 */
+  coastSight: CoastChoice[] | null;
 
   init: (world: World) => void;
   refreshSaves: () => Promise<void>;
@@ -373,7 +374,7 @@ export const useGame = create<GameStore>((set, get) => {
     building: null,
     lastBuilding: null,
     stargazing: false,
-    coastSight: false,
+    coastSight: null,
 
     init: (world) => {
       set({ world });
@@ -565,7 +566,11 @@ export const useGame = create<GameStore>((set, get) => {
     setTownView: (on) => set({ townView: on, building: null }),
 
     openStargazing: (on) => set({ stargazing: on }),
-    openCoastSight: (on) => set({ coastSight: on }),
+    openCoastSight: (on) => {
+      const { world, game } = get();
+      // 選項在打開時決定一次（含隨機的干擾選項與順序）
+      set({ coastSight: on && world && game ? coastChoices(world, game, Math.random) : null });
+    },
 
     sightCoast: (choiceId) => {
       const { world, game } = get();

@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { coastChoices, landAt, type CoastChoice } from '@/game/state';
+import { useEffect, useRef, useState } from 'react';
+import { landAt, type CoastChoice } from '@/game/state';
 import { compass16, bearingDeg, distanceKm } from '@/geo/geo';
 import { useGame } from '../store';
 
@@ -20,9 +20,8 @@ export function CoastSightModal() {
   const [result, setResult] = useState<{ correct: boolean; answer: CoastChoice } | null>(null);
   const ref = useRef<HTMLCanvasElement>(null);
   const pos = game.ship.position;
-  // 選項只在打開時決定一次
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const choices = useMemo(() => coastChoices(world, game, Math.random), []);
+  // 選項在打開畫面時由 store 決定一次
+  const choices = useGame((s) => s.coastSight) ?? [];
 
   useEffect(() => {
     const ctx = ref.current!.getContext('2d')!;

@@ -429,7 +429,8 @@ button.wide {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  z-index: 1;
+  /* 要高過城鎮畫面（z-index 2） */
+  z-index: 3;
   pointer-events: none;
 }
 

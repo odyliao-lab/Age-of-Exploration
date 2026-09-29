@@ -525,9 +525,21 @@ export function tick(world: World, state: GameState, days: number): StepResult {
           rig,
           base * conditionSpeedFactor(s.condition),
         );
-        const next = destinationPoint(from, mv.course, mv.speed * dt);
-        const blocked = mv.speed > 0 && landAt(world, next);
-        if (!blocked) to = next;
+        const step = mv.speed * dt;
+        let next: LonLat | null = destinationPoint(from, mv.course, step);
+        if (step > 0 && landAt(world, next)) {
+          // 碰到海岸時沿著岸邊滑行：試著往左右偏一點前進（速度打折），都不行才停下
+          next = null;
+          for (const d of [25, -25, 50, -50, 75, -75]) {
+            const q = destinationPoint(from, mv.course + d, step * Math.cos((d * Math.PI) / 180));
+            if (!landAt(world, q)) {
+              next = q;
+              break;
+            }
+          }
+        }
+        const blocked = step > 0 && next === null;
+        if (next) to = next;
         if (blocked && !helm.blocked) {
           events.push({ type: 'warning', text: '船頭頂到海岸了！轉個方向離開淺灘。' });
         }
@@ -1277,6 +1289,41 @@ export function reportFinds(
     gold,
     count: finds.length,
   };
+}
+
+const entrances = new WeakMap<World, Map<string, LonLat | null>>();
+
+/** 港口的入口：出港時船會出現的那片開闊海面（河港就在河口） */
+export function harborEntrance(world: World, portId: string): LonLat | null {
+  let m = entrances.get(world);
+  if (!m) entrances.set(world, (m = new Map()));
+  if (!m.has(portId)) {
+    const port = world.ports.get(portId);
+    m.set(portId, port ? (seaNear(world, port.location)?.point ?? null) : null);
+  }
+  return m.get(portId)!;
+}
+
+export interface ApproachHint {
+  portId: string;
+  /** 往入口的方位與距離 */
+  bearing: number;
+  km: number;
+}
+
+/** 接近看得到的港口、但還不能入港時：告訴玩家港口入口在哪個方向 */
+export function approachHint(world: World, state: GameState): ApproachHint | null {
+  if (!state.helm || portInReach(world, state)) return null;
+  const pos = state.ship.position;
+  let best: ApproachHint | null = null;
+  for (const id of visiblePortIds(world, state)) {
+    if (distanceKm(pos, world.ports.get(id)!.location) > 220) continue;
+    const entrance = harborEntrance(world, id);
+    if (!entrance) continue;
+    const km = distanceKm(pos, entrance);
+    if (!best || km < best.km) best = { portId: id, bearing: bearingDeg(pos, entrance), km };
+  }
+  return best;
 }
 
 /** 附近可以入港的港口（海圖上看得到、距離夠近） */

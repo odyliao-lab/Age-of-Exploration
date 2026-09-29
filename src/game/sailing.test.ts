@@ -15,7 +15,9 @@ import { bearingDeg } from '@/geo/geo';
 import { findSeaPath } from '@/geo/seaPath';
 import { destinationPoint } from './events';
 import {
+  approachHint,
   autoSail,
+  harborEntrance,
   departPort,
   enterPort,
   familiarRoutes,
@@ -158,13 +160,34 @@ describe('hands-on sailing', () => {
     expect(distanceKm(start, s.ship.position)).toBeLessThan(40);
   });
 
-  it('stops at the coast instead of sailing across land', () => {
+  it('never sails across land: slides along the coast or stops', () => {
     let s = departPort(world, fresh());
-    // 朝西北的大陸開（橫風，速度夠快），一定會撞上海岸
+    // 朝西北的大陸開（橫風，速度夠快），一定會碰到海岸
     s = setHelm(s, { course: 300, sail: 2 });
-    s = sail(s, 3);
-    expect(coast.isLand(s.ship.position)).toBe(false);
-    expect(s.helm!.blocked).toBe(true);
+    for (let t = 0; t < 3; t += 0.05) {
+      s = tick(world, s, 0.05).state;
+      if (s.encounter) s = { ...s, encounter: null };
+      expect(coast.isLand(s.ship.position)).toBe(false);
+    }
+    // 沒有穿過大陸跑到內陸去（泉州西北方的陸地在東經 118° 附近）
+    expect(s.ship.position[0]).toBeGreaterThan(117);
+  });
+
+  it('stops when completely boxed in by land', () => {
+    let s = departPort(world, fresh());
+    // 把船放在海灣裡、船頭正對陸地的死角：左右都偏不出去時就停住並提醒
+    s = { ...s, ship: { position: s.ship.position, heading: 300 } };
+    const boxed = {
+      ...world,
+      coast: {
+        isLand: (p: [number, number]) =>
+          p[0] < s.ship.position[0] - 0.001 || p[1] > s.ship.position[1] + 0.001,
+      },
+    } as unknown as typeof world;
+    s = setHelm(s, { course: 315, sail: 2 });
+    const r = tick(boxed, s, 0.05);
+    expect(r.state.helm!.blocked).toBe(true);
+    expect(r.events.some((e) => e.type === 'warning')).toBe(true);
   });
 
   it('stays put at anchor', () => {
@@ -254,5 +277,24 @@ describe('familiar routes', () => {
       if (s.encounter) s = { ...s, encounter: null };
     }
     expect(s.dockedAt).toBe('quanzhou');
+  });
+});
+
+describe('harbor entrances', () => {
+  it('points the way into river ports like Guangzhou', () => {
+    let s: GameState = departPort(world, newGame(world, 'treasure-fleet', 12).state);
+    s = {
+      ...s,
+      unlockedPorts: [...s.unlockedPorts, 'guangzhou'],
+      ship: { position: [114.3, 22.2], heading: 0 },
+    };
+    expect(portInReach(world, s)).toBeNull();
+    const hint = approachHint(world, s)!;
+    expect(hint.portId).toBe('guangzhou');
+    const entrance = harborEntrance(world, 'guangzhou')!;
+    expect(coast.isLand(entrance)).toBe(false);
+    expect(portInReach(world, { ...s, ship: { position: entrance, heading: 0 } })).toBe(
+      'guangzhou',
+    );
   });
 });

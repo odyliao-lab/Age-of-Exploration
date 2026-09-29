@@ -2,6 +2,7 @@ import { useRef } from 'react';
 import { compass16 } from '@/geo/geo';
 import { knots, normDeg, type SailSetting } from '@/game/sailing';
 import {
+  approachHint,
   investigateBlocked,
   merchantInReach,
   portInReach,
@@ -56,6 +57,8 @@ export function HelmPanel() {
   const nearPort = portInReach(world, game);
   const port = nearPort ? world.ports.get(nearPort) : null;
   const rumorHere = rumorInReach(world, game);
+  const approach = approachHint(world, game);
+  const approachPort = approach ? world.ports.get(approach.portId) : null;
   const blocked = rumorHere ? investigateBlocked(world, game, rumorHere) : null;
   const merchant = merchantInReach(game);
   const errKm = Math.round(positionErrorKm(world, game));
@@ -129,6 +132,12 @@ export function HelmPanel() {
         )}
       </div>
       {blocked && <div className="sea-note">{blocked}</div>}
+      {!blocked && approach && approachPort && (
+        <div className="sea-note">
+          {approachPort.name}的港口入口在{compass16(approach.bearing)}方約 {Math.round(approach.km)}{' '}
+          公里，開過去就能入港。
+        </div>
+      )}
       <section className="helm-panel" aria-label="掌舵">
         <div className="helm-left">
           <div className="seg" role="group" aria-label="帆">
