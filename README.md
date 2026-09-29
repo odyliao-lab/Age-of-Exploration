@@ -3,7 +3,7 @@
 一款以「大航海時代」為題材的教育遊戲，讓學生透過航海、探險、任務與角色成長，
 在遊玩過程中自然學會世界地理（大洲、國家、海洋、地形、氣候、經緯度、文化與物產）。
 
-> 目前狀態：**企畫書 v1.0 已定案**，準備進入第一週可玩切片開發。
+> 目前狀態：**M1 專案骨架完成**，第一週可玩切片開發中。Cloudflare 部署尚未完成，見 [docs/03-deployment-blocker.md](docs/03-deployment-blocker.md)。
 >
 > 授權：程式碼 MIT，遊戲內容（知識卡、任務文本）CC BY-SA 4.0。
 
@@ -13,6 +13,7 @@
 | ------------------------------------------------------------------ | ---------------------------------- |
 | [docs/01-game-design-document.md](docs/01-game-design-document.md) | 完整企畫書（遊戲設計文件，GDD）    |
 | [docs/02-open-questions.md](docs/02-open-questions.md)             | 動工前需要逐項討論、定案的問題清單 |
+| [docs/03-deployment-blocker.md](docs/03-deployment-blocker.md)     | Cloudflare 部署卡關紀錄與交接說明  |
 | [docs/DEVLOG.md](docs/DEVLOG.md)                                   | 開發進度日誌                       |
 
 ## 開發

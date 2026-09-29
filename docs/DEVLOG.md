@@ -4,6 +4,13 @@
 
 ---
 
+## 2026-09-29 — Cloudflare 部署卡關，交接處理
+
+- repo 端部署設定已就緒：`.nvmrc`（Node 22）、`public/_headers`、`wrangler.jsonc`（Workers 靜態資源）、CI 加入格式檢查。
+- 卡關：Cloudflare 從未對本 repo 觸發建置；後台以 Workers 流程建立專案 `age-of-exploration` 時出現「an unknown error occurred」。
+- 詳細經過、推測原因、備案與完成標準見 `docs/03-deployment-blocker.md`。
+- 下一步：由 Codex 接手解決部署；第一週切片的地圖開發（第 3～4 小時）與部署問題互不相依，可並行。
+
 ## 2026-09-29 — M1 專案初始化與內容 schema（第一週切片第 1～2 小時）
 
 - 專案骨架：Vite ＋ React 19 ＋ TypeScript ＋ PixiJS 8（尚未使用）＋ Zustand ＋ Dexie ＋ Zod ＋ i18next。
