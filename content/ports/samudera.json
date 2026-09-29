@@ -1,0 +1,19 @@
+{
+  "id": "samudera",
+  "name": "蘇門答剌",
+  "name_en": "Samudera Pasai",
+  "historical_names": ["須文達那"],
+  "country": "印尼",
+  "country_en": "Indonesia",
+  "region": "malacca-java",
+  "location": [97.15, 5.2],
+  "kind": "port",
+  "goods": ["pepper"],
+  "climate": "熱帶雨林氣候",
+  "blurb": "蘇門答臘島北端的港口王國，鄭和船隊在這裡停泊補給、等候季風橫渡印度洋。一般認為「蘇門答臘」這個島名，就來自這個古國。",
+  "sights": [],
+  "gossip": [
+    "從這裡往西就是大洋，要等東北季風吹穩了才出發，一口氣橫渡到錫蘭。",
+    "這一帶的胡椒園一望無際，商人從大明、印度、阿拉伯都來這裡收胡椒。"
+  ]
+}

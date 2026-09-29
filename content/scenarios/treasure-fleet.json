@@ -13,7 +13,8 @@
   "region_tiers": {
     "east-china-sea": 0,
     "south-china-sea": 1,
-    "malacca-java": 1
+    "malacca-java": 1,
+    "bengal-malabar": 2
   },
   "starting_ship": "junk",
   "ships": ["junk", "fuchuan", "baochuan"],

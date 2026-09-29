@@ -1,0 +1,17 @@
+{
+  "id": "cape-comorin",
+  "category": "landmark",
+  "name": "科摩林角",
+  "name_en": "Cape Comorin (Kanyakumari)",
+  "location": [77.55, 7.95],
+  "domains": ["A", "B"],
+  "body": "科摩林角（今印度坎亞庫馬里）是印度半島的最南端，也是阿拉伯海、印度洋與孟加拉灣三片海域交會的地方。從東岸往西岸的船，都要繞過這個海角。",
+  "source": "維基百科「坎亞庫馬里」條目",
+  "rumor": {
+    "port": "cochin",
+    "from": "柯枝的漁夫",
+    "text": "一直往南走，陸地會越來越窄，最後尖尖地伸進海裡。站在那裡，左邊、右邊和前面是三片不同的海。從錫蘭來的船，都要繞過那個海角才能到我們這裡。",
+    "investigate_km": 35
+  },
+  "reviewed": false
+}

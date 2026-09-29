@@ -1,0 +1,62 @@
+{
+  "id": "tf-08-calicut",
+  "title": "胡椒之都古里",
+  "scenario": "treasure-fleet",
+  "chapter": 2,
+  "tier": 2,
+  "kind": "main",
+  "giver_port": "galle",
+  "objectives": [
+    {
+      "domain": "A",
+      "text": "能在地圖上找到印度半島西南岸的古里。"
+    },
+    {
+      "domain": "E",
+      "text": "能說明古里在印度洋貿易中的地位。"
+    }
+  ],
+  "prerequisites": ["tf-07-ceylon"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "錫蘭的商人",
+      "lines": [
+        "你們要去古里？那是西洋最大的市場，胡椒堆得像小山一樣。",
+        "繞過印度的南端，再沿著西岸往北。先在海圖上找找看它在哪裡吧。"
+      ]
+    },
+    {
+      "type": "locate",
+      "prompt": "在海圖上點出古里：印度半島西南岸的馬拉巴爾海岸，約北緯 11°、東經 76°。",
+      "target": [75.78, 11.25],
+      "tolerance_km": 150,
+      "explanation": "古里（今科澤科德）位在印度西南岸，面向阿拉伯海，是來自東方與西方的船隻交會的地方。"
+    },
+    {
+      "type": "navigate",
+      "target": "calicut",
+      "hint_level": 4,
+      "text": "線索：繞過印度半島最南端，沿著西岸往北，一座以胡椒聞名的大港。"
+    },
+    {
+      "type": "quiz",
+      "question": "為什麼古里會成為印度洋貿易的中心？",
+      "choices": [
+        "位在東西航路的中間，而且盛產胡椒",
+        "因為那裡是印度洋上唯一的港口",
+        "因為那裡終年沒有季風",
+        "因為那裡的海水特別淺，船不會沉"
+      ],
+      "answer": 0,
+      "explanation": "古里一邊連著阿拉伯海往西亞、東非的航路，一邊連著往東南亞與中國的航路，本身又是胡椒產地，所以成為各國商人交易的中心。"
+    }
+  ],
+  "reward": {
+    "xp": 220,
+    "gold": 350,
+    "reputation": 20,
+    "unlock_ports": ["calicut"],
+    "codex": []
+  }
+}

@@ -34,7 +34,9 @@ describe('crew talk', () => {
     const t = crewTalk({ ...base, position: [119.6, 23.6], openRumors: [taiwan] })!;
     expect(t.hintFor).toBe('taiwan');
     expect(t.text).not.toContain('台灣');
-    expect(crewTalk({ ...base, position: [119.6, 23.6], openRumors: [taiwan], hinted: ['taiwan'] })).toBeNull();
+    expect(
+      crewTalk({ ...base, position: [119.6, 23.6], openRumors: [taiwan], hinted: ['taiwan'] }),
+    ).toBeNull();
   });
 
   it('chats about wind, currents and latitude when the crew is ready', () => {

@@ -1,0 +1,59 @@
+{
+  "id": "tf-07-ceylon",
+  "title": "橫渡孟加拉灣",
+  "scenario": "treasure-fleet",
+  "chapter": 2,
+  "tier": 2,
+  "kind": "main",
+  "giver_port": "samudera",
+  "objectives": [
+    {
+      "domain": "B",
+      "text": "能說出孟加拉灣位在印度半島與中南半島之間。"
+    },
+    {
+      "domain": "D",
+      "text": "能說明冬季東北季風如何幫助船隻往西航行。"
+    }
+  ],
+  "prerequisites": ["tf-06-samudera"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "老舵工",
+      "lines": [
+        "東北季風吹起來了！出了港往西，一路橫渡孟加拉灣。",
+        "途中會經過一群叫翠藍嶼的島，看到它們就走對了。再往西，就是寶石之島錫蘭。"
+      ]
+    },
+    {
+      "type": "discover",
+      "target": "nicobar"
+    },
+    {
+      "type": "navigate",
+      "target": "galle",
+      "hint_level": 3,
+      "text": "線索：印度半島東南方的大島，港口在島的西南岸。"
+    },
+    {
+      "type": "quiz",
+      "question": "冬天從蘇門答臘往西航向錫蘭，季風對船隊有什麼幫助？",
+      "choices": [
+        "東北季風從東北方吹來，往西航行是順風或側順風",
+        "西南季風把船推向西方",
+        "冬天沒有風，船隊要划槳",
+        "季風會讓海水結冰，船走得比較穩"
+      ],
+      "answer": 0,
+      "explanation": "北印度洋冬季吹東北季風，風從東北吹向西南，往西航行的船正好借風前進。夏季風向反轉，就適合回程往東。"
+    }
+  ],
+  "reward": {
+    "xp": 200,
+    "gold": 300,
+    "reputation": 15,
+    "unlock_ports": ["galle"],
+    "codex": []
+  }
+}

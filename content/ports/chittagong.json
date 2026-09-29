@@ -1,0 +1,19 @@
+{
+  "id": "chittagong",
+  "name": "榜葛剌（吉大港）",
+  "name_en": "Chittagong (Bengal)",
+  "historical_names": ["榜葛剌", "察地港"],
+  "country": "孟加拉",
+  "country_en": "Bangladesh",
+  "region": "bengal-malabar",
+  "location": [91.82, 22.33],
+  "kind": "port",
+  "goods": ["cotton-cloth"],
+  "climate": "熱帶季風氣候",
+  "blurb": "恆河與布拉馬普特拉河三角洲東側的港口，是古代榜葛剌國的門戶。1414 年榜葛剌向明朝進貢一頭長頸鹿，被當成傳說中的神獸「麒麟」。",
+  "sights": [],
+  "gossip": [
+    "上游好幾條大河在這一帶出海，雨季時河水暴漲，一大片平原都會淹在水裡。",
+    "這裡織的細棉布薄得透光，聽說一整匹布可以從戒指中間穿過去。"
+  ]
+}

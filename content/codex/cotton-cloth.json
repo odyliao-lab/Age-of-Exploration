@@ -1,0 +1,10 @@
+{
+  "id": "cotton-cloth",
+  "category": "goods",
+  "name": "印度棉布",
+  "name_en": "Indian Cotton Textiles",
+  "domains": ["F"],
+  "body": "印度是世界上最早種植棉花、織造棉布的地方之一。孟加拉的細棉布（平紋細布）輕薄精緻，古里等港口的棉布則大量輸往東南亞與西亞，是印度洋貿易的大宗商品。",
+  "source": "維基百科「平紋細布」「棉花」條目",
+  "reviewed": false
+}

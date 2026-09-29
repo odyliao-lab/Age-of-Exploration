@@ -73,12 +73,17 @@ class Heap {
  * harbors：允許通過的港區（港口常位於河口或海灣深處）。
  */
 export function findSeaPath(from: LonLat, to: LonLat, harbors: Harbor[]): LonLat[] | null {
+  // 先在兩端附近搜尋；繞遠路（例如從東海繞過馬來半島到孟加拉灣）時放大搜尋範圍再試
+  return searchSeaPath(from, to, harbors, PAD_DEG) ?? searchSeaPath(from, to, harbors, PAD_DEG * 3);
+}
+
+function searchSeaPath(from: LonLat, to: LonLat, harbors: Harbor[], pad: number): LonLat[] | null {
   const start = toCell(from);
   const goal = toCell(to);
-  const minC = Math.min(start.c, goal.c) - PAD_DEG / MASK_RES;
-  const maxC = Math.max(start.c, goal.c) + PAD_DEG / MASK_RES;
-  const minR = Math.max(0, Math.min(start.r, goal.r) - PAD_DEG / MASK_RES);
-  const maxR = Math.min(180 / MASK_RES - 1, Math.max(start.r, goal.r) + PAD_DEG / MASK_RES);
+  const minC = Math.min(start.c, goal.c) - pad / MASK_RES;
+  const maxC = Math.max(start.c, goal.c) + pad / MASK_RES;
+  const minR = Math.max(0, Math.min(start.r, goal.r) - pad / MASK_RES);
+  const maxR = Math.min(180 / MASK_RES - 1, Math.max(start.r, goal.r) + pad / MASK_RES);
   const W = maxC - minC + 1;
   const key = (c: number, r: number) => (r - minR) * W + (c - minC);
   const passable = (c: number, r: number) => {

@@ -26,6 +26,10 @@ export const GOODS_PRICE: Record<string, number> = {
   'borneo-camphor': 46,
   'birds-nest': 60,
   sulfur: 16,
+  cinnamon: 44,
+  gemstones: 90,
+  'cotton-cloth': 22,
+  cowrie: 12,
 };
 
 const PRODUCER_FACTOR = 0.55;

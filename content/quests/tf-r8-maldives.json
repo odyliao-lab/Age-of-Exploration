@@ -1,0 +1,50 @@
+{
+  "id": "tf-r8-maldives",
+  "title": "用貝殼當錢的島",
+  "scenario": "treasure-fleet",
+  "chapter": 2,
+  "tier": 2,
+  "kind": "region",
+  "giver_port": "galle",
+  "objectives": [
+    {
+      "domain": "B",
+      "text": "知道馬爾地夫是由珊瑚島組成的群島。"
+    },
+    {
+      "domain": "F",
+      "text": "知道海貝曾在印度洋沿岸被當作貨幣。"
+    }
+  ],
+  "prerequisites": ["tf-07-ceylon"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "錫蘭港的換錢商",
+      "lines": [
+        "看看這些小貝殼，在很多地方它們就是錢。",
+        "這些貝殼大多來自西邊的溜山。去那裡看看，就知道它們從哪裡來了。"
+      ]
+    },
+    {
+      "type": "navigate",
+      "target": "maldives",
+      "hint_level": 3,
+      "text": "線索：錫蘭西方、印度南方的海上，一大片低平的珊瑚島。"
+    },
+    {
+      "type": "quiz",
+      "question": "溜山（馬爾地夫）出產的海貝，古代在印度洋沿岸主要被拿來做什麼？",
+      "choices": ["當作貨幣", "磨成粉當藥", "當船的壓艙石", "做成漁網"],
+      "answer": 0,
+      "explanation": "海貝光滑、耐用又不容易仿冒，大小也差不多，很適合當小額貨幣。中國古代也用貝殼當錢，所以許多和錢有關的字都有「貝」字旁。"
+    }
+  ],
+  "reward": {
+    "xp": 140,
+    "gold": 220,
+    "reputation": 10,
+    "unlock_ports": [],
+    "codex": []
+  }
+}

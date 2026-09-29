@@ -1,0 +1,55 @@
+{
+  "id": "tf-06-samudera",
+  "title": "大洋前的港口",
+  "scenario": "treasure-fleet",
+  "chapter": 2,
+  "tier": 2,
+  "kind": "main",
+  "giver_port": "malacca",
+  "objectives": [
+    {
+      "domain": "A",
+      "text": "能找到蘇門答臘島北端與麻六甲海峽的西北出口。"
+    },
+    {
+      "domain": "D",
+      "text": "知道橫渡印度洋要等待季風。"
+    }
+  ],
+  "prerequisites": ["tf-05-strait-guardian"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "船隊的航海長",
+      "lines": [
+        "海峽已經走通了，接下來要橫渡大洋。",
+        "船隊會先到蘇門答臘北端的蘇門答剌停泊，在那裡等東北季風吹穩。沿著海峽一直往西北走吧。"
+      ]
+    },
+    {
+      "type": "navigate",
+      "target": "samudera",
+      "hint_level": 3,
+      "text": "線索：麻六甲海峽的西北出口附近，蘇門答臘島的北端。"
+    },
+    {
+      "type": "quiz",
+      "question": "船隊為什麼要在蘇門答剌等待，而不是出了海峽就直接橫渡印度洋？",
+      "choices": [
+        "因為要等季風吹穩，順著風橫渡大洋",
+        "因為這裡的港口不收稅",
+        "因為印度洋只有夏天可以航行",
+        "因為要等海水退潮"
+      ],
+      "answer": 0,
+      "explanation": "帆船橫渡大洋要靠風。冬季的東北季風把船從東往西推，船隊會在港口等到風向穩定再出發，這就是「候風」。"
+    }
+  ],
+  "reward": {
+    "xp": 180,
+    "gold": 250,
+    "reputation": 15,
+    "unlock_ports": ["samudera"],
+    "codex": []
+  }
+}

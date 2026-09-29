@@ -1,0 +1,12 @@
+{
+  "id": "nicobar",
+  "category": "island",
+  "name": "翠藍嶼",
+  "name_en": "Nicobar Islands",
+  "location": [93.5, 7.5],
+  "discover_radius_km": 130,
+  "domains": ["B", "A"],
+  "body": "翠藍嶼是明代對孟加拉灣東南方尼科巴群島的稱呼，位於蘇門答臘與錫蘭之間的航路上，是鄭和船隊橫渡孟加拉灣時的重要地標。",
+  "source": "馬歡《瀛涯勝覽》；維基百科「尼科巴群島」條目",
+  "reviewed": false
+}
