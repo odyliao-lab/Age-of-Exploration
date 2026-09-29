@@ -21,8 +21,11 @@ import {
   openRumors,
   portInReach,
   rumorInReach,
+  reportFinds,
+  reportReward,
   rumorsAt,
   setHelm,
+  unreportedFinds,
   tick,
   type GameState,
 } from './state';
@@ -176,7 +179,7 @@ describe('rumors and investigation', () => {
     expect(rumorsAt(world, s, 'quanzhou').map((c) => c.id)).toContain('taiwan');
     s = hearRumor(world, s, 'taiwan');
     expect(openRumors(world, s).map((c) => c.id)).toEqual(['taiwan']);
-    expect(rumorsAt(world, s, 'quanzhou')).toEqual([]);
+    expect(rumorsAt(world, s, 'quanzhou').map((c) => c.id)).not.toContain('taiwan');
 
     // 傳聞的地點不會因為路過就自動發現
     const target = world.codex.get('taiwan')!.location!;
@@ -198,5 +201,26 @@ describe('rumors and investigation', () => {
     expect(r.state.reputation).toBe(s.reputation + 5);
     expect(openRumors(world, r.state)).toEqual([]);
     expect(investigate(world, r.state, 'taiwan').state).toBe(r.state);
+
+    // 回港向學者回報，拿賞金；只能回報一次
+    const docked = { ...r.state, helm: null, dockedAt: 'quanzhou' };
+    expect(unreportedFinds(world, docked).map((c) => c.id)).toEqual(['taiwan']);
+    const rep = reportFinds(world, docked);
+    expect(rep.count).toBe(1);
+    expect(rep.state.gold).toBe(docked.gold + reportReward(world, world.codex.get('taiwan')!).gold);
+    expect(reportFinds(world, rep.state).count).toBe(0);
+  });
+});
+
+describe('rumor content', () => {
+  it('puts every rumored place on open water within reach of its port', () => {
+    expect(world.rumors.length).toBeGreaterThanOrEqual(10);
+    for (const c of world.rumors) {
+      expect(coast.isLand(c.location!), c.id).toBe(false);
+      const port = world.ports.get(c.rumor!.port)!;
+      expect(distanceKm(port.location, c.location!), c.id).toBeLessThan(1800);
+      // 傳聞地點不能被路過自動發現
+      expect(world.landmarks.map((l) => l.id)).not.toContain(c.id);
+    }
   });
 });

@@ -265,7 +265,7 @@ function ShipwreckModal({ modal }: { modal: Extract<Modal, { type: 'shipwreck' }
         {modal.cause.lesson}
       </p>
       <ul className="objectives">
-        <li>規劃航線時留意警告：避開{modal.cause.name}的好發季節與海域。</li>
+        <li>海圖上看到旋轉的雲團就繞開，並記住{modal.cause.name}的好發季節與海域。</li>
         <li>遇到風暴時，「下錨等待」最安全，只是會多花幾天和補給。</li>
         <li>出航前在船塢把船修好，船體越完整越能撐過風浪。</li>
       </ul>

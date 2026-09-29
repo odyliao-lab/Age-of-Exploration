@@ -218,6 +218,8 @@ export interface GameState {
   appearance: Appearance;
   /** 聽過的傳聞（codex id） */
   rumors: string[];
+  /** 已經向學者回報的發現 */
+  reported: string[];
   /** 船上的貨物 */
   cargo: Cargo;
   /** 各港各貨因買賣造成的價格波動 */
@@ -330,6 +332,7 @@ export function newGame(world: World, scenarioId: string, seed = newSeed()): Ste
     log: [{ day: 0, text: `從${home.name}出發，展開航海生涯`, kind: 'arrive' }],
     appearance: defaultAppearance(),
     rumors: [],
+    reported: [],
     cargo: {},
     market: {},
     nav: { day: 0, errorKm: 2 },
@@ -1084,6 +1087,47 @@ export function investigate(world: World, state: GameState, id: string): StepRes
     state: progressed.state,
     events: [...events, ...progressed.events],
     fogChanged: progressed.fogChanged,
+  };
+}
+
+/** 已經調查發現、還沒回報的傳聞地點 */
+export function unreportedFinds(world: World, state: GameState): CodexEntry[] {
+  return world.rumors.filter(
+    (c) => state.discovered.includes(c.id) && !state.reported.includes(c.id),
+  );
+}
+
+/** 回報的賞金：離傳聞來源港越遠越多 */
+export function reportReward(world: World, c: CodexEntry): { gold: number; reputation: number } {
+  const port = world.ports.get(c.rumor!.port);
+  const km = port ? distanceKm(port.location, c.location!) : 300;
+  return { gold: Math.min(220, 50 + Math.round(km / 12)), reputation: 5 };
+}
+
+/** 在書院向學者回報所有新發現 */
+export function reportFinds(
+  world: World,
+  state: GameState,
+): { state: GameState; gold: number; count: number } {
+  if (!state.dockedAt) return { state, gold: 0, count: 0 };
+  const finds = unreportedFinds(world, state);
+  if (!finds.length) return { state, gold: 0, count: 0 };
+  let gold = 0;
+  let reputation = 0;
+  for (const c of finds) {
+    const r = reportReward(world, c);
+    gold += r.gold;
+    reputation += r.reputation;
+  }
+  return {
+    state: {
+      ...state,
+      gold: state.gold + gold,
+      reputation: state.reputation + reputation,
+      reported: [...state.reported, ...finds.map((c) => c.id)],
+    },
+    gold,
+    count: finds.length,
   };
 }
 

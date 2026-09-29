@@ -20,6 +20,7 @@ import {
   trackDaily,
   buyShip,
   departPort,
+  reportFinds,
   greetMerchant,
   sightStars,
   pray,
@@ -159,6 +160,7 @@ interface GameStore {
   toggleAnchor: () => void;
   dock: (portId: string) => void;
   hearRumor: (id: string) => void;
+  report: () => void;
   openStargazing: (on: boolean) => void;
   sightStars: (zhi: number) => SightingResult | null;
   greetMerchant: (fleetId: number, choice: 'news' | 'supplies') => void;
@@ -573,6 +575,16 @@ export const useGame = create<GameStore>((set, get) => {
         kind: r.profit >= 0 ? 'success' : 'warn',
       });
       play(r.profit >= 0 ? 'questComplete' : 'warn');
+    },
+
+    report: () => {
+      const { world, game } = get();
+      if (!world || !game) return;
+      const r = reportFinds(world, game);
+      if (!r.count) return;
+      commit(r.state);
+      toast({ text: `學者記下了 ${r.count} 項發現，致贈 ${r.gold} 金幣！`, kind: 'success' });
+      play('questComplete');
     },
 
     hearRumor: (id) => {

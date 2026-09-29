@@ -66,6 +66,7 @@ export function deserialize(data: SerializedSave): GameState {
     // 第 7 版新增：親手駕船
     helm: data.helm ?? null,
     rumors: data.rumors ?? [],
+    reported: data.reported ?? [],
     cargo: data.cargo ?? {},
     market: data.market ?? {},
     nav: data.nav ?? { day: data.day ?? 0, errorKm: 2 },

@@ -1,0 +1,17 @@
+{
+  "id": "sulu",
+  "category": "island",
+  "name": "蘇祿群島",
+  "name_en": "Sulu Archipelago",
+  "location": [121.0, 6.2],
+  "domains": ["B", "E"],
+  "body": "蘇祿群島位於婆羅洲與民答那峨島之間，以採珍珠聞名。1417 年蘇祿東王率領使團到北京朝貢，歸途病逝於山東德州，今日德州仍有蘇祿王墓。",
+  "source": "維基百科「蘇祿蘇丹國」「蘇祿王墓」條目",
+  "rumor": {
+    "port": "brunei",
+    "text": "往東北走，海上有一串島，一路排到很遠的地方，那就是蘇祿國。那裡的珍珠又大又亮。不過要小心，那一帶的海盜也不少。",
+    "investigate_km": 35,
+    "from": "渤泥的珍珠商"
+  },
+  "reviewed": false
+}

@@ -12,8 +12,10 @@ import {
   crewSlots,
   marketQuotes,
   mods,
+  reportReward,
   rumorsAt,
   shipyardOffers,
+  unreportedFinds,
 } from '@/game/state';
 import { PROFESSIONS } from '@/game/progression';
 import { repairCost, resupplyCost, shipType } from '@/game/ship';
@@ -200,9 +202,30 @@ function Office() {
 
 function Academy() {
   const { world, game, port } = usePort();
+  const report = useGame((s) => s.report);
   const quests = availableQuests(world, game, port.id).filter((q) => q.kind === 'academy');
+  const finds = unreportedFinds(world, game);
   return (
     <>
+      <h3>回報發現</h3>
+      {finds.length === 0 ? (
+        <p className="meta">依酒館的傳聞找到新地方後，回來告訴學者，可以得到賞金與名聲。</p>
+      ) : (
+        <>
+          <ul className="reward-list">
+            {finds.map((c) => (
+              <li key={c.id}>
+                {c.name}：{reportReward(world, c).gold} 金幣、名聲 +
+                {reportReward(world, c).reputation}
+              </li>
+            ))}
+          </ul>
+          <button type="button" className="primary" onClick={report}>
+            📜 回報 {finds.length} 項發現
+          </button>
+        </>
+      )}
+      <h3>學者的挑戰</h3>
       <p className="meta">學者的挑戰都是選擇性的；答錯的題目會在航海日誌裡安排複習。</p>
       <QuestList quests={quests} />
     </>
