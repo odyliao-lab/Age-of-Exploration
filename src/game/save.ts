@@ -10,7 +10,7 @@ import { fullCondition, shipType } from './ship';
 import { skillPointsEarned } from './progression';
 import { EMPTY_STATS } from './achievements';
 import { defaultAppearance } from './cosmetics';
-import { SAVE_VERSION, type GameState } from './state';
+import { EMPTY_RIVAL, SAVE_VERSION, type GameState } from './state';
 
 export interface SerializedSave extends Omit<GameState, 'fog'> {
   fog: string;
@@ -81,6 +81,7 @@ export function deserialize(data: SerializedSave): GameState {
     hinted: data.hinted ?? [],
     routes: data.routes ?? {},
     trail: data.trail ?? [],
+    rival: { ...EMPTY_RIVAL, ...data.rival },
   };
 }
 

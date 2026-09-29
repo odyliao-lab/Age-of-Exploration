@@ -27,6 +27,9 @@ import {
   reportFinds,
   greetMerchant,
   greetEnvoy,
+  rivalAtTavern,
+  RIVAL_BONUS,
+  RIVAL_NAME,
   sellToMerchant,
   takeSounding,
   sightStars,
@@ -96,7 +99,15 @@ export type Modal =
   | { type: 'questComplete'; questId: string; reward: QuestReward }
   | { type: 'levelUp'; level: number }
   | { type: 'shipwreck'; cause: StormRisk; lostGold: number; portId: string; month: number }
-  | { type: 'info'; title: string; text: string; lesson?: string; stats?: string[] };
+  | {
+      type: 'info';
+      title: string;
+      text: string;
+      lesson?: string;
+      /** 一般說明（不是地理小教室） */
+      note?: string;
+      stats?: string[];
+    };
 
 export interface MapMark {
   lonLat: LonLat;
@@ -652,7 +663,33 @@ export const useGame = create<GameStore>((set, get) => {
         toast({ text: `水手長：「${text}」`, kind: 'talk' });
       }
     },
-    enterBuilding: (kind) => set({ building: kind, lastBuilding: kind }),
+    enterBuilding: (kind) => {
+      set({ building: kind, lastBuilding: kind });
+      const { world, game } = get();
+      if (kind !== 'tavern' || !world || !game) return;
+      const r = rivalAtTavern(world, game);
+      if (!r.news) return;
+      commit(r.state);
+      const n = r.news;
+      set((s) => ({
+        modals: [
+          ...s.modals,
+          n.type === 'challenge'
+            ? {
+                type: 'info',
+                title: `對手船長${RIVAL_NAME}`,
+                text: `一位穿著綢緞長袍的年輕船長把酒杯往桌上一放：「我是廣州來的${RIVAL_NAME}。聽說你也在打聽${n.target.rumor!.from}說的那個地方？${n.days} 天之內，看誰先找到、先回報給學者！」`,
+                note: `比賽是選擇性的：${n.days} 天內搶先回報，學者會多給 ${RIVAL_BONUS.gold} 金幣和 ${RIVAL_BONUS.reputation} 點名聲。輸了也沒關係，那個地方還是可以去找。`,
+              }
+            : {
+                type: 'info',
+                title: `${RIVAL_NAME}搶先了`,
+                text: `${RIVAL_NAME}得意地晃著航海日誌：「${n.target.name}？我早就找到，還回報給學者啦！下次再比吧。」`,
+                note: '別灰心，那個地方你還是可以去找、去回報。下次在酒館遇到他，還會有新的比賽。',
+              },
+        ],
+      }));
+    },
     leaveBuilding: () => set({ building: null }),
 
     pray: () => {
@@ -708,6 +745,12 @@ export const useGame = create<GameStore>((set, get) => {
       if (!r.count) return;
       commit(r.state);
       toast({ text: `學者記下了 ${r.count} 項發現，致贈 ${r.gold} 金幣！`, kind: 'success' });
+      if (r.raceWon) {
+        toast({
+          text: `你比${RIVAL_NAME}先一步！學者額外致贈 ${RIVAL_BONUS.gold} 金幣。`,
+          kind: 'success',
+        });
+      }
       play('questComplete');
     },
 

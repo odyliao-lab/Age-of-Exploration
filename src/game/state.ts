@@ -255,6 +255,8 @@ export interface GameState {
   storms: StormCell[];
   /** 看得見的海霧 */
   mists: MistBank[];
+  /** 對手船長的比賽 */
+  rival: RivalState;
   nextEntityId: number;
   /** 熟悉航線：「出發港>抵達港」→ 親手開過的航跡 */
   routes: Record<string, LonLat[]>;
@@ -374,6 +376,7 @@ export function newGame(world: World, scenarioId: string, seed = newSeed()): Ste
     fleets: [],
     storms: [],
     mists: [],
+    rival: { ...EMPTY_RIVAL },
     nextEntityId: 1,
     talkDay: 0.5,
     lastRegionId: null,
@@ -1586,10 +1589,10 @@ export function reportReward(world: World, c: CodexEntry): { gold: number; reput
 export function reportFinds(
   world: World,
   state: GameState,
-): { state: GameState; gold: number; count: number } {
-  if (!state.dockedAt) return { state, gold: 0, count: 0 };
+): { state: GameState; gold: number; count: number; raceWon: boolean } {
+  if (!state.dockedAt) return { state, gold: 0, count: 0, raceWon: false };
   const finds = unreportedFinds(world, state);
-  if (!finds.length) return { state, gold: 0, count: 0 };
+  if (!finds.length) return { state, gold: 0, count: 0, raceWon: false };
   let gold = 0;
   let reputation = 0;
   for (const c of finds) {
@@ -1597,15 +1600,103 @@ export function reportFinds(
     gold += r.gold;
     reputation += r.reputation;
   }
+  // 和對手比賽的地點：搶先回報有額外獎勵
+  let rival = state.rival;
+  const raceWon = !!rival.target && finds.some((c) => c.id === rival.target);
+  if (raceWon) {
+    gold += RIVAL_BONUS.gold;
+    reputation += RIVAL_BONUS.reputation;
+    rival = { ...rival, target: null, wins: rival.wins + 1, lastSeenDay: state.day };
+  }
   return {
     state: {
       ...state,
       gold: state.gold + gold,
       reputation: state.reputation + reputation,
       reported: [...state.reported, ...finds.map((c) => c.id)],
+      rival,
     },
     gold,
     count: finds.length,
+    raceWon,
+  };
+}
+
+// ---------------------------------------------------------------- 對手船長
+
+/**
+ * 對手船長（虛構人物）：在酒館遇到時，會挑一個你聽過、還沒找到的傳聞跟你比賽，
+ * 看誰先回報給學者。贏了有額外獎勵；輸了沒有懲罰，只會被他笑一下。
+ */
+export const RIVAL_NAME = '陸天行';
+
+export interface RivalState {
+  /** 正在比賽的傳聞地點 */
+  target: string | null;
+  /** 對手預計回報的日子 */
+  due: number;
+  wins: number;
+  losses: number;
+  /** 上次見面（比完或下戰帖）的日子 */
+  lastSeenDay: number;
+}
+
+export const EMPTY_RIVAL: RivalState = {
+  target: null,
+  due: 0,
+  wins: 0,
+  losses: 0,
+  lastSeenDay: -99,
+};
+
+export const RIVAL_BONUS = { gold: 120, reputation: 5 };
+/** 比完之後隔幾天才會再下戰帖 */
+const RIVAL_COOLDOWN_DAYS = 3;
+
+export type RivalNews =
+  | { type: 'challenge'; target: CodexEntry; days: number }
+  | { type: 'lost'; target: CodexEntry }
+  | null;
+
+/** 走進酒館時：比賽到期就算對手贏；沒在比賽時，可能下新的戰帖 */
+export function rivalAtTavern(
+  world: World,
+  state: GameState,
+): { state: GameState; news: RivalNews } {
+  const port = state.dockedAt ? world.ports.get(state.dockedAt) : null;
+  if (!port) return { state, news: null };
+  const r = state.rival;
+  if (r.target) {
+    const c = world.codex.get(r.target);
+    if (!c || state.reported.includes(r.target)) {
+      return { state: { ...state, rival: { ...r, target: null } }, news: null };
+    }
+    if (state.day > r.due) {
+      return {
+        state: {
+          ...state,
+          rival: { ...r, target: null, losses: r.losses + 1, lastSeenDay: state.day },
+        },
+        news: { type: 'lost', target: c },
+      };
+    }
+    return { state, news: null };
+  }
+  if (state.day < r.lastSeenDay + RIVAL_COOLDOWN_DAYS) return { state, news: null };
+  const open = openRumors(world, state)
+    .filter((c) => c.location && !state.reported.includes(c.id))
+    .sort(
+      (a, b) => distanceKm(a.location!, port.location) - distanceKm(b.location!, port.location),
+    );
+  const target = open[0];
+  if (!target) return { state, news: null };
+  const days = Math.round(10 + distanceKm(target.location!, port.location) / 100);
+  return {
+    state: {
+      ...state,
+      rival: { ...r, target: target.id, due: state.day + days, lastSeenDay: state.day },
+    },
+    news: { type: 'challenge', target, days },
   };
 }
 

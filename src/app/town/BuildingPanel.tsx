@@ -5,6 +5,7 @@ import { drawPerson, type PersonLook } from '@/town/art';
 import { BUILDING_NAMES, type BuildingKind, type Culture } from '@/town/layout';
 import {
   PRAY_COST,
+  RIVAL_NAME,
   availableCrew,
   availableQuests,
   cargoCapacity,
@@ -333,6 +334,7 @@ function Tavern() {
           </button>
         </article>
       ))}
+      <RivalStatus />
       <h3>找工作的人</h3>
       {recruits.length === 0 && <p className="meta">目前沒有人在找船上的差事。</p>}
       {slotsFull && recruits.length > 0 && (
@@ -355,6 +357,30 @@ function Tavern() {
           </button>
         </article>
       ))}
+    </>
+  );
+}
+
+function RivalStatus() {
+  const { world, game } = usePort();
+  const r = game.rival;
+  if (!r.target && r.wins + r.losses === 0) return null;
+  const c = r.target ? world.codex.get(r.target) : null;
+  const left = Math.max(0, Math.ceil(r.due - game.day));
+  return (
+    <>
+      <h3>對手船長{RIVAL_NAME}</h3>
+      {c ? (
+        <p>
+          他也在找{c.rumor?.from ?? '傳聞'}說的那個地方，大約還有 <strong>{left}</strong>{' '}
+          天就會回報給學者。搶先一步吧！
+        </p>
+      ) : (
+        <p className="meta">他出海去了，過幾天可能又會來找你比賽。</p>
+      )}
+      <div className="meta">
+        戰績：你贏 {r.wins} 次、他贏 {r.losses} 次
+      </div>
     </>
   );
 }

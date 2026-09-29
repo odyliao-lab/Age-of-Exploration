@@ -56,6 +56,8 @@ export interface AchievementInput {
   reported: string[];
   /** 熟悉航線（兩個方向各算一條） */
   routes: Record<string, unknown>;
+  /** 和對手船長比賽的戰績 */
+  rival: { wins: number };
 }
 
 export interface AchievementDef {
@@ -349,6 +351,21 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     category: '知識',
     title: '通譯',
     check: (s) => languagesHeard(s.visitedPorts) >= 6,
+  },
+  {
+    id: 'rival-1',
+    name: '搶先一步',
+    description: '比對手船長先回報傳聞地點',
+    category: '探索',
+    check: (s) => s.rival.wins >= 1,
+  },
+  {
+    id: 'rival-3',
+    name: '青出於藍',
+    description: '在傳聞競賽中贏過對手船長 3 次',
+    category: '探索',
+    title: '海上新星',
+    check: (s) => s.rival.wins >= 3,
   },
   {
     id: 'phoenix',

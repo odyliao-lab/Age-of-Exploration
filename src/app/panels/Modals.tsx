@@ -135,6 +135,7 @@ export function RewardModal({ modal }: { modal: Modal }) {
             {modal.lesson}
           </p>
         )}
+        {modal.note && <p className="meta">{modal.note}</p>}
         <div className="row end">
           <button type="button" className="primary" autoFocus onClick={dismiss}>
             繼續

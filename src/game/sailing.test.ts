@@ -29,6 +29,8 @@ import {
   rumorInReach,
   reportFinds,
   reportReward,
+  rivalAtTavern,
+  RIVAL_BONUS,
   rumorsAt,
   setHelm,
   unreportedFinds,
@@ -313,5 +315,35 @@ describe('sighting ports along the coast', () => {
     const r = tick(world, s, 0.05);
     expect(r.state.unlockedPorts).toContain('fuzhou');
     expect(r.events.some((e) => e.type === 'portUnlocked' && e.portId === 'fuzhou')).toBe(true);
+  });
+});
+
+describe('rival captain', () => {
+  const docked = (): GameState => ({
+    ...newGame(world, 'treasure-fleet', 1).state,
+    rumors: ['taiwan'],
+  });
+
+  it('challenges you to find a rumored place first, and pays a bonus if you win', () => {
+    const a = rivalAtTavern(world, docked());
+    expect(a.news?.type).toBe('challenge');
+    expect(a.state.rival.target).toBe('taiwan');
+    // 同一天再進酒館不會重複下戰帖
+    expect(rivalAtTavern(world, a.state).news).toBeNull();
+    const found = { ...a.state, discovered: [...a.state.discovered, 'taiwan'] };
+    const plain = reportFinds(world, { ...found, rival: { ...found.rival, target: null } });
+    const r = reportFinds(world, found);
+    expect(r.raceWon).toBe(true);
+    expect(r.gold).toBe(plain.gold + RIVAL_BONUS.gold);
+    expect(r.state.rival).toMatchObject({ target: null, wins: 1 });
+  });
+
+  it('wins the race if you are too slow, without any penalty', () => {
+    const a = rivalAtTavern(world, docked()).state;
+    const late = { ...a, day: a.rival.due + 1 };
+    const r = rivalAtTavern(world, late);
+    expect(r.news?.type).toBe('lost');
+    expect(r.state.rival).toMatchObject({ target: null, losses: 1 });
+    expect(r.state.gold).toBe(late.gold);
   });
 });
