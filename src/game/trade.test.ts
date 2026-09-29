@@ -6,6 +6,7 @@ import {
   marketQuotes,
   newGame,
   pirateCargoShare,
+  greetingQuestion,
   resolveEvent,
   tradeBuy,
   tradeSell,
@@ -114,5 +115,21 @@ describe('pirates can take cargo instead of gold', () => {
     expect(r.state.gold).toBe(500);
     expect(r.state.encounter).toBeNull();
     expect(r.state.cargo).toEqual({ silk: { qty: 6, cost: 120 } });
+  });
+});
+
+describe('greeting pirates in their own language', () => {
+  it('asks for the local greeting once you have learned it in a nearby port', () => {
+    const base = newGame(world, 'treasure-fleet', 1).state;
+    expect(greetingQuestion(world, base, [101, 3], () => 0.4)).toBeUndefined();
+    const q = greetingQuestion(
+      world,
+      { ...base, visitedPorts: [...base.visitedPorts, 'malacca'] },
+      [101, 3],
+      () => 0.4,
+    )!;
+    expect(q.prompt).toContain('馬來語');
+    expect(q.choices[q.answer]).toBe('Apa khabar?');
+    expect(new Set(q.choices).size).toBe(3);
   });
 });

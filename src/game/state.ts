@@ -54,12 +54,15 @@ import {
   flotsamEffect,
   resolveAnswer,
   resolveChoice,
+  mcq,
   type EventContext,
+  type EventQuestion,
   type EventEffect,
   type EventId,
   type LocateResult,
   type VoyageEvent,
 } from './events';
+import { greetingFor } from '@/town/folkTalk';
 import { createFog, exploredAreaKm2, exploredFraction, revealAround } from './fog';
 import { newSeed, nextRandom } from './rng';
 import {
@@ -758,6 +761,7 @@ function seaLife(
       const ev = createEvent('pirates', ctx, rand);
       encounter = {
         ...ev,
+        question: greetingQuestion(world, state, pos, rand) ?? ev.question,
         text: '海盜快船追上來了，鉤索搭上船舷，船上的人高聲喊話，要你們交出貨物。',
         choices: [
           ...(ev.choices ?? []).filter((c) => c.id !== 'flee'),
@@ -865,6 +869,44 @@ function seaLife(
     events,
     encounter,
   };
+}
+
+/**
+ * 被海盜追上時的知識挑戰：如果在附近港口學過當地的問候語，
+ * 就改成「用對方的語言回應」（語言也是文化地理）。
+ */
+export function greetingQuestion(
+  world: World,
+  state: GameState,
+  pos: LonLat,
+  rand: () => number,
+): EventQuestion | undefined {
+  const near = [...world.content.ports].sort(
+    (a, b) => distanceKm(a.location, pos) - distanceKm(b.location, pos),
+  )[0];
+  const g = near && distanceKm(near.location, pos) < 1500 ? greetingFor(near.id) : null;
+  if (!g || !state.visitedPorts.some((id) => greetingFor(id)?.lang === g.lang)) return undefined;
+  const others = [
+    ...new Map(
+      world.content.ports
+        .map((p) => greetingFor(p.id))
+        .filter(
+          (x): x is NonNullable<typeof x> => !!x && x.lang !== g.lang && x.phrase !== g.phrase,
+        )
+        .map((x) => [x.phrase, x]),
+    ).values(),
+  ];
+  const wrong: string[] = [];
+  while (wrong.length < 2 && others.length) {
+    wrong.push(others.splice(Math.floor(rand() * others.length), 1)[0].phrase);
+  }
+  return mcq(
+    `海盜船長用${g.lang}大聲喊話。想起在港口學過的問候，你要怎麼回應他？`,
+    g.phrase,
+    wrong,
+    `「${g.phrase}」是${g.lang}的問候，意思是「${g.meaning}」。會說對方的語言，是化解緊張的第一步。`,
+    rand,
+  );
 }
 
 /** 附近可以打招呼的商船 */
