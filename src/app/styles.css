@@ -2160,3 +2160,40 @@ html.large-text .helm-left .condition.compact {
   color: #b5482b;
   font-weight: 700;
 }
+
+.history-legend {
+  position: absolute;
+  left: 12px;
+  top: 58px;
+  z-index: 4;
+  max-width: min(340px, calc(100% - 24px));
+  max-height: 45%;
+  overflow-y: auto;
+  background: rgba(251, 246, 234, 0.94);
+  border: 1px solid var(--parchment-dark);
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 0.8rem;
+}
+.history-legend i {
+  display: inline-block;
+  width: 22px;
+  margin-right: 6px;
+  vertical-align: middle;
+  border-top: 3px dotted;
+}
+.history-legend .meta {
+  margin: 4px 0 0;
+  font-size: 0.72rem;
+  line-height: 1.4;
+}
+@media (max-height: 520px) {
+  .history-legend {
+    top: 8px;
+    padding: 3px 8px;
+    font-size: 0.72rem;
+  }
+  .history-legend .meta {
+    display: none;
+  }
+}

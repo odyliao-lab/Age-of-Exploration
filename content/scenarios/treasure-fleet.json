@@ -77,5 +77,31 @@
       "title": "航海誌：海的盡頭",
       "text": "在想像的航程中，你看見了非洲的最南端。半個多世紀後，葡萄牙人繞過這裡，從大西洋來到了印度洋；而你已經帶著一整張自己畫的海圖，走過了東西方的海上之路。"
     }
-  }
+  },
+  "historic_routes": [
+    {
+      "name": "鄭和船隊主航線",
+      "ports": [
+        "taicang",
+        "fuzhou",
+        "champa",
+        "semarang",
+        "palembang",
+        "malacca",
+        "samudera",
+        "galle",
+        "calicut",
+        "hormuz"
+      ]
+    },
+    {
+      "name": "分船隊：往東非",
+      "ports": ["galle", "maldives", "mogadishu", "brava", "malindi"]
+    },
+    {
+      "name": "分船隊：往天方",
+      "ports": ["calicut", "aden", "jeddah"]
+    }
+  ],
+  "historic_note": "鄭和第七次下西洋（1431–1433）的大致航線：船隊從太倉劉家港出發，在福州長樂等候季風，經占城、爪哇、舊港、滿剌加、蘇門答剌、錫蘭山到古里，主力再到忽魯謨斯；分出的船隊前往東非與天方（麥加）。依《鄭和航海圖》與《瀛涯勝覽》等整理，港口位置為簡化示意。"
 }

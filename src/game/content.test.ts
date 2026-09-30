@@ -218,3 +218,17 @@ describe('Monsoon Merchant content', () => {
     );
   });
 });
+
+describe('historic routes', () => {
+  it('every leg of every scenario route has a sea path', () => {
+    for (const sc of world.content.scenarios) {
+      for (const r of sc.historic_routes) {
+        for (let k = 1; k < r.ports.length; k++) {
+          const a = world.ports.get(r.ports[k - 1])!.location;
+          const b = world.ports.get(r.ports[k])!.location;
+          expect(findSeaPath(a, b, allHarbors), `${sc.id} ${r.name} 第 ${k} 段`).not.toBeNull();
+        }
+      }
+    }
+  });
+});

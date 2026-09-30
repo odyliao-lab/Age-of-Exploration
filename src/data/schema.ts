@@ -255,6 +255,17 @@ export const Scenario = z.object({
   start_hat: z.string().optional(),
   /** 第一次出海時的季風小教室（沒有則用東亞的冬季風說明） */
   first_voyage_lesson: z.string().optional(),
+  /** 海圖上可以打開的歷史航線（依港口順序連成海上航線） */
+  historic_routes: z
+    .array(
+      z.object({
+        name: z.string(),
+        ports: z.array(Id).min(2),
+      }),
+    )
+    .default([]),
+  /** 歷史航線的說明與資料來源 */
+  historic_note: z.string().optional(),
   /** 完成某個主線任務時的結局文字 */
   endings: z.record(Id, z.object({ title: z.string(), text: z.string() })).default({}),
 });

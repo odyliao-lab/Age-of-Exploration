@@ -207,6 +207,9 @@ interface GameStore {
   /** 海圖上顯示風與洋流圖 */
   windField: boolean;
   toggleWindField: () => void;
+  /** 海圖上顯示這個劇本的歷史航線 */
+  historyRoutes: boolean;
+  toggleHistoryRoutes: () => void;
   /** 從圖鑑跳到海圖上的某個地點 */
   mapFocus: { at: LonLat; key: number } | null;
   showOnMap: (at: LonLat) => void;
@@ -470,6 +473,8 @@ export const useGame = create<GameStore>((set, get) => {
       if (next !== game) commit(next);
     },
     toggleWindField: () => set((s) => ({ windField: !s.windField })),
+    historyRoutes: false,
+    toggleHistoryRoutes: () => set((s) => ({ historyRoutes: !s.historyRoutes })),
     seaSight: null,
 
     init: (world) => {

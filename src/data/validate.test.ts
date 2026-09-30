@@ -54,6 +54,7 @@ const base = (): ContentBundle => ({
       chapters: [{ index: 0, title: '序章', tier: 0, summary: '' }],
       rival: { name: '陸天行', from: '廣州', look: '' },
       text_names: {},
+      historic_routes: [],
       port_names: {},
       endings: {},
     },

@@ -18,6 +18,7 @@ import { currentAt, windAt } from '@/game/environment';
 import { darkness } from '@/game/navigation';
 import { insideMist, insideStorm } from '@/game/encounters';
 import { bearingDeg } from '@/geo/geo';
+import { findSeaPath } from '@/geo/seaPath';
 import { positionAt } from '@/game/voyage';
 import { isDebug } from './debug';
 import { onFogChange, useGame } from './store';
@@ -56,6 +57,9 @@ import { StatusBar } from './panels/StatusBar';
 const HOME_ZOOM = 5;
 /** 親手駕船時的鏡頭：約 4–6 度見方 */
 const SAIL_ZOOM = 30;
+
+/** 歷史航線的顏色：朱紅、紫、青、赭 */
+const HISTORY_COLORS = [0x9b2f1f, 0x5b3f8a, 0x1f6b6b, 0x9a6a1a];
 
 export function MapScreen() {
   const world = useGame((s) => s.world)!;
@@ -321,6 +325,26 @@ export function MapScreen() {
     );
   }, [ready, windField, month, world]);
 
+  // ---- 歷史航線：依港口順序在海上連成虛線
+  const historyRoutes = useGame((s) => s.historyRoutes);
+  const historic = useMemo(() => {
+    if (!historyRoutes) return [];
+    const harbors = [...world.harbors.values()];
+    return scenario.historic_routes.map((r, i) => {
+      const points: LonLat[] = [];
+      for (let k = 1; k < r.ports.length; k++) {
+        const a = world.ports.get(r.ports[k - 1])!.location;
+        const b = world.ports.get(r.ports[k])!.location;
+        const leg = findSeaPath(a, b, harbors) ?? [a, b];
+        points.push(...(points.length ? leg.slice(1) : leg));
+      }
+      return { name: r.name, points, color: HISTORY_COLORS[i % HISTORY_COLORS.length] };
+    });
+  }, [historyRoutes, scenario, world]);
+  useEffect(() => {
+    if (ready) mapRef.current?.setHistoricRoutes(historic);
+  }, [ready, historic]);
+
   // ---- 從圖鑑跳到海圖上的地點：移過去並放光圈標出位置
   const mapFocus = useGame((s) => s.mapFocus);
   useEffect(() => {
@@ -449,6 +473,18 @@ export function MapScreen() {
             >
               🌬️ <span className="tool-label">{windField ? '關閉風與洋流圖' : '風與洋流圖'}</span>
             </button>
+            {scenario.historic_routes.length > 0 && (
+              <button
+                type="button"
+                className={historyRoutes ? 'on' : ''}
+                aria-pressed={historyRoutes}
+                aria-label="歷史航線"
+                title="歷史航線"
+                onClick={() => useGame.getState().toggleHistoryRoutes()}
+              >
+                📜 <span className="tool-label">{historyRoutes ? '關閉歷史航線' : '歷史航線'}</span>
+              </button>
+            )}
           </div>
         )}
         {noteEdit && <NoteEditor key={`${noteEdit.id}-${noteEdit.at.join(',')}`} />}
@@ -456,6 +492,18 @@ export function MapScreen() {
           <div className={`wind-legend ${atSea ? 'at-sea' : ''}`}>
             <span className="w">➜</span> 風（{month} 月）{'  '}
             <span className="c">➜</span> 洋流
+          </div>
+        )}
+
+        {historyRoutes && !showTown && historic.length > 0 && (
+          <div className="history-legend">
+            {historic.map((r) => (
+              <div key={r.name}>
+                <i style={{ borderColor: `#${r.color.toString(16).padStart(6, '0')}` }} />
+                {r.name}
+              </div>
+            ))}
+            {scenario.historic_note && <p className="meta">{scenario.historic_note}</p>}
           </div>
         )}
 
