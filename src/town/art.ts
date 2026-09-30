@@ -33,6 +33,10 @@ interface Palette {
   palm: boolean;
   /** 平屋頂（阿拉伯、斯瓦希里海岸的珊瑚石屋） */
   flat?: boolean;
+  /** 客棧、市集、造船廠用椰葉編的斜屋頂（斯瓦希里海岸） */
+  makuti?: boolean;
+  /** 樹林裡夾雜猴麵包樹 */
+  baobab?: boolean;
 }
 
 export const PALETTES: Record<Culture, Palette> = {
@@ -70,6 +74,26 @@ export const PALETTES: Record<Culture, Palette> = {
     trunk: '#8a6a3a',
     palm: true,
     flat: true,
+  },
+  swahili: {
+    ground: '#d9c392',
+    groundDot: '#c4ab78',
+    road: '#cfc0a0',
+    roadLine: '#b2a27f',
+    wall: '#e7e0cf',
+    wallShade: '#bdb39b',
+    roof: '#ddd3bd',
+    roofLine: '#8a6a3a',
+    ridge: '#a89a7a',
+    temple: '#ece6d8',
+    office: '#ddd3bd',
+    leaf: '#6b8f3a',
+    leafDark: '#4f6d2a',
+    trunk: '#8a6a3a',
+    palm: true,
+    flat: true,
+    makuti: true,
+    baobab: true,
   },
   minnan: {
     ground: '#d8c08c',
@@ -177,6 +201,18 @@ function drawTree(ctx: Ctx, tx: number, ty: number, p: Palette) {
   drawGround(ctx, tx, ty, p);
   const x = tx * TILE;
   const y = ty * TILE;
+  if (p.baobab && hash(tx, ty, 9) > 0.7) {
+    // 猴麵包樹：粗胖的樹幹，頂上稀疏的枝葉
+    px(ctx, x + 5, y + 6, 6, 9, '#9a7a58');
+    px(ctx, x + 4, y + 9, 8, 5, '#9a7a58');
+    px(ctx, x + 6, y + 6, 1, 8, '#7d6043');
+    px(ctx, x + 3, y + 3, 3, 3, p.trunk);
+    px(ctx, x + 10, y + 3, 3, 3, p.trunk);
+    px(ctx, x + 1, y + 1, 5, 3, p.leafDark);
+    px(ctx, x + 9, y + 1, 6, 3, p.leaf);
+    px(ctx, x + 6, y + 2, 4, 3, p.leafDark);
+    return;
+  }
   if (p.palm) {
     px(ctx, x + 7, y + 6, 2, 9, p.trunk);
     const leaves = [
@@ -231,7 +267,14 @@ function drawBuilding(ctx: Ctx, b: Building, p: Palette, culture: Culture) {
   const y = b.y * TILE;
   const w = b.w * TILE;
   const h = b.h * TILE;
-  const roofColor = b.kind === 'temple' ? p.temple : b.kind === 'office' ? p.office : p.roof;
+  const thatched = p.makuti && ['tavern', 'market', 'shipyard'].includes(b.kind);
+  const roofColor = thatched
+    ? '#a8834c'
+    : b.kind === 'temple'
+      ? p.temple
+      : b.kind === 'office'
+        ? p.office
+        : p.roof;
   const wallH = TILE + 2;
   const roofH = h - wallH + 4;
 
@@ -261,7 +304,7 @@ function drawBuilding(ctx: Ctx, b: Building, p: Palette, culture: Culture) {
   );
   px(ctx, dx + 4, y + h - 11, 1, 11, '#3a2414');
 
-  if (p.flat) {
+  if (p.flat && !thatched) {
     // 平屋頂：珊瑚石牆頂著矮女兒牆；清真寺加上白色圓頂與宣禮塔
     const ry = y;
     px(ctx, x, ry, w, roofH, p.roof);
@@ -283,7 +326,7 @@ function drawBuilding(ctx: Ctx, b: Building, p: Palette, culture: Culture) {
     // 屋頂
     const ry = y;
     px(ctx, x, ry, w, roofH, roofColor);
-    if (culture === 'nanyang' && b.kind !== 'temple') {
+    if ((culture === 'nanyang' && b.kind !== 'temple') || thatched) {
       // 茅草屋頂：斜線紋
       for (let k = 0; k < w; k += 3) px(ctx, x + k, ry + ((k * 7) % roofH), 1, 4, p.roofLine);
       for (let r = ry + 3; r < ry + roofH; r += 4) px(ctx, x, r, w, 1, p.roofLine);
