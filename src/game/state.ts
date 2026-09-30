@@ -791,9 +791,11 @@ function seaLife(
   const treasureEra = treasureFleetSeas(state, regionId, usedDays);
   if (fleets.length < MAX_FLEETS) {
     const kind =
-      rand() < perStep(pirateChancePerDay(pos, !!regionId))
+      rand() <
+      perStep(NO_PIRATE_SEAS.includes(regionId ?? '') ? 0 : pirateChancePerDay(pos, !!regionId))
         ? 'pirate'
-        : rand() < perStep(regionId ? MERCHANT_CHANCE_PER_DAY : 0)
+        : rand() <
+            perStep(regionId && !UNSAILED_SEAS.includes(regionId) ? MERCHANT_CHANCE_PER_DAY : 0)
           ? 'merchant'
           : rand() < perStep(treasureEra && ENVOYS[regionId] ? ENVOY_CHANCE_PER_DAY : 0)
             ? 'envoy'
@@ -1149,8 +1151,21 @@ export const ARMADA_REWARD = { xp: 20, reputation: 5 };
 
 /** 鄭和最後一次下西洋回國的那一年 */
 export const TREASURE_FLEET_LAST_YEAR = 1433;
+/**
+ * 15 世紀末還沒有商船往來的大洋（大西洋中部、加勒比海）：不會遇到商船與海盜。
+ * 幾內亞灣有葡萄牙商船，但還沒有海盜。
+ */
+const UNSAILED_SEAS = ['central-atlantic', 'caribbean'];
+const NO_PIRATE_SEAS = [...UNSAILED_SEAS, 'gulf-of-guinea'];
+
 /** 大西洋的海域：寶船艦隊與朝貢使節船不會出現 */
-const ATLANTIC_REGIONS = ['iberian-atlantic', 'west-africa', 'gulf-of-guinea'];
+const ATLANTIC_REGIONS = [
+  'iberian-atlantic',
+  'west-africa',
+  'gulf-of-guinea',
+  'central-atlantic',
+  'caribbean',
+];
 
 /** 鄭和的寶船艦隊與前往明朝的朝貢使節船，只出現在下西洋的年代（1405–1433）與亞洲的海上 */
 export function treasureFleetSeas(
