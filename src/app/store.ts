@@ -41,7 +41,7 @@ import {
   rivalAtTavern,
   RIVAL_BONUS,
   rivalOf,
-  scenarioPorts,
+  portsProgress,
   endingFor,
   sellToMerchant,
   takeSounding,
@@ -154,7 +154,7 @@ function endingModal(world: World, g: GameState, e: { title: string; text: strin
     text: e.text,
     stats: [
       `航海 ${Math.floor(g.day) + 1} 天，船長等級 ${g.captain.level}`,
-      `造訪港口 ${g.visitedPorts.length} / ${scenarioPorts(world, g).length}`,
+      `造訪港口 ${portsProgress(world, g).visited} / ${portsProgress(world, g).total}`,
       `圖鑑 ${g.discovered.length} / ${world.content.codex.length} 張`,
       `海圖面積約 ${chartedArea(g)} 萬平方公里`,
       `完成任務 ${done} 個，回報傳聞發現 ${g.reported.length} 處`,

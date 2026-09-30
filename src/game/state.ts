@@ -2956,7 +2956,18 @@ export function isMainPort(world: World, state: GameState, portId: string | null
 }
 
 export function mainPortNames(world: World, state: GameState): string[] {
-  return world.content.ports.filter((p) => isMainPort(world, state, p.id)).map((p) => p.name);
+  return scenarioPorts(world, state)
+    .filter((p) => isMainPort(world, state, p.id))
+    .map((p) => p.name);
+}
+
+/** 這個劇本範圍內去過幾個港口、共有幾個 */
+export function portsProgress(world: World, state: GameState): { visited: number; total: number } {
+  const ports = scenarioPorts(world, state);
+  return {
+    visited: ports.filter((p) => state.visitedPorts.includes(p.id)).length,
+    total: ports.length,
+  };
 }
 
 /** 主港的造船廠可以買新船；舊船折價一半 */

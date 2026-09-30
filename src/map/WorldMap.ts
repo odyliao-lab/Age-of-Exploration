@@ -133,6 +133,7 @@ export class WorldMap {
   private historyGfx = new Graphics();
   private historyLabels = new Container();
   private history: HistoricRouteView[] = [];
+  private historyScale = 0;
   private marksGfx = new Graphics();
   private places = new PlaceLabels((id) => this.opts.onPlaceTap?.(id));
   private notes = new ChartNotes((id) => this.opts.onNoteTap?.(id));
@@ -379,16 +380,26 @@ export class WorldMap {
       label.position.set(mid.x, mid.y);
       this.historyLabels.addChild(label);
     }
-    this.drawHistory();
+    this.drawHistory(true);
   }
 
-  private drawHistory() {
+  private drawHistory(force = false) {
+    // 只在縮放改變時重畫（平移不用）；跟船航行時鏡頭每幀都在動，但縮放不變
+    if (!force && this.historyScale === this.view.scale) return;
+    this.historyScale = this.view.scale;
     const g = this.historyGfx;
     g.clear();
     const inv = 1 / this.view.scale;
     for (const l of this.historyLabels.children) l.scale.set(inv);
     for (const r of this.history) {
       const pts = r.points.map((p) => lonLatToWorld(p));
+      // 拉得很近時畫成淡淡的實線，免得虛線段數太多
+      if (this.view.scale >= 4) {
+        g.moveTo(pts[0].x, pts[0].y);
+        for (const p of pts.slice(1)) g.lineTo(p.x, p.y);
+        g.stroke({ width: 2 * inv, color: r.color, alpha: 0.45 });
+        continue;
+      }
       const dash = 3 * inv;
       const gap = 4 * inv;
       for (let i = 1; i < pts.length; i++) {
