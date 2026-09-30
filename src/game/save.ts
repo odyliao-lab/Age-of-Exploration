@@ -73,6 +73,7 @@ export function deserialize(data: SerializedSave): GameState {
     starNight: data.starNight ?? -1,
     coastDay: data.coastDay ?? -1,
     fishDay: data.fishDay ?? -1,
+    waterDay: data.waterDay ?? -99,
     fleets: data.fleets ?? [],
     storms: data.storms ?? [],
     mists: data.mists ?? [],

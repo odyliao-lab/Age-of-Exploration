@@ -46,6 +46,7 @@ import {
   sellToMerchant,
   takeSounding,
   goFishing,
+  fetchWater,
   crewSpeaker,
   sightStars,
   pray,
@@ -252,6 +253,7 @@ interface GameStore {
   /** 測深（打水） */
   sound: () => void;
   fish: () => void;
+  fetchWater: () => void;
   /** 向使節船致意 */
   greetEnvoy: (fleetId: number) => void;
   /** 向寶船艦隊致意 */
@@ -785,6 +787,24 @@ export const useGame = create<GameStore>((set, get) => {
         }));
       } else {
         toast({ text: `${crewSpeaker(world, game)}：「${r.catch.text}」`, kind: 'talk' });
+      }
+    },
+    fetchWater: () => {
+      const { world, game } = get();
+      if (!world || !game) return;
+      const r = fetchWater(world, game);
+      if (!r) return;
+      commit(r.state);
+      if (r.found) play('splash');
+      if (r.lesson) {
+        set((s) => ({
+          modals: [
+            ...s.modals,
+            { type: 'info', title: '上岸取水', text: r.text, lesson: r.lesson! },
+          ],
+        }));
+      } else {
+        toast({ text: `${crewSpeaker(world, game)}：「${r.text}」`, kind: 'talk' });
       }
     },
     enterBuilding: (kind) => {

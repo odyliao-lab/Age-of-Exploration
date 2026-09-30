@@ -272,6 +272,8 @@ export interface GameState {
   coastDay: number;
   /** 上次撒網捕魚的遊戲日（每天一次） */
   fishDay: number;
+  /** 上次上岸取水的遊戲日 */
+  waterDay: number;
   /** 海上看得見的船隊與風暴雲團 */
   fleets: SeaFleet[];
   storms: StormCell[];
@@ -407,6 +409,7 @@ export function newGame(world: World, scenarioId: string, seed = newSeed()): Ste
     starNight: -1,
     coastDay: -1,
     fishDay: -1,
+    waterDay: -99,
     fleets: [],
     storms: [],
     mists: [],
@@ -1508,6 +1511,79 @@ export function takeSounding(
       '離開大陸棚，海底就陡降成深海。航海者靠水深和底質，就能在看不到岸時判斷離陸地多遠。';
   }
   return { state: next, sounding, text: soundingText(sounding), fixed, lesson };
+}
+
+/** 上岸取水：一次補幾天份的淡水、多久才能再取一次 */
+export const WATER_FETCH_DAYS = 12;
+export const WATER_FETCH_COOLDOWN = 3;
+export const WATER_FETCH_KM = 20;
+
+/** 沙漠海岸：岸上找不到淡水（撒哈拉、納米比、阿拉伯半島、非洲之角） */
+const DESERT_COASTS: [number, number, number, number][] = [
+  [-18, 16, -9, 31],
+  [8, -30, 16, -16],
+  [34, 12, 60, 31],
+  [42, 2, 52, 12],
+];
+
+export function desertCoastAt([lon, lat]: LonLat): boolean {
+  return DESERT_COASTS.some(([w, so, e, n]) => lon >= w && lon <= e && lat >= so && lat <= n);
+}
+
+/** 這個距離內有沒有陸地 */
+function landWithin(world: World, pos: LonLat, km: number): boolean {
+  for (const d of [3, 8, 14, km]) {
+    for (let b = 0; b < 360; b += 22.5) if (landAt(world, destinationPoint(pos, b, d))) return true;
+  }
+  return false;
+}
+
+/** 為什麼現在不能上岸取水；可以時回傳 null */
+export function fetchWaterBlocked(world: World, state: GameState): string | null {
+  if (!state.helm) return '要在海上才能派小艇上岸';
+  if (state.day - state.waterDay < WATER_FETCH_COOLDOWN) return '才剛取過水';
+  if (!landWithin(world, state.ship.position, WATER_FETCH_KM)) return '離岸太遠了';
+  return null;
+}
+
+/**
+ * 上岸取水：派小艇到岸邊找河流或泉水，把水桶裝滿。
+ * 沙漠海岸找不到淡水——這正是古代航海者最怕的海岸。
+ */
+export function fetchWater(
+  world: World,
+  state: GameState,
+): { state: GameState; found: boolean; text: string; lesson: string | null } | null {
+  if (fetchWaterBlocked(world, state)) return null;
+  const desert = desertCoastAt(state.ship.position);
+  const cap = myShip(state).supplyDays;
+  const sup = state.condition.supplies;
+  let next: GameState = { ...state, waterDay: state.day };
+  if (!desert) {
+    next = {
+      ...next,
+      condition: {
+        ...state.condition,
+        supplies: { ...sup, water: Math.min(cap, sup.water + WATER_FETCH_DAYS) },
+      },
+    };
+  }
+  let lesson: string | null = null;
+  const key = desert ? 'water-desert' : 'water';
+  if (!state.hinted.includes(key)) {
+    next = { ...next, hinted: [...next.hinted, key] };
+    lesson = desert
+      ? '這一段海岸是沙漠：副熱帶高壓帶的空氣下沉、很少下雨，外海又常有寒流，岸上沒有河流也沒有泉水。古代航海者最怕這種海岸，出發前一定要把水桶裝滿，或是先找好下一個有淡水的港口。'
+      : '古代的船沒辦法把海水變成淡水，只能靠岸補給。在雨量多的海岸，河流和泉水會流到海邊；水手划小艇上岸，把一個個木桶裝滿再運回船上。葡萄牙船隊繞過非洲南端後，就是在一處海灣的泉水邊補充淡水。';
+  }
+  return {
+    state: next,
+    found: !desert,
+    text: desert
+      ? '小艇在岸邊找了一整天，只看到黃沙和乾河床，一滴淡水也沒有。'
+      : `小艇找到一條流進海裡的小河，把水桶全裝滿了。（淡水 +${WATER_FETCH_DAYS} 天）`,
+    lesson,
+  };
 }
 
 /** 為什麼現在不能撒網；可以時回傳 null */
