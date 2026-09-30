@@ -64,6 +64,24 @@ const FESTIVALS: { ports: string[]; months: number[]; festival: Festival }[] = [
     },
   },
   {
+    ports: ['reykjavik'],
+    months: [6],
+    festival: {
+      name: '全民大會（阿爾庭）',
+      text: '六月，冰島各地的人都騎馬到辛格韋德利的草原上開全民大會，一起訂法律、解決糾紛，一開就是兩個星期。這個大會從 930 年開始，是世界上最古老的議會之一。',
+      decor: 'pennants',
+    },
+  },
+  {
+    ports: ['nidaros', 'torshavn', 'orkney'],
+    months: [6],
+    festival: {
+      name: '仲夏節',
+      text: '夏至前後太陽幾乎不下山，半夜天空還是亮的。大家在海邊升起篝火，唱歌跳舞到天亮——反正天也不會黑。',
+      decor: 'pennants',
+    },
+  },
+  {
     ports: ['lisbon'],
     months: [6],
     festival: {
