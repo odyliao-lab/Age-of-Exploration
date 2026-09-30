@@ -1344,7 +1344,8 @@ export function greetMerchant(
     };
   }
   const pos = state.ship.position;
-  const unknown = world.content.ports
+  // 只打聽這個劇本範圍內的港口，免得指向遠在另一個大洋的地方
+  const unknown = scenarioPorts(world, state)
     .filter((p) => !state.unlockedPorts.includes(p.id) && !state.visitedPorts.includes(p.id))
     .sort((a, b) => distanceKm(a.location, pos) - distanceKm(b.location, pos));
   const target = unknown[0];
