@@ -356,7 +356,12 @@ export const useGame = create<GameStore>((set, get) => {
       handleEvent(world, e, toasts, modals, (id) => (selectedPortId = id));
     // 船員看到海豚、鯨魚等：海圖上畫在船邊
     for (const e of result.events) {
-      if (e.type === 'talk' && e.sight) set({ seaSight: { kind: e.sight, key: Date.now() } });
+      if (e.type === 'talk' && e.sight) {
+        set({ seaSight: { kind: e.sight, key: Date.now() } });
+        if (e.sight === 'dolphins' || e.sight === 'whale' || e.sight === 'flyingfish')
+          play('splash');
+        else if (e.sight === 'birds' || e.sight === 'albatross') play('chirp');
+      }
     }
     // 完成史實航程的終點（麻林）或想像航程（好望角）：航海誌總結
     for (const e of result.events) {
