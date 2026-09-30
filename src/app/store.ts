@@ -20,6 +20,8 @@ import {
   ensureDaily,
   trackDaily,
   buyShip,
+  addNote,
+  editNote,
   buyUpgrade,
   departPort,
   chartedArea,
@@ -193,6 +195,13 @@ interface GameStore {
   seaSight: { kind: SeaSight; key: number } | null;
   /** 剛發現的地點（海圖上放光圈） */
   celebration: { at: LonLat; key: number } | null;
+  /** 下一次點海圖會在那裡寫註記 */
+  annotating: boolean;
+  setAnnotating: (on: boolean) => void;
+  /** 正在寫或修改的註記 */
+  noteEdit: { id: number | null; at: LonLat; text: string } | null;
+  openNoteEditor: (edit: { id: number | null; at: LonLat; text: string } | null) => void;
+  saveNote: (text: string) => void;
   /** 海圖上顯示風與洋流圖 */
   windField: boolean;
   toggleWindField: () => void;
@@ -428,6 +437,18 @@ export const useGame = create<GameStore>((set, get) => {
     celebration: null,
     mapFocus: null,
     windField: false,
+    annotating: false,
+    setAnnotating: (on) => set({ annotating: on }),
+    noteEdit: null,
+    openNoteEditor: (edit) => set({ noteEdit: edit, annotating: false }),
+    saveNote: (text) => {
+      const { game, noteEdit } = get();
+      if (!game || !noteEdit) return;
+      const next =
+        noteEdit.id === null ? addNote(game, noteEdit.at, text) : editNote(game, noteEdit.id, text);
+      set({ noteEdit: null });
+      if (next !== game) commit(next);
+    },
     toggleWindField: () => set((s) => ({ windField: !s.windField })),
     seaSight: null,
 
@@ -545,7 +566,7 @@ export const useGame = create<GameStore>((set, get) => {
     advance: (realSeconds) => {
       const { world, game, paused, speed, modals } = get();
       if (!world || !game || (!game.voyage && !game.helm) || paused || modals.length) return;
-      if (get().stargazing || get().coastSight) return;
+      if (get().stargazing || get().coastSight || get().noteEdit) return;
       const perDay = game.helm ? SAIL_SECONDS_PER_DAY : SECONDS_PER_DAY;
       const days = (Math.min(realSeconds, 0.25) / perDay) * speed;
       apply(tick(world, game, days));

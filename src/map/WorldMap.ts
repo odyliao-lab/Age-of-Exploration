@@ -15,6 +15,7 @@ import { SeaFx } from './seaFx';
 import { ShipSprite } from './shipSprite';
 import { NightSky } from './nightSky';
 import { SeaLife } from './seaLife';
+import { ChartNotes, type ChartNote } from './chartNotes';
 import { drawWindField, type FieldSampler } from './windField';
 import { drawPortIcon, type PortCulture } from './portIcons';
 import type { SeaSight } from '@/game/crewTalk';
@@ -68,6 +69,8 @@ export interface WorldMapOptions {
   onPortTap: (id: string) => void;
   /** 點海圖上的地名註記（打開圖鑑） */
   onPlaceTap?: (id: string) => void;
+  /** 點玩家自己寫的註記 */
+  onNoteTap?: (id: number) => void;
   onMapTap: (lonLat: LonLat) => void;
   onPointerLonLat: (lonLat: LonLat | null) => void;
   /** 玩家手動拖曳地圖（用來停止自動跟隨船隻） */
@@ -121,6 +124,7 @@ export class WorldMap {
   private routeGfx = new Graphics();
   private marksGfx = new Graphics();
   private places = new PlaceLabels((id) => this.opts.onPlaceTap?.(id));
+  private notes = new ChartNotes((id) => this.opts.onNoteTap?.(id));
   private marks: { lonLat: LonLat; kind: 'guess' | 'answer' }[] = [];
   private ship = new Container();
   private shipSprite = new ShipSprite({ hull: COLORS.hull, sail: COLORS.sail, flag: 0xb5482b });
@@ -212,6 +216,7 @@ export class WorldMap {
       this.courseGfx,
       this.marksGfx,
       this.places.container,
+      this.notes.container,
       this.portLayer,
       this.ship,
       this.shipLabel,
@@ -537,6 +542,7 @@ export class WorldMap {
     this.seaLife.setScale(this.view.scale);
     if (this.windSampler) this.windDirty = true;
     this.places.setScale(this.view.scale);
+    this.notes.setScale(this.view.scale);
     this.drawRoute();
     this.drawMarks();
     this.drawCourse();
@@ -605,6 +611,12 @@ export class WorldMap {
   setRoute(route: RouteView | null) {
     this.route = route;
     this.drawRoute();
+  }
+
+  /** 玩家寫在海圖上的註記 */
+  setNotes(list: ChartNote[]) {
+    this.notes.set(list);
+    this.notes.setScale(this.view.scale);
   }
 
   /** 已發現地點的地名註記 */

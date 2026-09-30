@@ -2040,21 +2040,25 @@ table.market .tag {
 }
 
 /* 風與洋流圖 */
-.wind-toggle {
+.chart-tools {
   position: absolute;
   left: 12px;
   bottom: 190px;
   z-index: 4;
-  min-height: 40px;
-  box-shadow: 0 2px 8px rgba(43, 33, 24, 0.25);
+  display: flex;
+  gap: 8px;
 }
-.wind-toggle.at-sea {
+.chart-tools.at-sea {
   left: auto;
   bottom: auto;
   right: 12px;
   top: 12px;
 }
-.wind-toggle.on {
+.chart-tools button {
+  min-height: 40px;
+  box-shadow: 0 2px 8px rgba(43, 33, 24, 0.25);
+}
+.chart-tools button.on {
   background: #2c4a7a;
   color: #fbf6ea;
 }

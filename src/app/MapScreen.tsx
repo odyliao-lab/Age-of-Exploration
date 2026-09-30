@@ -31,6 +31,7 @@ import { BuildingPanel } from './town/BuildingPanel';
 import { cultureOf } from '@/town/layout';
 import { setAmbience } from './sound';
 import { folkLines } from '@/town/folkTalk';
+import { NoteEditor } from './panels/NoteEditor';
 import { festivalAt, type FestivalDecor } from '@/town/festivals';
 
 const FESTIVAL_ICON: Record<FestivalDecor, string> = {
@@ -98,13 +99,19 @@ export function MapScreen() {
       onMapTap: (p) => {
         const s = useGame.getState();
         const pending = s.world && s.game ? pendingInteraction(s.world, s.game) : null;
-        if (pending?.data.type === 'locate' && !s.modals.length) s.locate(p);
+        if (s.annotating) s.openNoteEditor({ id: null, at: p, text: '' });
+        else if (pending?.data.type === 'locate' && !s.modals.length) s.locate(p);
         else if (s.planning) s.addWaypoint(p);
         else if (s.game?.helm) s.steer(bearingDeg(s.game.ship.position, p));
         else s.selectPort(null);
       },
       onPointerLonLat: setPointer,
       onPlaceTap: (id) => useGame.getState().openPanel('codex', id),
+      onNoteTap: (id) => {
+        const s = useGame.getState();
+        const n = s.game?.notes.find((x) => x.id === id);
+        if (n) s.openNoteEditor({ id: n.id, at: n.at, text: n.text });
+      },
       onUserPan: () => useGame.getState().setFollow(false),
     }).then((m) => {
       if (cancelled) {
@@ -280,6 +287,14 @@ export function MapScreen() {
     if (ready && seaSight) mapRef.current?.showSight(seaSight.kind);
   }, [ready, seaSight]);
 
+  // ---- 玩家寫在海圖上的註記
+  const notes = game.notes;
+  useEffect(() => {
+    if (ready) mapRef.current?.setNotes(notes);
+  }, [ready, notes]);
+  const annotating = useGame((s) => s.annotating);
+  const noteEdit = useGame((s) => s.noteEdit);
+
   // ---- 船名
   const shipName = game.appearance.shipName;
   useEffect(() => {
@@ -405,15 +420,26 @@ export function MapScreen() {
         )}
 
         {!showTown && (
-          <button
-            type="button"
-            className={`wind-toggle ${atSea ? 'at-sea' : ''} ${windField ? 'on' : ''}`}
-            aria-pressed={windField}
-            onClick={() => useGame.getState().toggleWindField()}
-          >
-            🌬️ {windField ? '關閉風與洋流圖' : '風與洋流圖'}
-          </button>
+          <div className={`chart-tools ${atSea ? 'at-sea' : ''}`}>
+            <button
+              type="button"
+              className={annotating ? 'on' : ''}
+              aria-pressed={annotating}
+              onClick={() => useGame.getState().setAnnotating(!annotating)}
+            >
+              ✏️ {annotating ? '點海圖寫字…（取消）' : '寫註記'}
+            </button>
+            <button
+              type="button"
+              className={windField ? 'on' : ''}
+              aria-pressed={windField}
+              onClick={() => useGame.getState().toggleWindField()}
+            >
+              🌬️ {windField ? '關閉風與洋流圖' : '風與洋流圖'}
+            </button>
+          </div>
         )}
+        {noteEdit && <NoteEditor key={`${noteEdit.id}-${noteEdit.at.join(',')}`} />}
         {windField && !showTown && (
           <div className={`wind-legend ${atSea ? 'at-sea' : ''}`}>
             <span className="w">➜</span> 風（{month} 月）{'  '}

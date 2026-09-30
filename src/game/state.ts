@@ -278,6 +278,8 @@ export interface GameState {
   contracts: Contract[];
   /** 參加過的節慶（港口:年:節慶名） */
   festivalsSeen: string[];
+  /** 玩家自己寫在海圖上的註記 */
+  notes: { id: number; at: LonLat; text: string }[];
   /** 完成或過期的委託（不再出現） */
   contractsDone: string[];
   nextEntityId: number;
@@ -404,6 +406,7 @@ export function newGame(world: World, scenarioId: string, seed = newSeed()): Ste
     contracts: [],
     contractsDone: [],
     festivalsSeen: [],
+    notes: [],
     nextEntityId: 1,
     talkDay: 0.5,
     lastRegionId: null,
@@ -2812,6 +2815,34 @@ export function buyUpgrade(world: World, state: GameState, id: string): GameStat
   const offer = upgradeOffers(world, state).find((o) => o.upgrade.id === id);
   if (!offer || offer.reason) return state;
   return { ...state, upgrades: [...state.upgrades, id], gold: state.gold - offer.cost };
+}
+
+// ---------------------------------------------------------------- 海圖註記
+
+export const NOTE_MAX_CHARS = 12;
+export const MAX_NOTES = 40;
+
+function cleanNote(text: string): string {
+  return [...text.replace(/\s+/g, ' ').trim()].slice(0, NOTE_MAX_CHARS).join('');
+}
+
+/** 在海圖上寫一個註記（空白不寫；超過上限時不再增加） */
+export function addNote(state: GameState, at: LonLat, text: string): GameState {
+  const t = cleanNote(text);
+  if (!t || state.notes.length >= MAX_NOTES) return state;
+  const id = state.notes.reduce((m, n) => Math.max(m, n.id), 0) + 1;
+  return { ...state, notes: [...state.notes, { id, at, text: t }] };
+}
+
+/** 修改註記；改成空白就刪掉 */
+export function editNote(state: GameState, id: number, text: string): GameState {
+  const t = cleanNote(text);
+  return {
+    ...state,
+    notes: t
+      ? state.notes.map((n) => (n.id === id ? { ...n, text: t } : n))
+      : state.notes.filter((n) => n.id !== id),
+  };
 }
 
 export function setTitle(state: GameState, achievementId: string | null): GameState {
