@@ -15,6 +15,7 @@ import {
   sailingStatus,
   coastSightBlocked,
   starSightBlocked,
+  fishBlocked,
 } from '@/game/state';
 import { isNight, timeLabel } from '@/game/navigation';
 import { useGame } from '../store';
@@ -59,6 +60,7 @@ export function HelmPanel() {
     greetEnvoy,
     greetArmada,
     hailRival,
+    fish,
   } = useGame.getState();
   const dial = useRef<SVGSVGElement>(null);
   const dragging = useRef(false);
@@ -90,6 +92,7 @@ export function HelmPanel() {
   const starBlocked = starSightBlocked(game);
   const night = isNight(game.day);
   const coastBlocked = coastSightBlocked(world, game);
+  const canFish = !fishBlocked(game);
   const kn = knots(st.motion.speed);
   const sailClass =
     st.motion.pointOfSail === '頂風' ? 'bad' : st.motion.pointOfSail === '迎風' ? 'ok' : 'good';
@@ -168,6 +171,11 @@ export function HelmPanel() {
           <button type="button" onClick={sound} title="放下測深錘，量水深、看海底">
             🪢 測深
           </button>
+          {canFish && (
+            <button type="button" onClick={fish} title="撒網捕魚，補一點糧食（每天一次）">
+              🐟 撒網
+            </button>
+          )}
           {night && !starBlocked && (
             <button type="button" onClick={() => openStargazing(true)}>
               ✨ 觀星定位（牽星術）

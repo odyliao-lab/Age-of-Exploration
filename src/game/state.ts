@@ -112,6 +112,7 @@ import type { Rig } from './progression';
 import { isLand } from '@/geo/landmask';
 import type { World } from './world';
 import { crewTalk, type SeaSight } from './crewTalk';
+import { castNet, GROUND_LESSON, type Catch } from './fishing';
 import { contractOffers, MAX_CONTRACTS, type Contract } from './contracts';
 import { CONTRACT_BONUS_PER_RANK, reputationRank } from './reputation';
 import { scholarQuestion, SCHOLAR_PER_DAY, SCHOLAR_REWARD, type ScholarQuestion } from './scholar';
@@ -269,6 +270,8 @@ export interface GameState {
   starNight: number;
   /** 上次看岸形定位是第幾天（每天一次） */
   coastDay: number;
+  /** 上次撒網捕魚的遊戲日（每天一次） */
+  fishDay: number;
   /** 海上看得見的船隊與風暴雲團 */
   fleets: SeaFleet[];
   storms: StormCell[];
@@ -403,6 +406,7 @@ export function newGame(world: World, scenarioId: string, seed = newSeed()): Ste
     nav: { day: 0, errorKm: 2 },
     starNight: -1,
     coastDay: -1,
+    fishDay: -1,
     fleets: [],
     storms: [],
     mists: [],
@@ -1461,6 +1465,48 @@ export function takeSounding(
       '離開大陸棚，海底就陡降成深海。航海者靠水深和底質，就能在看不到岸時判斷離陸地多遠。';
   }
   return { state: next, sounding, text: soundingText(sounding), fixed, lesson };
+}
+
+/** 為什麼現在不能撒網；可以時回傳 null */
+export function fishBlocked(state: GameState): string | null {
+  if (!state.helm) return '要在海上才能撒網';
+  if (state.fishDay === Math.floor(state.day)) return '今天已經撒過網了';
+  return null;
+}
+
+/**
+ * 撒網捕魚：每天一次，補一點糧食（不超過船能裝的量）。
+ * 漁獲依漁場而定；第一次撒網、或遇到湧升流時附上地理小教室。
+ */
+export function goFishing(
+  world: World,
+  state: GameState,
+): { state: GameState; catch: Catch; lesson: string | null } | null {
+  if (fishBlocked(state)) return null;
+  const sounding = soundAt(state.ship.position, (p) => landAt(world, p));
+  const [luck, seed] = nextRandom(state.seed);
+  const c = castNet(state.ship.position, sounding, gameDate(state).month, luck);
+  const cap = myShip(state).supplyDays;
+  const sup = state.condition.supplies;
+  let next: GameState = {
+    ...state,
+    seed,
+    fishDay: Math.floor(state.day),
+    condition: {
+      ...state.condition,
+      supplies: { ...sup, food: Math.min(cap, sup.food + c.food) },
+    },
+  };
+  let lesson: string | null = null;
+  const key = `fish-${c.ground}`;
+  if (!state.hinted.includes(key) && (c.ground !== 'ocean' || !state.hinted.includes('fishing'))) {
+    lesson = GROUND_LESSON[c.ground];
+    next = {
+      ...next,
+      hinted: [...next.hinted, key, ...(next.hinted.includes('fishing') ? [] : ['fishing'])],
+    };
+  }
+  return { state: next, catch: c, lesson };
 }
 
 // ---------------------------------------------------------------- 親手駕船
