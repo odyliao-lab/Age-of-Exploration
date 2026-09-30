@@ -251,6 +251,10 @@ export const Scenario = z.object({
   port_names: z.record(Id, z.string()).default({}),
   /** 共用文字（知識卡、船員、路人、事件）裡的地名換成這個劇本的叫法：舊名 → 新名 */
   text_names: z.record(z.string(), z.string()).default({}),
+  /** 觀星定位的地理小教室（這個文化怎麼量星星；沒有則用鄭和船隊的牽星板） */
+  star_lesson: z.string().optional(),
+  /** 看岸形定位的地理小教室（這個文化怎麼記海岸；沒有則用《鄭和航海圖》） */
+  coast_lesson: z.string().optional(),
   /** 船長一開始戴的帽子（沒有則戴幞頭） */
   start_hat: z.string().optional(),
   /** 第一次出海時的季風小教室（沒有則用東亞的冬季風說明） */
