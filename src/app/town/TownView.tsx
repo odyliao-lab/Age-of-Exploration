@@ -58,6 +58,7 @@ function playerLook(a: Appearance): PersonLook {
     coat: colorOf(COLORS, a.coat),
     hat: HAT_COLORS[a.hat] ?? null,
     hair: '#2b2118',
+    hatStyle: a.hat === 'turban' ? 'turban' : undefined,
   };
 }
 
