@@ -112,6 +112,7 @@ import {
   MAX_FLEETS,
   MERCHANT_CHANCE_PER_DAY,
   ENVOY_CHANCE_PER_DAY,
+  ARMADA_CHANCE_PER_DAY,
   insideStorm,
   pirateChancePerDay,
   spawnFleet,
@@ -758,7 +759,12 @@ function seaLife(
           ? 'merchant'
           : rand() < perStep(regionId && ENVOYS[regionId] ? ENVOY_CHANCE_PER_DAY : 0)
             ? 'envoy'
-            : null;
+            : rand() <
+                perStep(
+                  regionId && !fleets.some((x) => x.kind === 'armada') ? ARMADA_CHANCE_PER_DAY : 0,
+                )
+              ? 'armada'
+              : null;
     if (kind) {
       const f = spawnFleet(kind, nextEntityId, pos, day, rand, isLand);
       if (f) {
@@ -768,6 +774,12 @@ function seaLife(
           events.push({
             type: 'warning',
             text: `瞭望員：${compass16(bearingDeg(pos, f.position))}方遠處有一艘陌生的快船！`,
+          });
+        } else if (kind === 'armada') {
+          events.push({
+            type: 'talk',
+            speaker: '瞭望員',
+            text: `${compass16(bearingDeg(pos, f.position))}方的海面上一大片帆影……是寶船艦隊！快靠過去看看！`,
           });
         } else if (kind === 'envoy') {
           events.push({
@@ -1028,6 +1040,49 @@ export function greetEnvoy(
     text: `${envoy.text}（名聲 +${ENVOY_REWARD.reputation}）`,
     lesson:
       '明朝用「朝貢」和各國往來：外國派使節帶著貢品來，皇帝回贈豐厚的禮物，並承認對方的國王。鄭和下西洋之後，來朝貢的國家大增，還帶來了長頸鹿、獅子等珍奇動物。',
+  };
+}
+
+export const ARMADA_REWARD = { xp: 20, reputation: 5 };
+
+/** 附近可以致意的寶船艦隊（船隊很大，遠一點也喊得到） */
+export function armadaInReach(state: GameState): SeaFleet | null {
+  if (!state.helm) return null;
+  return (
+    state.fleets.find(
+      (f) =>
+        f.kind === 'armada' &&
+        !f.greeted &&
+        distanceKm(f.position, state.ship.position) <= HAIL_KM * 3,
+    ) ?? null
+  );
+}
+
+/** 向寶船艦隊致意：艦隊的水船與糧船把你的淡水、糧食補滿，名聲提高 */
+export function greetArmada(
+  _world: World,
+  state: GameState,
+  fleetId: number,
+): (GreetResult & { events: GameEvent[] }) | null {
+  const f = armadaInReach(state);
+  if (!f || f.id !== fleetId) return null;
+  const cap = myShip(state).supplyDays;
+  const fleets = state.fleets.map((x) => (x.id === fleetId ? { ...x, greeted: true } : x));
+  const xp = gainXp(state, ARMADA_REWARD.xp);
+  return {
+    state: {
+      ...state,
+      fleets,
+      captain: xp.captain,
+      skillPoints: xp.skillPoints,
+      reputation: state.reputation + ARMADA_REWARD.reputation,
+      condition: { ...state.condition, supplies: { water: cap, food: cap } },
+    },
+    events: xp.events,
+    title: '寶船艦隊',
+    text: `幾十艘大船排成長長的隊伍，最大的寶船像一座會走的城。旗艦傳來號令：「是泉州來的船吧？辛苦了！」艦隊的水船和糧船把你的淡水、糧食都補滿了。（名聲 +${ARMADA_REWARD.reputation}）`,
+    lesson:
+      '據《明史》等記載，鄭和船隊有六十多艘大船，加上許多小船，共兩萬多人。除了寶船，還有運馬的馬船、運糧的糧船、專門載淡水的水船，以及保護船隊的戰船，就像一座在海上移動的城市。',
   };
 }
 

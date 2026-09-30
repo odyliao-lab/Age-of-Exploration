@@ -6,6 +6,7 @@ import {
   investigateBlocked,
   merchantInReach,
   envoyInReach,
+  armadaInReach,
   merchantOffer,
   portInReach,
   positionErrorKm,
@@ -48,8 +49,15 @@ export function HelmPanel() {
   const speed = useGame((s) => s.speed);
   const { steer, trimSail, toggleAnchor, togglePause, setSpeed, dock, investigate } =
     useGame.getState();
-  const { openStargazing, openCoastSight, greetMerchant, sound, sellToMerchant, greetEnvoy } =
-    useGame.getState();
+  const {
+    openStargazing,
+    openCoastSight,
+    greetMerchant,
+    sound,
+    sellToMerchant,
+    greetEnvoy,
+    greetArmada,
+  } = useGame.getState();
   const dial = useRef<SVGSVGElement>(null);
   const dragging = useRef(false);
 
@@ -65,6 +73,7 @@ export function HelmPanel() {
   const blocked = rumorHere ? investigateBlocked(world, game, rumorHere) : null;
   const merchant = merchantInReach(game);
   const envoy = envoyInReach(game);
+  const armada = armadaInReach(game);
   const offer = merchant ? merchantOffer(world, game, merchant.id) : null;
   const errKm = Math.round(positionErrorKm(world, game));
   const lat = game.ship.position[1];
@@ -132,6 +141,11 @@ export function HelmPanel() {
                 </button>
               )}
             </>
+          )}
+          {armada && (
+            <button type="button" className="primary" onClick={() => greetArmada(armada.id)}>
+              🚩 向寶船艦隊致意
+            </button>
           )}
           {envoy && (
             <button type="button" className="primary" onClick={() => greetEnvoy(envoy.id)}>

@@ -10,7 +10,7 @@ import type { View } from './viewport';
 
 export interface FleetView {
   id: number;
-  kind: 'pirate' | 'merchant' | 'envoy';
+  kind: 'pirate' | 'merchant' | 'envoy' | 'armada';
   position: LonLat;
   heading: number;
   chasing: boolean;
@@ -35,12 +35,30 @@ const LOOKS = {
   pirate: { hull: 0x2b2118, sail: 0x7a2a1c, flag: 0x111111 },
   merchant: { hull: 0x8a5a33, sail: 0xe8d9b5, flag: 0x2f7d6a },
   envoy: { hull: 0x6b2f1f, sail: 0xd9a93a, flag: 0xb5482b },
+  armada: { hull: 0x5a2a18, sail: 0xb5482b, flag: 0xe0b94a },
 };
 
-const FLEET_NAMES = { pirate: '海盜快船', merchant: '商船', envoy: '使節船' };
+const FLEET_NAMES = {
+  pirate: '海盜快船',
+  merchant: '商船',
+  envoy: '使節船',
+  armada: '鄭和的寶船艦隊',
+};
+
+/** 寶船艦隊的隊形：旗艦在前，後面的船排成兩列（船頭朝上的座標） */
+const ARMADA_FORMATION: [number, number, number][] = [
+  [0, 0, 1.35],
+  [-26, 26, 0.9],
+  [26, 26, 0.9],
+  [-50, 52, 0.8],
+  [50, 52, 0.8],
+  [0, 60, 0.8],
+];
 
 interface FleetSprite {
-  ship: ShipSprite;
+  ships: ShipSprite[];
+  /** 跟著航向旋轉的船隻群組 */
+  group: Container;
   root: Container;
   label: Text;
 }
@@ -92,7 +110,16 @@ export class SeaEntities {
       seen.add(f.id);
       let s = this.fleets.get(f.id);
       if (!s) {
-        const ship = new ShipSprite(LOOKS[f.kind]);
+        const group = new Container();
+        const formation: [number, number, number][] =
+          f.kind === 'armada' ? ARMADA_FORMATION : [[0, 0, 1]];
+        const ships = formation.map(([x, y, k]) => {
+          const ship = new ShipSprite(LOOKS[f.kind]);
+          ship.root.position.set(x, y);
+          ship.root.scale.set(k);
+          group.addChild(ship.root);
+          return ship;
+        });
         const root = new Container();
         const label = new Text({
           text: FLEET_NAMES[f.kind],
@@ -106,15 +133,15 @@ export class SeaEntities {
           resolution: 2,
         });
         label.anchor.set(0.5, 0);
-        label.position.set(0, 24);
-        root.addChild(ship.root, label);
+        label.position.set(0, f.kind === 'armada' ? 70 : 24);
+        root.addChild(group, label);
         this.fleetLayer.addChild(root);
-        s = { ship, root, label };
+        s = { ships, group, root, label };
         this.fleets.set(f.id, s);
       }
       const p = lonLatToWorld(f.position);
       s.root.position.set(p.x, p.y);
-      s.ship.root.rotation = (f.heading * Math.PI) / 180;
+      s.group.rotation = (f.heading * Math.PI) / 180;
       s.label.text =
         f.kind === 'pirate' && f.chasing ? '海盜快船（追來了！）' : FLEET_NAMES[f.kind];
     }
@@ -233,7 +260,7 @@ export class SeaEntities {
 
   update(dt: number) {
     this.time += dt;
-    for (const f of this.fleets.values()) f.ship.drawRig(this.time);
+    for (const f of this.fleets.values()) for (const ship of f.ships) ship.drawRig(this.time);
     this.drawBursts();
     // 海霧：一團團慢慢起伏的白霧，蓋在船隊上面
     const mg = this.mistGfx;
