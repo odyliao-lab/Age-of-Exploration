@@ -1,0 +1,49 @@
+{
+  "id": "iu-r5-gold",
+  "title": "金砂運回里斯本",
+  "scenario": "into-the-unknown",
+  "chapter": 2,
+  "tier": 2,
+  "kind": "region",
+  "giver_port": "elmina",
+  "objectives": [
+    {
+      "domain": "F",
+      "text": "知道西非黃金過去經撒哈拉商隊運往北非。"
+    }
+  ],
+  "prerequisites": ["iu-05-mina"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "聖喬治堡的書記",
+      "lines": ["國王等著這一季的金砂。運 4 擔回里斯本吧，路上要小心海盜，也要記得繞大圈借西風。"]
+    },
+    {
+      "type": "deliver",
+      "good": "gold-dust",
+      "qty": 4,
+      "target": "lisbon",
+      "text": "在艾爾米納的市集買金砂"
+    },
+    {
+      "type": "quiz",
+      "question": "在葡萄牙的船從海上來以前，西非的黃金主要怎麼運到地中海？",
+      "choices": [
+        "由駱駝商隊橫越撒哈拉沙漠，運到北非的港口",
+        "由船繞過好望角",
+        "由河流一路流到歐洲",
+        "由大象運過沙漠"
+      ],
+      "answer": 0,
+      "explanation": "好幾百年來，駱駝商隊往返撒哈拉沙漠：往南運去岩鹽、布匹和銅，往北運回黃金。廷巴克圖等沙漠邊緣的城市因此繁榮。葡萄牙人從海上直接到黃金海岸，就是想繞過這條沙漠商路。"
+    }
+  ],
+  "reward": {
+    "xp": 200,
+    "gold": 300,
+    "reputation": 14,
+    "unlock_ports": [],
+    "codex": []
+  }
+}
