@@ -467,6 +467,42 @@ export function drawMooredShip(ctx: Ctx, hull: string, sail: string, flag: strin
   px(ctx, x + 15, y - 4, 1, 8, '#3a2414');
 }
 
+/** 港裡停著的當地船（俯視、船頭朝右）：阿拉伯與斯瓦希里的三角帆船、中國與琉球的硬帆船、南洋的邊架艇 */
+export function drawLocalBoat(ctx: Ctx, culture: Culture, x: number, y0: number, time: number) {
+  const y = y0 + Math.round(Math.sin(time * 1.3 + x) * 1);
+  px(ctx, x + 2, y + 3, 40, 12, 'rgba(0,0,0,0.18)');
+  if (culture === 'nanyang') {
+    // 邊架艇：細長的船身，兩側用橫桿綁著浮木
+    px(ctx, x + 4, y + 4, 32, 6, '#7a5a3a');
+    px(ctx, x + 36, y + 5, 4, 4, '#7a5a3a');
+    px(ctx, x + 12, y - 2, 2, 18, '#5e3c1c');
+    px(ctx, x + 26, y - 2, 2, 18, '#5e3c1c');
+    px(ctx, x + 8, y - 3, 26, 2, '#9a7a4a');
+    px(ctx, x + 8, y + 15, 26, 2, '#9a7a4a');
+    px(ctx, x + 16, y + 1, 10, 10, '#e0c080');
+    return;
+  }
+  const arab = culture === 'arabia' || culture === 'swahili' || culture === 'southasia';
+  const hull = arab ? '#9a6a3a' : '#6b3f1f';
+  px(ctx, x, y + 2, 36, 12, hull);
+  // 尖尖的船頭
+  px(ctx, x + 36, y + 4, 4, 8, hull);
+  px(ctx, x + 40, y + 6, 3, 4, hull);
+  px(ctx, x, y + 2, 36, 2, '#3a2414');
+  px(ctx, x + 2, y + 5, 30, 6, arab ? '#b48a5a' : '#8a5a33');
+  if (arab) {
+    // 三角帆：一根長長的斜桁
+    for (let k = 0; k < 14; k++) px(ctx, x + 6 + k * 2, y - 6 + k, 3, 1, '#5e3c1c');
+    for (let k = 0; k < 10; k++) px(ctx, x + 10 + k * 2, y - 3 + k, 14 - k, 1, '#efe4cc');
+  } else {
+    // 硬帆：竹條撐開，一段一段
+    for (let k = 0; k < 3; k++) {
+      px(ctx, x + 8 + k * 8, y - 3, 3, 20, '#8f4a2a');
+      px(ctx, x + 8 + k * 8, y - 3, 3, 1, 'rgba(0,0,0,0.25)');
+    }
+  }
+}
+
 /** 海鷗：在海面上空繞圈 */
 export function drawGulls(ctx: Ctx, time: number) {
   for (let k = 0; k < 3; k++) {

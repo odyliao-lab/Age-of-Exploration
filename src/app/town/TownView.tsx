@@ -5,6 +5,7 @@ import { COLORS, SKIN_TONES, colorOf, type Appearance } from '@/game/cosmetics';
 import {
   drawGulls,
   drawMooredShip,
+  drawLocalBoat,
   drawPerson,
   drawTownBase,
   drawWater,
@@ -313,6 +314,9 @@ export function TownView({
       drawWater(fctx, time);
       const s = shipRef.current;
       drawMooredShip(fctx, s.hull, s.sail, s.flag, time);
+      // 港裡還停著幾艘當地的船
+      drawLocalBoat(fctx, culture, 3 * TILE, 14 * TILE + 4, time);
+      drawLocalBoat(fctx, culture, 21 * TILE, 15 * TILE, time);
       if (festival) drawFestival(fctx, festival, time);
       if (marker) {
         fctx.strokeStyle = 'rgba(181,72,43,0.9)';
