@@ -1,0 +1,65 @@
+{
+  "id": "nl-00-fjord",
+  "title": "峽灣的少年",
+  "scenario": "northern-longship",
+  "chapter": 0,
+  "tier": 0,
+  "kind": "main",
+  "giver_port": "nidaros",
+  "objectives": [
+    {
+      "domain": "B",
+      "text": "能說明峽灣是冰河形成的地形。"
+    },
+    {
+      "domain": "A",
+      "text": "能在海圖上找到北極圈。"
+    }
+  ],
+  "prerequisites": [],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "老船主哈康",
+      "lines": [
+        "這艘諾爾船以後就是你的了。先從峽灣出海，往西南到法羅群島——那是往冰島的半路。",
+        "記住：我們這裡比很多地方都北，可是海水不結冰。這要感謝從南方流來的溫暖海流。"
+      ]
+    },
+    {
+      "type": "discover",
+      "target": "fjord"
+    },
+    {
+      "type": "locate",
+      "prompt": "出發前先考考你：北極圈大約在北緯 66.5°。請在海圖上點出北極圈與東經 13° 交會的地方（挪威海岸）。",
+      "target": [13.0, 66.56],
+      "tolerance_km": 150,
+      "explanation": "北極圈穿過挪威中北部。在北極圈以北，夏至前後太陽整天不落下，叫做「午夜太陽」；冬至前後則整天不見太陽。"
+    },
+    {
+      "type": "navigate",
+      "target": "torshavn",
+      "hint_level": 1
+    },
+    {
+      "type": "quiz",
+      "question": "挪威的峽灣是怎麼形成的？",
+      "choices": [
+        "冰河刨出深谷，冰融化後海水灌進來",
+        "河流慢慢沖出來的",
+        "火山爆發炸出來的",
+        "人工挖出來的運河"
+      ],
+      "answer": 0,
+      "explanation": "冰河時期厚厚的冰河沿著山谷往下移動，把山谷刨成又深又陡的 U 形谷；冰河融化後海平面上升，海水灌進谷裡，就成了峽灣。"
+    }
+  ],
+  "reward": {
+    "xp": 60,
+    "gold": 100,
+    "reputation": 5,
+    "unlock_ports": ["torshavn"],
+    "codex": []
+  }
+}

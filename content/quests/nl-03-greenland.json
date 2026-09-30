@@ -1,0 +1,59 @@
+{
+  "id": "nl-03-greenland",
+  "title": "沿著緯線往西",
+  "scenario": "northern-longship",
+  "chapter": 2,
+  "tier": 2,
+  "kind": "main",
+  "giver_port": "reykjavik",
+  "objectives": [
+    {
+      "domain": "A",
+      "text": "能說明緯線航法。"
+    },
+    {
+      "domain": "C",
+      "text": "知道格陵蘭大部分被冰蓋覆蓋。"
+    }
+  ],
+  "prerequisites": ["nl-02-iceland"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "雷克雅維克的老領航員",
+      "lines": [
+        "往格陵蘭，不要亂轉方向：讓北極星保持在同樣的高度，沿著緯線一直往西。",
+        "先繞到格陵蘭的南端，看到大冰河以後轉向西北，進入峽灣就是艾瑞克的農莊。"
+      ]
+    },
+    {
+      "type": "discover",
+      "target": "greenland-ice"
+    },
+    {
+      "type": "navigate",
+      "target": "brattahlid",
+      "hint_level": 3,
+      "text": "線索：冰島西南方的大島南端，繞過冰河後，西南岸峽灣深處的綠色草地。"
+    },
+    {
+      "type": "quiz",
+      "question": "格陵蘭大部分都是冰，為什麼叫「綠地」？",
+      "choices": [
+        "據說艾瑞克取個好聽的名字，想吸引更多人來移居",
+        "因為島上長滿森林",
+        "因為冰是綠色的",
+        "因為那裡終年是夏天"
+      ],
+      "answer": 0,
+      "explanation": "依北歐古書記載，紅鬍子艾瑞克說：「取個好名字，人們才會想來。」其實格陵蘭八成以上被冰蓋覆蓋，只有西南岸的峽灣裡有一片夏天長草的土地。"
+    }
+  ],
+  "reward": {
+    "xp": 200,
+    "gold": 280,
+    "reputation": 16,
+    "unlock_ports": ["brattahlid"],
+    "codex": ["latitude-sailing"]
+  }
+}

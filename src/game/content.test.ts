@@ -288,3 +288,28 @@ describe('Westward Gamble content', () => {
     expect(s.discovered).toEqual(expect.arrayContaining(['sargasso-sea', 'columbian-exchange']));
   });
 });
+
+describe('Northern Longship content', () => {
+  it('plays every quest from start to finish', () => {
+    let s = newGame(world, 'northern-longship', 1000).state;
+    expect(s.dockedAt).toBe('nidaros');
+    expect(s.shipTypeId).toBe('knarr');
+    const remaining = new Set(
+      world.content.quests.filter((q) => q.scenario === 'northern-longship').map((q) => q.id),
+    );
+    for (let round = 0; round < 30 && remaining.size; round++) {
+      const ready = [...remaining].filter((id) =>
+        world.quests.get(id)!.prerequisites.every((p) => s.quests[p]?.status === 'completed'),
+      );
+      expect(ready.length, `卡住的任務：${[...remaining].join(', ')}`).toBeGreaterThan(0);
+      for (const id of ready) {
+        s = playQuest(s, id);
+        remaining.delete(id);
+      }
+    }
+    expect(remaining.size).toBe(0);
+    expect(s.visitedPorts).toEqual(
+      expect.arrayContaining(['reykjavik', 'brattahlid', 'leifsbudir']),
+    );
+  });
+});

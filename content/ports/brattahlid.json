@@ -1,0 +1,16 @@
+{
+  "id": "brattahlid",
+  "name": "布拉塔利德（格陵蘭）",
+  "name_en": "Brattahlíð (Greenland)",
+  "historical_names": [],
+  "country": "格陵蘭",
+  "country_en": "Greenland",
+  "region": "greenland",
+  "location": [-45.5, 61.15],
+  "kind": "port",
+  "goods": ["walrus-ivory"],
+  "climate": "寒帶苔原氣候",
+  "blurb": "格陵蘭西南岸峽灣裡的農莊，是「紅鬍子」艾瑞克在 985 年前後建立的東部聚落中心。峽灣裡夏天長著青草，可以放牧牛羊。",
+  "sights": [],
+  "gossip": ["格陵蘭大部分都是冰，只有峽灣裡長草。", "這裡沒有大樹，造船、蓋房子的木頭都缺。"]
+}

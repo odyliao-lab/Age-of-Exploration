@@ -1,0 +1,17 @@
+{
+  "id": "jan-mayen",
+  "category": "island",
+  "name": "揚馬延島",
+  "name_en": "Jan Mayen",
+  "location": [-8.0, 70.7],
+  "domains": ["B", "C"],
+  "body": "冰島東北方北極海上的孤島，島上的貝倫火山是世界最北的活火山之一，山頂終年積雪，常被濃霧籠罩。",
+  "source": "維基百科「揚馬延島」條目",
+  "rumor": {
+    "port": "reykjavik",
+    "from": "追鯨的老漁夫",
+    "text": "往東北開好幾天，在冰冷的海上有一座孤零零的島，島上有一座戴著白帽子的大火山。霧大得很，一不小心就撞上去了。",
+    "investigate_km": 60
+  },
+  "reviewed": false
+}

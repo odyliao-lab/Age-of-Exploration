@@ -1,0 +1,12 @@
+{
+  "id": "greenland-ice",
+  "category": "landmark",
+  "name": "格陵蘭冰蓋",
+  "name_en": "Greenland Ice Sheet",
+  "location": [-43.9, 59.9],
+  "discover_radius_km": 150,
+  "domains": ["C", "D"],
+  "body": "格陵蘭八成以上被厚達兩三公里的冰蓋覆蓋。冰蓋邊緣的冰河崩落到海裡，就成了漂在北大西洋的冰山。艾瑞克把它取名「綠地」（格陵蘭），據說是為了吸引人來移居。",
+  "source": "維基百科「格陵蘭冰蓋」條目",
+  "reviewed": false
+}

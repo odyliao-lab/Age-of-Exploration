@@ -1,0 +1,12 @@
+{
+  "id": "geysir",
+  "category": "landmark",
+  "name": "冰島的噴泉與火山",
+  "name_en": "Geysir",
+  "location": [-21.0, 63.6],
+  "discover_radius_km": 120,
+  "domains": ["C", "D"],
+  "body": "冰島位在大西洋中洋脊上，地底的岩漿讓地下水沸騰，從地面噴出熱水柱，叫做間歇泉。英文的 geyser 就來自冰島的「蓋錫爾」噴泉。島上的火山也常常噴發。",
+  "source": "維基百科「冰島」「間歇泉」條目",
+  "reviewed": false
+}

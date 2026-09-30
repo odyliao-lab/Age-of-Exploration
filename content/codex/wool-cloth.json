@@ -1,0 +1,10 @@
+{
+  "id": "wool-cloth",
+  "category": "goods",
+  "name": "羊毛布",
+  "name_en": "Wool Cloth",
+  "domains": ["F", "D"],
+  "body": "北大西洋的島嶼寒冷多風、樹很少，卻很適合放羊。冰島人把羊毛織成厚實的「瓦德瑪爾布」，不但做衣服、船帆，還曾經被當成錢來使用。",
+  "source": "維基百科「瓦德瑪爾布」條目",
+  "reviewed": false
+}

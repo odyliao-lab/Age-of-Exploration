@@ -1,0 +1,57 @@
+{
+  "id": "nl-04-westward",
+  "title": "比雅尼看見的土地",
+  "scenario": "northern-longship",
+  "chapter": 3,
+  "tier": 3,
+  "kind": "main",
+  "giver_port": "brattahlid",
+  "objectives": [
+    {
+      "domain": "B",
+      "text": "能找到拉布拉多與紐芬蘭。"
+    },
+    {
+      "domain": "C",
+      "text": "能說明北美東北岸從石頭荒原到森林的變化。"
+    }
+  ],
+  "prerequisites": ["nl-03-greenland"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "艾瑞克的兒子萊夫",
+      "lines": [
+        "十幾年前，比雅尼被暴風吹離航道，在更西邊看見了陸地，卻沒有上岸。",
+        "我打算往西去看看。先往西橫渡海峽，再沿著海岸往南：聽說先是一片只有石頭的地方，再往南是森林。"
+      ]
+    },
+    {
+      "type": "discover",
+      "target": "helluland"
+    },
+    {
+      "type": "discover",
+      "target": "markland"
+    },
+    {
+      "type": "quiz",
+      "question": "從赫盧蘭（巴芬島）往南到馬克蘭（拉布拉多），岸上的景色為什麼從石頭荒原變成森林？",
+      "choices": [
+        "越往南越溫暖，生長季節變長，樹才長得起來",
+        "因為南邊的石頭比較少",
+        "因為北邊的樹都被砍光了",
+        "因為南邊比較靠近格陵蘭"
+      ],
+      "answer": 0,
+      "explanation": "高緯度地區夏天太短、太冷，樹木長不起來，只有苔原；往南緯度降低，夏天變長變暖，就出現了寒帶針葉林。這條「樹木線」是很重要的自然分界。"
+    }
+  ],
+  "reward": {
+    "xp": 220,
+    "gold": 300,
+    "reputation": 18,
+    "unlock_ports": [],
+    "codex": ["sunstone"]
+  }
+}

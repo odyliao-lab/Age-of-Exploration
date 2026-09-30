@@ -1,0 +1,87 @@
+{
+  "id": "northern-longship",
+  "name": "北方長船",
+  "name_en": "The Northern Longship",
+  "tagline": "從挪威的峽灣出發，沿著緯線往西，越過冰島與格陵蘭。",
+  "description": "西元 1000 年，北歐人的船已經航行到冰島和格陵蘭。你是尼達洛斯一位年輕的船主，駕著諾爾船往西航行：穿過北大西洋的大浪、看見永不落下的午夜太陽與綠色的極光，最後跟著傳說，來到西方一片長滿森林的土地——比哥倫布早了將近五百年。",
+  "culture": "北歐（維京時代）",
+  "era": "10 世紀末～11 世紀初",
+  "inspiration": "北歐人移居冰島與格陵蘭、萊夫·艾瑞克森抵達文蘭（約 1000 年）",
+  "home_port": "nidaros",
+  "home_region": "north-sea",
+  "starting_ports": ["nidaros"],
+  "region_tiers": {
+    "north-sea": 0,
+    "iceland": 1,
+    "greenland": 2,
+    "vinland": 3
+  },
+  "starting_ship": "knarr",
+  "ships": ["knarr", "longship"],
+  "start_date": "1000-05-15",
+  "recommended": false,
+  "domains": ["A", "B", "C", "D", "E", "F"],
+  "estimated_hours": 5,
+  "chapters": [
+    {
+      "index": 0,
+      "title": "峽灣的少年",
+      "tier": 0,
+      "summary": "沿著挪威海岸南下，認識北歐人的貿易網。"
+    },
+    {
+      "index": 1,
+      "title": "冒煙的海灣",
+      "tier": 1,
+      "summary": "橫渡北大西洋到冰島，看火山與噴泉。"
+    },
+    {
+      "index": 2,
+      "title": "綠色的冰之地",
+      "tier": 2,
+      "summary": "沿著緯線往西，抵達格陵蘭的峽灣。"
+    },
+    {
+      "index": 3,
+      "title": "文蘭",
+      "tier": 3,
+      "summary": "跟著傳說往西南航行，找到長滿森林的新土地。"
+    }
+  ],
+  "rival": {
+    "name": "比約恩",
+    "from": "赫德比",
+    "look": "一位留著紅鬍子、披著熊皮斗篷的船長"
+  },
+  "start_hat": "woolcap",
+  "first_voyage_lesson": "北歐人的家鄉緯度很高，但墨西哥灣流帶來的溫暖海水，讓挪威的港口冬天也不結冰。北緯 60° 以北常吹從東邊來的極地東風，往西航行比較順；再往南則是往東吹的盛行西風，適合回程。夏天白天很長，最適合出海。",
+  "historic_routes": [
+    {
+      "name": "從挪威到格陵蘭的緯線航道",
+      "ports": [
+        "nidaros",
+        [2.0, 61.0],
+        [-1.0, 61.0],
+        [-7.0, 61.3],
+        [-18.0, 62.8],
+        [-43.5, 59.5],
+        "brattahlid"
+      ]
+    },
+    {
+      "name": "萊夫前往文蘭（約 1000 年）",
+      "ports": ["brattahlid", [-53.0, 63.0], [-59.0, 63.0], [-57.0, 56.0], "leifsbudir"]
+    },
+    {
+      "name": "北歐人的貿易航線",
+      "ports": ["nidaros", "orkney", "dublin"]
+    }
+  ],
+  "historic_note": "北歐古書《定居之書》記載了從挪威往格陵蘭的航法：沿著同一條緯線往西，從設得蘭群島北邊、法羅群島南邊、冰島南邊經過。萊夫從格陵蘭往西、再沿著北美海岸往南，經過「石板之地」與「森林之地」到文蘭。路線為簡化示意。",
+  "endings": {
+    "nl-05-vinland": {
+      "title": "航海誌：文蘭",
+      "text": "你從挪威的峽灣出發，沿著緯線橫渡北大西洋，經過冰島的火山、格陵蘭的冰蓋，來到西方長滿森林的文蘭。北歐人在這裡只停留了短短幾年，後來這段故事只留在傳說裡——直到一千年後，考古學家在紐芬蘭挖出了草皮長屋的遺跡，證明傳說是真的。"
+    }
+  }
+}

@@ -49,6 +49,7 @@ const HAT_COLORS: Record<string, string | null> = {
   douli: '#c9a86a',
   turban: '#f4ecd8',
   barrete: '#9b2f1f',
+  woolcap: '#6b5a3a',
   captain: '#2c4a7a',
   feather: '#6b3f1f',
 };
@@ -59,7 +60,12 @@ function playerLook(a: Appearance): PersonLook {
     coat: colorOf(COLORS, a.coat),
     hat: HAT_COLORS[a.hat] ?? null,
     hair: '#2b2118',
-    hatStyle: a.hat === 'turban' ? 'turban' : a.hat === 'barrete' ? 'cap' : undefined,
+    hatStyle:
+      a.hat === 'turban'
+        ? 'turban'
+        : a.hat === 'barrete' || a.hat === 'woolcap'
+          ? 'cap'
+          : undefined,
   };
 }
 
@@ -71,6 +77,13 @@ const TOWNSFOLK: Record<Culture, PersonLook[]> = {
     { skin: '#e8c4a0', coat: '#4a5a3a', hat: '#6b3f1f', hair: '#3a2414' },
     { skin: '#d9a57c', coat: '#5a4a7a', hat: null, hair: '#1c1410', robe: true },
     { skin: '#e8c4a0', coat: '#8a6a3a', hat: '#2b2118', hair: '#3a2414', hatStyle: 'cap' },
+  ],
+  norse: [
+    { skin: '#efd2b8', coat: '#6b5a3a', hat: '#8a6a3a', hair: '#c9a86a', hatStyle: 'cap' },
+    { skin: '#f3d2b3', coat: '#3f5a7a', hat: null, hair: '#b5482b', robe: true },
+    { skin: '#efd2b8', coat: '#7a3a2a', hat: null, hair: '#e0c080' },
+    { skin: '#f3d2b3', coat: '#4a6b4a', hat: null, hair: '#8a6a3a', robe: true },
+    { skin: '#efd2b8', coat: '#8a8a7a', hat: '#5e4127', hair: '#c9a86a', hatStyle: 'cap' },
   ],
   taino: [
     { skin: '#a8714a', coat: '#c9a86a', hat: null, hair: '#1c1410' },

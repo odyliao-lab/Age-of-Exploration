@@ -45,6 +45,14 @@ function Hat({ id }: { id: string }) {
           <path d="M20 23 L44 23" strokeWidth={2.5} />
         </g>
       );
+    case 'woolcap':
+      // 北歐人的羊毛圓帽
+      return (
+        <g {...line}>
+          <path d="M20 23 Q20 11 32 11 Q44 11 44 23 Z" fill="#6b5a3a" />
+          <path d="M20 23 L44 23" strokeWidth={3} stroke="#8a6a3a" />
+        </g>
+      );
     case 'captain':
       return (
         <g {...line}>

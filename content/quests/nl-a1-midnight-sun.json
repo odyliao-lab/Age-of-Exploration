@@ -1,0 +1,48 @@
+{
+  "id": "nl-a1-midnight-sun",
+  "title": "說書人的考驗：午夜太陽",
+  "scenario": "northern-longship",
+  "chapter": 0,
+  "tier": 0,
+  "kind": "academy",
+  "giver_port": "nidaros",
+  "objectives": [
+    {
+      "domain": "A",
+      "text": "能說明北極圈內的永晝與永夜。"
+    },
+    {
+      "domain": "D",
+      "text": "能連結地軸傾斜與季節。"
+    }
+  ],
+  "prerequisites": ["nl-00-fjord"],
+  "steps": [
+    {
+      "type": "quiz",
+      "question": "為什麼在北極圈以北，夏至前後太陽整天都不落下？",
+      "choices": [
+        "地球的自轉軸傾斜，夏天北極一直朝向太陽",
+        "因為夏天太陽比較大",
+        "因為北極有很多冰會反光",
+        "因為月亮擋住了夜晚"
+      ],
+      "answer": 0,
+      "explanation": "地球的自轉軸傾斜約 23.5°。夏至前後北半球傾向太陽，北極圈以內的地方一整天都在陽光照得到的那一面，所以太陽不落下；冬至時則相反，整天都在黑暗中。"
+    },
+    {
+      "type": "quiz",
+      "question": "冬天的夜裡，北歐人常看到天上飄著綠色的光帶。那是什麼？",
+      "choices": ["極光", "彩虹", "流星雨", "火山的光"],
+      "answer": 0,
+      "explanation": "極光是太陽風帶來的帶電粒子，被地球磁場引導到兩極上空，撞擊空氣而發光。高緯度的北歐、冰島、格陵蘭冬夜最容易看到。"
+    }
+  ],
+  "reward": {
+    "xp": 60,
+    "gold": 60,
+    "reputation": 3,
+    "unlock_ports": [],
+    "codex": ["aurora"]
+  }
+}

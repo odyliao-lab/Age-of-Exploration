@@ -1,0 +1,19 @@
+{
+  "id": "leifsbudir",
+  "name": "萊夫營地（文蘭）",
+  "name_en": "Leifsbúðir (L'Anse aux Meadows)",
+  "historical_names": ["蘭塞奧克斯牧草地"],
+  "country": "加拿大（紐芬蘭）",
+  "country_en": "Canada (Newfoundland)",
+  "region": "vinland",
+  "location": [-55.53, 51.6],
+  "kind": "port",
+  "goods": ["timber"],
+  "climate": "寒帶針葉林氣候",
+  "blurb": "紐芬蘭島北端的北歐人營地，幾座草皮長屋、鐵匠鋪和修船的地方。考古學家在 1960 年代找到這處遺址，證明北歐人在西元 1000 年前後就到過北美洲。",
+  "sights": [],
+  "gossip": [
+    "這裡的森林好大，一棵樹就夠做好幾根桅杆。",
+    "附近住著另一群人，我們叫他們「斯克萊林人」。"
+  ]
+}

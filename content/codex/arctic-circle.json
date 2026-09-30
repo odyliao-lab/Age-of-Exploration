@@ -1,0 +1,11 @@
+{
+  "id": "arctic-circle",
+  "category": "phenomenon",
+  "name": "北極圈",
+  "name_en": "Arctic Circle",
+  "line": "arctic-circle",
+  "domains": ["A", "D"],
+  "body": "北極圈約在北緯 66.5°。在北極圈以北，夏至前後太陽整天不落下（永晝、午夜太陽），冬至前後太陽整天不升起（永夜）。這是因為地球的自轉軸傾斜了約 23.5°。",
+  "source": "維基百科「北極圈」「永晝」條目",
+  "reviewed": false
+}

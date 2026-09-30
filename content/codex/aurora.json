@@ -1,0 +1,10 @@
+{
+  "id": "aurora",
+  "category": "phenomenon",
+  "name": "北極光",
+  "name_en": "Aurora Borealis",
+  "domains": ["D", "A"],
+  "body": "太陽吹出的帶電粒子被地球磁場引導到兩極附近，撞上高空的空氣而發光，形成綠色、紅色的光帶。在挪威北部、冰島、格陵蘭的冬夜最容易看到。",
+  "source": "維基百科「極光」條目",
+  "reviewed": false
+}

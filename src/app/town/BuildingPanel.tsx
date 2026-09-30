@@ -56,6 +56,9 @@ const robed = (c: Culture, coat: string, skin: string): PersonLook | null => {
     return { skin: '#e8c4a0', coat, hat: '#2b2118', hair: '#3a2414', hatStyle: 'cap' };
   // 西非：寬大的長袍、不戴帽
   if (c === 'westafrica') return { skin: '#5a3a24', coat, hat: null, hair: '#1c1410', robe: true };
+  // 北歐人：羊毛外衣與羊毛帽
+  if (c === 'norse')
+    return { skin: '#efd2b8', coat, hat: '#6b5a3a', hair: '#c9a86a', hatStyle: 'cap' };
   // 泰諾人：棉布短裙與羽飾
   if (c === 'taino')
     return { skin: '#a8714a', coat, hat: '#e0b94a', hair: '#1c1410', hatStyle: 'cap' };
@@ -108,7 +111,9 @@ const NPCS: Record<BuildingKind, (c: Culture) => Npc> = {
         ? '茶棚老闆'
         : islamic(c) || c === 'southasia' || c === 'westafrica' || c === 'taino'
           ? '客棧老闆'
-          : '酒館老闆娘',
+          : c === 'norse'
+            ? '宴會廳的主人'
+            : '酒館老闆娘',
     look: robed(c, '#b5482b', '#c68f63') ?? {
       skin: '#e0b18a',
       coat: '#b5482b',
@@ -152,6 +157,13 @@ const TEMPLE: Record<
     action: '點蠟燭祈福',
     lesson:
       '伊比利半島的遠航船隊出發前，水手們會在港邊的教堂守夜祈禱，家人在岸邊送行——里斯本的船隊從西邊的貝倫出發，西班牙的船隊則從帕洛斯、塞維亞出航。一趟遠航常常要一兩年，不一定回得來。',
+  },
+  norse: {
+    keeper: '聖所的守護人',
+    greeting: '這裡供奉著奧丁、索爾，也有人開始蓋小教堂了。出海前，大家都來求一路平安。',
+    action: '獻上祭品祈福',
+    lesson:
+      '西元 1000 年前後，北歐正處在信仰改變的時代：許多人還信奉奧丁、索爾等古老的神，也有越來越多人改信基督教。就在西元 1000 年，冰島的全民大會決定全島改信基督教。',
   },
   taino: {
     keeper: '貝希克（巫醫）',

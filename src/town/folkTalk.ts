@@ -19,6 +19,7 @@ const ARABIC: Greeting = {
   meaning: '願平安與你同在',
 };
 const SWAHILI: Greeting = { phrase: 'Jambo！', lang: '斯瓦希里語', meaning: '你好' };
+const NORSE: Greeting = { phrase: 'Heill ok sæll！', lang: '古諾斯語', meaning: '祝你健康、幸福' };
 const PORTUGUESE: Greeting = { phrase: 'Bom dia！', lang: '葡萄牙語', meaning: '早安、日安' };
 const MALAYALAM: Greeting = {
   phrase: 'Namaskaram！',
@@ -57,6 +58,12 @@ const GREETINGS: Record<string, Greeting> = {
   lisbon: PORTUGUESE,
   palos: { phrase: '¡Buenos días!', lang: '西班牙語', meaning: '早安、日安' },
   'las-palmas': { phrase: '¡Buenos días!', lang: '西班牙語', meaning: '早安、日安' },
+  nidaros: NORSE,
+  torshavn: NORSE,
+  reykjavik: NORSE,
+  brattahlid: NORSE,
+  orkney: NORSE,
+  dublin: NORSE,
   lagos: PORTUGUESE,
   funchal: PORTUGUESE,
   santiago: PORTUGUESE,
@@ -74,6 +81,13 @@ const CULTURE_LINES: Record<Culture, string[]> = {
     '夏天幾乎不下雨，天空藍得發亮；雨都集中在冬天。',
     '製圖師把每一艘船帶回來的消息畫進海圖，海圖上的海岸線一年比一年長。',
     '水手出海前都會到教堂祈禱，一趟遠航常常一兩年才回得來。',
+  ],
+  norse: [
+    '夏天太陽幾乎不下山，半夜天還是亮的；到了冬天，白天只有短短幾個小時。',
+    '冬天的夜裡，天上會出現綠色的光帶，像簾子一樣飄動。',
+    '我們的房子用石頭和草皮蓋牆和屋頂，又厚又保暖，屋頂上還長著草。',
+    '往西航行時，只要讓北極星一直保持同樣的高度，就不會偏離航線。',
+    '魚曬乾了可以放好幾年，是我們最好的商品，也是航海時的乾糧。',
   ],
   taino: [
     '我們用樹幹挖成獨木舟，大的可以坐幾十個人，在島和島之間划來划去。',

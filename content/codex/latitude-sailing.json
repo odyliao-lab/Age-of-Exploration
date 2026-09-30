@@ -1,0 +1,10 @@
+{
+  "id": "latitude-sailing",
+  "category": "culture",
+  "name": "緯線航法",
+  "name_en": "Latitude sailing",
+  "domains": ["A", "D"],
+  "body": "北歐人往西航行時，讓北極星（或正午太陽）保持在同樣的高度，就能沿著同一條緯線一直往西，不會偏南或偏北。古書記載：從挪威往格陵蘭，要從設得蘭群島北邊、法羅群島南邊、冰島南邊經過，一路往西。",
+  "source": "維基百科「緯線航法」「維京人的航海」條目",
+  "reviewed": false
+}

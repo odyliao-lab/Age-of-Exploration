@@ -1,0 +1,12 @@
+{
+  "id": "helluland",
+  "category": "landmark",
+  "name": "赫盧蘭（石板之地）",
+  "name_en": "Helluland",
+  "location": [-64.0, 63.0],
+  "discover_radius_km": 200,
+  "domains": ["B", "C"],
+  "body": "北歐人對北美洲北部海岸的稱呼，意思是「平石板之地」，一般認為是今天加拿大的巴芬島：岸上只有岩石和冰，沒有樹。",
+  "source": "維基百科「赫盧蘭」條目",
+  "reviewed": false
+}

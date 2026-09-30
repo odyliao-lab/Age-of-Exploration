@@ -1,0 +1,10 @@
+{
+  "id": "stockfish",
+  "category": "goods",
+  "name": "乾鱈魚",
+  "name_en": "Stockfish",
+  "domains": ["F", "D"],
+  "body": "把鱈魚掛在木架上，讓寒冷乾燥的海風吹上好幾個月，就變成硬得像木頭的乾鱈魚，可以保存好幾年。挪威北部與冰島的氣候正適合做乾鱈魚，它是北歐人航海時的乾糧，也賣到整個歐洲。",
+  "source": "維基百科「鱈魚乾」條目",
+  "reviewed": false
+}

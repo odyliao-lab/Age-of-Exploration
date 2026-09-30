@@ -1150,17 +1150,23 @@ export function greetEnvoy(
 
 export const ARMADA_REWARD = { xp: 20, reputation: 5 };
 
+/** 鄭和第一次下西洋出發的那一年 */
+export const TREASURE_FLEET_FIRST_YEAR = 1405;
 /** 鄭和最後一次下西洋回國的那一年 */
 export const TREASURE_FLEET_LAST_YEAR = 1433;
 /**
  * 15 世紀末還沒有商船往來的大洋（大西洋中部、加勒比海）：不會遇到商船與海盜。
  * 幾內亞灣有葡萄牙商船，但還沒有海盜。
  */
-const UNSAILED_SEAS = ['central-atlantic', 'caribbean'];
-const NO_PIRATE_SEAS = [...UNSAILED_SEAS, 'gulf-of-guinea'];
+const UNSAILED_SEAS = ['central-atlantic', 'caribbean', 'vinland'];
+const NO_PIRATE_SEAS = [...UNSAILED_SEAS, 'gulf-of-guinea', 'iceland', 'greenland'];
 
 /** 大西洋的海域：寶船艦隊與朝貢使節船不會出現 */
 const ATLANTIC_REGIONS = [
+  'north-sea',
+  'iceland',
+  'greenland',
+  'vinland',
   'iberian-atlantic',
   'west-africa',
   'gulf-of-guinea',
@@ -1177,6 +1183,7 @@ export function treasureFleetSeas(
   return (
     !!regionId &&
     !ATLANTIC_REGIONS.includes(regionId) &&
+    gameDate(state, extraDays).year >= TREASURE_FLEET_FIRST_YEAR &&
     gameDate(state, extraDays).year <= TREASURE_FLEET_LAST_YEAR
   );
 }

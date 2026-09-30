@@ -1,0 +1,8 @@
+{
+  "id": "iceland",
+  "name": "冰島與挪威海",
+  "name_en": "Iceland & the Norwegian Sea",
+  "description": "北大西洋上的火山島，有冰河、火山與噴泉。北歐人在九世紀後期移居到這裡；從挪威到冰島要橫渡上千公里的大海。",
+  "center": [-20, 65],
+  "bbox": [-32, 60, -11.01, 72]
+}

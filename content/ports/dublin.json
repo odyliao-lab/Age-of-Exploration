@@ -1,0 +1,19 @@
+{
+  "id": "dublin",
+  "name": "都柏林",
+  "name_en": "Dublin",
+  "historical_names": ["Dyflin"],
+  "country": "愛爾蘭",
+  "country_en": "Ireland",
+  "region": "north-sea",
+  "location": [-6.26, 53.35],
+  "kind": "port",
+  "goods": ["wool-cloth"],
+  "climate": "溫帶海洋性氣候",
+  "blurb": "北歐人在九世紀建立的貿易城鎮，位在愛爾蘭東岸的利菲河口。這裡的商人和挪威、冰島、英格蘭都有往來。",
+  "sights": [],
+  "gossip": [
+    "這條河的水又黑又深，名字「都柏林」的意思就是「黑色的水潭」。",
+    "愛爾蘭一年到頭都綠油油的，雨下個不停。"
+  ]
+}

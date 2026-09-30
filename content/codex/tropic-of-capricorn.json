@@ -1,0 +1,11 @@
+{
+  "id": "tropic-of-capricorn",
+  "category": "phenomenon",
+  "name": "南回歸線",
+  "name_en": "Tropic of Capricorn",
+  "line": "tropic-of-capricorn",
+  "domains": ["A", "D"],
+  "body": "南回歸線約在南緯 23.5°，是冬至（北半球的冬至）時太陽直射的最南界線。南北回歸線之間是熱帶。南回歸線穿過非洲南部、澳洲與南美洲。",
+  "source": "維基百科「南回歸線」條目",
+  "reviewed": false
+}

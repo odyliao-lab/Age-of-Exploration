@@ -14,7 +14,8 @@ export type PortCulture =
   | 'swahili'
   | 'iberia'
   | 'westafrica'
-  | 'taino';
+  | 'taino'
+  | 'norse';
 
 const INK = 0x3a2414;
 
@@ -106,6 +107,18 @@ export function drawPortIcon(g: Graphics, culture: PortCulture, hub: boolean) {
         g.rect(x, -5, 7, 5).fill({ color: 0xb9794a }).stroke({ width: 1, color: INK });
         g.poly([x - 1.5, -5, x + 3.5, -11, x + 8.5, -5], true)
           .fill({ color: 0xc9a86a })
+          .stroke({ width: 1, color: INK });
+      }
+      break;
+    case 'norse':
+      // 長屋：低矮的木屋，屋頂長著青草
+      for (const [x, w] of [
+        [-14, 12],
+        [2, 11],
+      ] as const) {
+        g.rect(x, -5, w, 5).fill({ color: 0x7a5a3a }).stroke({ width: 1, color: INK });
+        g.poly([x - 1.5, -5, x + w / 2, -10, x + w + 1.5, -5], true)
+          .fill({ color: 0x6f8f4a })
           .stroke({ width: 1, color: INK });
       }
       break;

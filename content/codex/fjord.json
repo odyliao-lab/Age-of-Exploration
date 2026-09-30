@@ -1,0 +1,12 @@
+{
+  "id": "fjord",
+  "category": "landmark",
+  "name": "特倫汗峽灣",
+  "name_en": "Trondheimsfjord",
+  "location": [9.5, 63.7],
+  "discover_radius_km": 80,
+  "domains": ["B", "C"],
+  "body": "峽灣是冰河時期的冰河在山谷中刨出的深谷，冰河融化後海水灌進來，形成又深又長、兩岸陡峭的海灣。挪威的海岸有上千條峽灣。",
+  "source": "維基百科「峽灣」條目",
+  "reviewed": false
+}

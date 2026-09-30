@@ -41,6 +41,8 @@ interface Palette {
   thatchAll?: boolean;
   /** 教堂：鐘樓與十字架（伊比利半島） */
   church?: boolean;
+  /** 草皮屋頂：屋頂長滿青草（北歐） */
+  turf?: boolean;
 }
 
 export const PALETTES: Record<Culture, Palette> = {
@@ -61,6 +63,24 @@ export const PALETTES: Record<Culture, Palette> = {
     trunk: '#6b5a3a',
     palm: false,
     church: true,
+  },
+  norse: {
+    ground: '#9fae7a',
+    groundDot: '#8a9a66',
+    road: '#a8a08a',
+    roadLine: '#8a826c',
+    wall: '#7a5a3a',
+    wallShade: '#5e4127',
+    roof: '#6f8f4a',
+    roofLine: '#56733a',
+    ridge: '#445c2c',
+    temple: '#6f8f4a',
+    office: '#6f8f4a',
+    leaf: '#3f6b4a',
+    leafDark: '#2c5238',
+    trunk: '#5e4127',
+    palm: false,
+    turf: true,
   },
   taino: {
     ground: '#dcc494',
@@ -338,12 +358,15 @@ function drawBuilding(ctx: Ctx, b: Building, p: Palette, culture: Culture) {
   const roofH = h - wallH + 4;
 
   // 牆面（正面）
-  const wall = (b.kind === 'office' || b.kind === 'academy') && !p.thatchAll ? '#eee4d2' : p.wall;
+  const wall =
+    (b.kind === 'office' || b.kind === 'academy') && !p.thatchAll && !p.turf ? '#eee4d2' : p.wall;
   px(ctx, x + 1, y + h - wallH, w - 2, wallH, wall);
   px(ctx, x + 1, y + h - 2, w - 2, 2, p.wallShade);
   // 柱子
   const pillar =
-    (b.kind === 'temple' || b.kind === 'office') && !p.thatchAll ? '#a8322a' : p.wallShade;
+    (b.kind === 'temple' || b.kind === 'office') && !p.thatchAll && !p.turf
+      ? '#a8322a'
+      : p.wallShade;
   for (let c = x + 3; c < x + w - 3; c += 16) px(ctx, c, y + h - wallH, 2, wallH - 2, pillar);
   // 窗戶
   for (let c = x + 8; c < x + w - 8; c += 16) {
@@ -386,7 +409,11 @@ function drawBuilding(ctx: Ctx, b: Building, p: Palette, culture: Culture) {
     // 屋頂
     const ry = y;
     px(ctx, x, ry, w, roofH, roofColor);
-    if ((culture === 'nanyang' && b.kind !== 'temple') || thatched) {
+    if (p.turf) {
+      // 草皮屋頂：一塊塊草皮疊在木屋頂上，邊緣冒出小草
+      for (let k = 0; k < w; k += 2) px(ctx, x + k, ry + ((k * 5) % roofH), 1, 2, p.roofLine);
+      for (let k = 1; k < w; k += 5) px(ctx, x + k, ry - 1, 1, 2, '#8fb05a');
+    } else if ((culture === 'nanyang' && b.kind !== 'temple') || thatched) {
       // 茅草屋頂：斜線紋
       for (let k = 0; k < w; k += 3) px(ctx, x + k, ry + ((k * 7) % roofH), 1, 4, p.roofLine);
       for (let r = ry + 3; r < ry + roofH; r += 4) px(ctx, x, r, w, 1, p.roofLine);
@@ -591,6 +618,16 @@ export function drawLocalBoat(ctx: Ctx, culture: Culture, x: number, y0: number,
       px(ctx, rx, y + 2, 3, 4, '#4e321f');
       px(ctx, rx - 2, y + 10, 1, 5, '#8a6a3a');
     }
+    return;
+  }
+  if (culture === 'norse') {
+    // 維京小船：兩頭翹起的細長船身，一面紅白條紋的方帆
+    px(ctx, x + 2, y + 5, 36, 6, '#6b4426');
+    px(ctx, x, y + 2, 3, 5, '#6b4426');
+    px(ctx, x + 38, y + 2, 3, 5, '#6b4426');
+    px(ctx, x + 2, y + 5, 36, 1, '#3a2414');
+    px(ctx, x + 19, y - 8, 2, 14, '#3a2414');
+    for (let k = 0; k < 4; k++) px(ctx, x + 12 + k * 4, y - 7, 4, 9, k % 2 ? '#f1e6d6' : '#b5302a');
     return;
   }
   // 阿拉伯、斯瓦希里、南亞的三角帆船；葡萄牙的卡拉維爾帆船也掛三角帆
