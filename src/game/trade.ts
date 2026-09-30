@@ -90,6 +90,9 @@ export function basePrice(ports: Port[], port: Port, good: string): number {
   return base * (1 + DISTANCE_PREMIUM * Math.min(1, nearest / DISTANCE_FULL_KM));
 }
 
+/** 缺貨的貨物要在這個距離內買得到 */
+const SHORTAGE_RANGE_KM = 6000;
+
 /** 缺貨時收購價提高的倍數 */
 export const SHORTAGE_FACTOR = 1.4;
 
@@ -106,8 +109,15 @@ function hashText(text: string): number {
 export function shortageAt(ports: Port[], port: Port, day: number): string | null {
   const h = hashText(`${port.id}#${Math.floor(day / 7)}`);
   if (h % 2) return null;
+  // 只缺附近海域買得到的貨（例如印度洋的港口不會缺只產在大西洋的葡萄酒）
   const candidates = Object.keys(GOODS_PRICE)
-    .filter((g) => !port.goods.includes(g) && ports.some((p) => p.goods.includes(g)))
+    .filter(
+      (g) =>
+        !port.goods.includes(g) &&
+        ports.some(
+          (p) => p.goods.includes(g) && distanceKm(p.location, port.location) <= SHORTAGE_RANGE_KM,
+        ),
+    )
     .sort();
   return candidates.length ? candidates[(h >>> 1) % candidates.length] : null;
 }

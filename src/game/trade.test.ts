@@ -265,3 +265,15 @@ describe('market shortages', () => {
     expect(short).toBeLessThan(ports.length);
   });
 });
+
+describe('shortage range', () => {
+  it('never asks an Indian Ocean port for goods only found in the Atlantic', () => {
+    const ports = world.content.ports;
+    const malacca = world.ports.get('malacca')!;
+    const atlanticOnly = ['wine', 'salt', 'gum-arabic', 'malagueta', 'gold-dust'];
+    for (let week = 0; week < 60; week++) {
+      const g = shortageAt(ports, malacca, week * 7);
+      if (g) expect(atlanticOnly).not.toContain(g);
+    }
+  });
+});
