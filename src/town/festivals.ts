@@ -2,6 +2,7 @@
  * 港口城鎮的節慶：在對的月份到港，城裡會掛起燈籠、鋪上花毯，路人會說起這個節日。
  * 農曆節日每年的國曆日期不同，這裡取「大約在這個月」。
  */
+import { hijriOf } from '@/game/hijri';
 import { TILE } from './layout';
 
 export type FestivalDecor = 'lanterns' | 'pennants' | 'flowers' | 'lamps';
@@ -64,10 +65,47 @@ const FESTIVALS: { ports: string[]; months: number[]; festival: Festival }[] = [
   },
 ];
 
-/** 這個港口在這個月有沒有節慶 */
-export function festivalAt(portId: string, month: number): Festival | null {
+/** 信奉伊斯蘭教的港口：齋月與開齋節依伊斯蘭曆，每年大約提早 11 天 */
+const MUSLIM_PORTS = [
+  'hormuz',
+  'dhofar',
+  'aden',
+  'jeddah',
+  'mogadishu',
+  'brava',
+  'malindi',
+  'kilwa',
+  'maldives',
+  'samudera',
+  'chittagong',
+];
+
+const RAMADAN: Festival = {
+  name: '齋月',
+  text: '現在是齋月（伊斯蘭曆九月）。大家白天不吃不喝，太陽下山後才一起開齋吃飯，晚上街上點滿了燈。伊斯蘭曆是陰曆，一年比你們的曆法短大約 11 天，所以齋月每年都會提早。',
+  decor: 'lamps',
+};
+
+const EID: Festival = {
+  name: '開齋節',
+  text: '齋月結束了，今天是開齋節！大家穿上新衣服，到清真寺禮拜，再互相拜訪、分享甜點。',
+  decor: 'pennants',
+};
+
+/** 這個港口在這一天有沒有節慶 */
+export function festivalAt(
+  portId: string,
+  date: { year: number; month: number; day: number },
+): Festival | null {
+  if (MUSLIM_PORTS.includes(portId)) {
+    const h = hijriOf(date);
+    if (h.month === 9) return RAMADAN;
+    if (h.month === 10 && h.day <= 3) return EID;
+    return null;
+  }
   return (
-    FESTIVALS.find((f) => f.ports.includes(portId) && f.months.includes(month))?.festival ?? null
+    FESTIVALS.find((f) => f.ports.includes(portId) && f.months.includes(date.month))?.festival ??
+    null
   );
 }
 

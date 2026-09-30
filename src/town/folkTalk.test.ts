@@ -25,15 +25,31 @@ describe('townsfolk talk', () => {
 
 describe('festivals', () => {
   it('decorate the right ports in the right months', () => {
-    expect(festivalAt('quanzhou', 2)?.name).toBe('元宵節');
-    expect(festivalAt('quanzhou', 3)).toBeNull();
-    expect(festivalAt('cochin', 9)?.decor).toBe('flowers');
-    expect(festivalAt('galle', 5)?.name).toBe('衛塞節');
-    expect(festivalAt('hormuz', 5)).toBeNull();
+    const on = (month: number, day = 10) => ({ year: 1406, month, day });
+    expect(festivalAt('quanzhou', on(2))?.name).toBe('元宵節');
+    expect(festivalAt('quanzhou', on(3))).toBeNull();
+    expect(festivalAt('cochin', on(9))?.decor).toBe('flowers');
+    expect(festivalAt('galle', on(5))?.name).toBe('衛塞節');
+    expect(festivalAt('hormuz', on(5))).toBeNull();
+  });
+
+  it('follows the Islamic calendar in Muslim ports, a little earlier every year', () => {
+    const ramadanDays = (year: number) => {
+      const days: number[] = [];
+      for (let m = 1; m <= 12; m++)
+        for (let d = 1; d <= 28; d++)
+          if (festivalAt('aden', { year, month: m, day: d })?.name === '齋月')
+            days.push(m * 31 + d);
+      return days;
+    };
+    const a = ramadanDays(1406);
+    const b = ramadanDays(1407);
+    expect(a.length).toBeGreaterThan(20);
+    expect(b[0]).toBeLessThan(a[0]);
   });
 
   it('let townsfolk talk about the festival right after the greeting', () => {
-    const f = festivalAt('quanzhou', 2)!;
+    const f = festivalAt('quanzhou', { year: 1406, month: 2, day: 10 })!;
     const lines = folkLines('quanzhou', 'minnan', [], f.text);
     expect(lines[1]).toBe(f.text);
   });

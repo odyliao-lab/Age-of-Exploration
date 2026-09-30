@@ -29,7 +29,14 @@ import { BuildingPanel } from './town/BuildingPanel';
 import { cultureOf } from '@/town/layout';
 import { setAmbience } from './sound';
 import { folkLines } from '@/town/folkTalk';
-import { festivalAt } from '@/town/festivals';
+import { festivalAt, type FestivalDecor } from '@/town/festivals';
+
+const FESTIVAL_ICON: Record<FestivalDecor, string> = {
+  lanterns: '🏮',
+  lamps: '🪔',
+  flowers: '🌼',
+  pennants: '🎉',
+};
 import { QuestTracker } from './panels/QuestTracker';
 import { Toasts } from './panels/Toasts';
 import { DialogueModal, EventModal, QuizModal, RewardModal, StormModal } from './panels/Modals';
@@ -301,7 +308,7 @@ export function MapScreen() {
     !game.helm && !game.voyage && game.dockedAt ? world.ports.get(game.dockedAt) : null;
   const showTown = !!dockedPort && townView && !locating && !planning;
   const culture = dockedPort ? cultureOf(dockedPort.country) : 'minnan';
-  const festival = dockedPort ? festivalAt(dockedPort.id, gameDate(game).month) : null;
+  const festival = dockedPort ? festivalAt(dockedPort.id, gameDate(game)) : null;
 
   // ---- 環境音：海上聽得到浪和風（隨風力變化），港口裡是輕浪和海鷗
   const ambMode = game.helm || game.voyage ? 'sea' : showTown ? 'town' : null;
@@ -346,7 +353,8 @@ export function MapScreen() {
             />
             {festival && (
               <div className="festival-badge">
-                🏮 {dockedPort!.name}正在過{festival.name}！點路人聽聽看。
+                {FESTIVAL_ICON[festival.decor]} {dockedPort!.name}正在過{festival.name}
+                ！點路人聽聽看。
               </div>
             )}
             <div className="town-hint">
