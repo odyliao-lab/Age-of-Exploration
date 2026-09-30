@@ -51,6 +51,6 @@
     "gold": 120,
     "reputation": 5,
     "unlock_ports": ["dhofar"],
-    "codex": []
+    "codex": ["sewn-boat"]
   }
 }

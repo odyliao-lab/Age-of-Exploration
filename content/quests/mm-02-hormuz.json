@@ -53,6 +53,6 @@
     "gold": 200,
     "reputation": 12,
     "unlock_ports": ["hormuz"],
-    "codex": []
+    "codex": ["horse-trade"]
   }
 }
