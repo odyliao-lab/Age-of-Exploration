@@ -26,6 +26,8 @@ export interface TalkContext {
   hinted: string[];
   /** 說話的人（船員名字或老舵工） */
   speakers: string[];
+  /** 船員各自的家鄉話題：{ 說話的人, 內容 } */
+  personal?: { speaker: string; text: string }[];
   /** 0–1 亂數 */
   roll: number;
   /** 距離上次閒聊是否夠久 */
@@ -133,6 +135,12 @@ export function crewTalk(ctx: TalkContext): Talk | null {
   }
   lines.push('老一輩的人說，看海的顏色也能知道水深：越藍越深，發綠發黃就要小心淺灘了。');
   nature('海鳥往陸地飛回去的時候，就是快天黑了，也表示附近有島。', 'birds');
+  // 船員各自的家鄉話題
+  const who = new Map<string, string>();
+  for (const p of ctx.personal ?? []) {
+    lines.push(p.text);
+    who.set(p.text, p.speaker);
+  }
   const text = pick(lines, ctx.roll);
-  return { speaker, text, chat: true, sight: sights.get(text) };
+  return { speaker: who.get(text) ?? speaker, text, chat: true, sight: sights.get(text) };
 }

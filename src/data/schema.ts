@@ -189,6 +189,8 @@ export const CrewMember = z.object({
   bio: z.string().min(10),
   /** 會說的語言或專長，顯示在招募卡上 */
   specialty: z.string().optional(),
+  /** 航行中會說的話：家鄉與專長的小知識 */
+  lines: z.array(z.string()).default([]),
 });
 export type CrewMember = z.infer<typeof CrewMember>;
 

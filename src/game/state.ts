@@ -885,6 +885,10 @@ function seaLife(
       openRumors: openRumors(world, state),
       hinted,
       speakers: state.crew.map((id) => world.crew.get(id)?.name).filter((n): n is string => !!n),
+      personal: state.crew.flatMap((id) => {
+        const c = world.crew.get(id);
+        return c ? c.lines.map((text) => ({ speaker: c.name, text })) : [];
+      }),
       roll: rand(),
       chatReady: day >= talkDay,
     });

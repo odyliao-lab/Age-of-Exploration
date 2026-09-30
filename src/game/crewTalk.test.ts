@@ -43,6 +43,20 @@ describe('crew talk', () => {
     expect(seen).toContain('whale');
   });
 
+  it('lets each crew member talk about home in their own voice', () => {
+    const personal = [{ speaker: '法麗達', text: '忽魯謨斯那座島上幾乎沒有淡水。' }];
+    let found = false;
+    for (let r = 0; r < 1; r += 0.01) {
+      const t = crewTalk({ ...base, chatReady: true, roll: r, speakers: ['阿福'], personal })!;
+      if (t.text === personal[0].text) {
+        expect(t.speaker).toBe('法麗達');
+        found = true;
+      }
+    }
+    expect(found).toBe(true);
+    for (const c of world.content.crew) expect(c.lines.length, c.id).toBeGreaterThanOrEqual(2);
+  });
+
   it('hints the direction of a rumored place without naming it', () => {
     const taiwan = world.codex.get('taiwan')!;
     const t = crewTalk({ ...base, position: [119.6, 23.6], openRumors: [taiwan] })!;
