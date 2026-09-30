@@ -1474,6 +1474,7 @@ export function sightSun(
     ...state,
     sunDay: Math.floor(state.day),
     nav: { day: state.day, errorKm: Math.min(now, SUN_FIX_KM) },
+    stats: { ...state.stats, sunSights: state.stats.sunSights + 1 },
     captain: xp.captain,
     skillPoints: xp.skillPoints,
   };
@@ -1617,6 +1618,7 @@ export function fetchWater(
     ...state,
     waterDay: state.day,
     condition: { ...state.condition, supplies: { ...sup, water } },
+    stats: desert ? state.stats : { ...state.stats, watering: state.stats.watering + 1 },
   };
   let lesson: string | null = null;
   const key = desert ? 'water-desert' : 'water';
