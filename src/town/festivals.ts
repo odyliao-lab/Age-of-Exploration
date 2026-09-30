@@ -64,6 +64,15 @@ const FESTIVALS: { ports: string[]; months: number[]; festival: Festival }[] = [
     },
   },
   {
+    ports: ['lisbon'],
+    months: [6],
+    festival: {
+      name: '聖安東尼節',
+      text: '六月是里斯本的聖安東尼節。大街小巷掛起彩旗，家家戶戶在門口烤沙丁魚，大家唱歌跳舞到深夜。夏天的里斯本幾乎不下雨，最適合在戶外過節。',
+      decor: 'pennants',
+    },
+  },
+  {
     ports: ['galle'],
     months: [5],
     festival: {
@@ -76,6 +85,8 @@ const FESTIVALS: { ports: string[]; months: number[]; festival: Festival }[] = [
 
 /** 信奉伊斯蘭教的港口：齋月與開齋節依伊斯蘭曆，每年大約提早 11 天 */
 const MUSLIM_PORTS = [
+  'arguin',
+  'mozambique',
   'hormuz',
   'dhofar',
   'aden',
