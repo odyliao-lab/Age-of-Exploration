@@ -444,7 +444,7 @@ function drawBuilding(ctx: Ctx, b: Building, p: Palette, culture: Culture) {
       px(ctx, tx0 - 1, ry - 24, 16, 4, p.roof);
       px(ctx, tx0 + 6, ry - 33, 2, 9, '#3a2414');
       px(ctx, tx0 + 3, ry - 30, 8, 2, '#3a2414');
-    } else if (b.kind === 'temple' && !thatched) {
+    } else if (b.kind === 'temple' && !thatched && !p.turf) {
       const ridgeY = ry + Math.floor(roofH / 2) - 1;
       px(ctx, x + w / 2 - 3, ridgeY - 4, 6, 4, '#e0b94a');
       px(ctx, x + w / 2 - 1, ridgeY - 6, 2, 2, '#e0b94a');

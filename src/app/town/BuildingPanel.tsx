@@ -6,6 +6,7 @@ import { BUILDING_NAMES, type BuildingKind, type Culture } from '@/town/layout';
 import {
   PRAY_COST,
   rivalOf,
+  scenarioPorts,
   availableCrew,
   availableQuests,
   cargoCapacity,
@@ -368,7 +369,7 @@ function Contracts() {
       ) : (
         <ul className="quest-list">
           {offers.map((c) => {
-            const sources = world.content.ports
+            const sources = scenarioPorts(world, game)
               .filter((p) => p.goods.includes(c.good) && game.visitedPorts.includes(p.id))
               .map((p) => p.name);
             return (
@@ -655,9 +656,10 @@ function Inn() {
 function MarketNews() {
   const { world, game, port } = usePort();
   const known = [...new Set([...game.visitedPorts, ...game.unlockedPorts])];
-  const news = world.content.ports
+  const ports = scenarioPorts(world, game);
+  const news = ports
     .filter((p) => p.id !== port.id && known.includes(p.id))
-    .map((p) => ({ p, good: shortageAt(world.content.ports, p, game.day) }))
+    .map((p) => ({ p, good: shortageAt(ports, p, game.day) }))
     .filter((x) => x.good)
     .sort(
       (a, b) => distanceKm(a.p.location, port.location) - distanceKm(b.p.location, port.location),
@@ -709,14 +711,15 @@ function Market() {
   const buyGood = useGame((s) => s.buyGood);
   const sellGood = useGame((s) => s.sellGood);
   const quotes = marketQuotes(world, game, port.id);
-  const short = shortageAt(world.content.ports, port, game.day);
+  const ports = scenarioPorts(world, game);
+  const short = shortageAt(ports, port, game.day);
   const cap = cargoCapacity(game);
   const used = cargoUsed(game.cargo);
   // 本地特產在前，再來是船上有的貨，最後是其他收購行情
   const order = (g: string) => (port.goods.includes(g) ? 0 : game.cargo[g] ? 1 : 2);
   const rows = [...quotes].sort((a, b) => order(a.good) - order(b.good));
   const origin = (g: string) => {
-    const producers = world.content.ports.filter((p) => p.goods.includes(g));
+    const producers = ports.filter((p) => p.goods.includes(g));
     if (!producers.length) return '—';
     const nearest = producers.reduce((a, b) =>
       distanceKm(a.location, port.location) <= distanceKm(b.location, port.location) ? a : b,

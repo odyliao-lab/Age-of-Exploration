@@ -1295,7 +1295,7 @@ export function merchantOffer(
       price: Math.max(
         1,
         Math.round(
-          quote(world.content.ports, port, good, state.market, state.day).sell *
+          quote(scenarioPorts(world, state), port, good, state.market, state.day).sell *
             MERCHANT_BUY_FACTOR *
             (state.crew.some((id) => world.crew.get(id)?.profession === 'interpreter') ? 1.1 : 1),
         ),
@@ -1847,9 +1847,12 @@ export function standing(state: GameState): number {
 export function marketQuotes(world: World, state: GameState, portId: string): Quote[] {
   const port = world.ports.get(portId);
   if (!port) return [];
+  // 只列出這個劇本範圍內買得到的貨（西元 1000 年的挪威不會出現美洲的樹薯）
+  const ports = scenarioPorts(world, state);
+  const goods = new Set(ports.flatMap((p) => p.goods));
   return Object.keys(GOODS_PRICE)
-    .filter((g) => world.codex.has(g))
-    .map((g) => quote(world.content.ports, port, g, state.market, state.day, standing(state)));
+    .filter((g) => world.codex.has(g) && (goods.has(g) || port.goods.includes(g)))
+    .map((g) => quote(ports, port, g, state.market, state.day, standing(state)));
 }
 
 export interface TradeResult {
@@ -1866,7 +1869,7 @@ export function tradeBuy(world: World, state: GameState, good: string, qty: numb
   const port = state.dockedAt ? world.ports.get(state.dockedAt) : null;
   if (!port) return { state, qty: 0, amount: 0, profit: 0 };
   const r = buyGoods(
-    world.content.ports,
+    scenarioPorts(world, state),
     port,
     state,
     good,
@@ -1887,7 +1890,15 @@ export function tradeBuy(world: World, state: GameState, good: string, qty: numb
 export function tradeSell(world: World, state: GameState, good: string, qty: number): TradeResult {
   const port = state.dockedAt ? world.ports.get(state.dockedAt) : null;
   if (!port) return { state, qty: 0, amount: 0, profit: 0 };
-  const r = sellGoods(world.content.ports, port, state, good, qty, state.day, standing(state));
+  const r = sellGoods(
+    scenarioPorts(world, state),
+    port,
+    state,
+    good,
+    qty,
+    state.day,
+    standing(state),
+  );
   if (!r.sold) return { state, qty: 0, amount: 0, profit: 0 };
   return {
     state: {
@@ -2878,7 +2889,7 @@ function advanceStep(world: World, state: GameState, questId: string): StepResul
 /** 這個港口本週可以接的委託（已經接過、做完或過期的不再出現） */
 export function availableContracts(world: World, state: GameState, portId: string): Contract[] {
   return contractOffers(
-    world.content.ports,
+    scenarioPorts(world, state),
     portId,
     state.day,
     [...new Set([...state.visitedPorts, ...state.unlockedPorts])],
