@@ -2142,3 +2142,12 @@ html.large-text .helm-left .condition.compact {
   margin: 3px 0;
   line-height: 1.55;
 }
+
+.tag.short {
+  background: #b5482b;
+  color: #fbf6ea;
+}
+.market-news {
+  margin: 4px 0;
+  padding-left: 1.2em;
+}

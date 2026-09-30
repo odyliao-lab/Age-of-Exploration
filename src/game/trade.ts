@@ -83,6 +83,28 @@ export function basePrice(ports: Port[], port: Port, good: string): number {
   return base * (1 + DISTANCE_PREMIUM * Math.min(1, nearest / DISTANCE_FULL_KM));
 }
 
+/** 缺貨時收購價提高的倍數 */
+export const SHORTAGE_FACTOR = 1.4;
+
+function hashText(text: string): number {
+  let h = 2166136261;
+  for (let i = 0; i < text.length; i++) h = Math.imul(h ^ text.charCodeAt(i), 16777619);
+  return h >>> 0;
+}
+
+/**
+ * 市場缺貨：每週大約一半的港口缺某一種外地貨，收購價提高。
+ * 依港口與週數決定，同一週都一樣，酒館裡聽得到消息。
+ */
+export function shortageAt(ports: Port[], port: Port, day: number): string | null {
+  const h = hashText(`${port.id}#${Math.floor(day / 7)}`);
+  if (h % 2) return null;
+  const candidates = Object.keys(GOODS_PRICE)
+    .filter((g) => !port.goods.includes(g) && ports.some((p) => p.goods.includes(g)))
+    .sort();
+  return candidates.length ? candidates[(h >>> 1) % candidates.length] : null;
+}
+
 export interface Quote {
   good: string;
   /** 買一單位要付的錢（只有產地有） */
@@ -103,11 +125,12 @@ export function quote(
   const b = basePrice(ports, port, good);
   const f = Math.min(2.5, Math.max(0.4, 1 + pressureNow(market, port.id, good, day)));
   const k = PRICE_PER_RANK * standing;
+  const short = shortageAt(ports, port, day) === good ? SHORTAGE_FACTOR : 1;
   // 買價略高於賣價（商人要賺一點）
   return {
     good,
     buy: port.goods.includes(good) ? Math.max(1, Math.round(b * f * 1.08 * (1 - k))) : null,
-    sell: Math.max(1, Math.round(b * f * 0.92 * (1 + k))),
+    sell: Math.max(1, Math.round(b * f * 0.92 * (1 + k) * short)),
   };
 }
 

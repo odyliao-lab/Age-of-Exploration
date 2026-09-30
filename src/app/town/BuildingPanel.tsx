@@ -28,6 +28,7 @@ import { PROFESSIONS } from '@/game/progression';
 import { MAX_CONTRACTS } from '@/game/contracts';
 import { CONTRACT_BONUS_PER_RANK } from '@/game/reputation';
 import { repairCost, resupplyCost } from '@/game/ship';
+import { shortageAt } from '@/game/trade';
 import { distanceKm } from '@/geo/geo';
 import { stormRiskAt, windAt } from '@/game/environment';
 import { ConditionBars } from '../panels/Condition';
@@ -369,6 +370,7 @@ function Tavern() {
           <span className="meta">隔壁桌的酒客：</span>「{talk}」
         </p>
       )}
+      <MarketNews />
       <h3>傳聞</h3>
       {rumors.length === 0 && <p className="meta">今天沒聽到什麼新鮮事。</p>}
       {rumors.map((c) => (
@@ -407,6 +409,35 @@ function Tavern() {
   );
 }
 
+/** 酒館裡聽到的市場消息：你知道的港口這週缺什麼貨 */
+function MarketNews() {
+  const { world, game, port } = usePort();
+  const known = [...new Set([...game.visitedPorts, ...game.unlockedPorts])];
+  const news = world.content.ports
+    .filter((p) => p.id !== port.id && known.includes(p.id))
+    .map((p) => ({ p, good: shortageAt(world.content.ports, p, game.day) }))
+    .filter((x) => x.good)
+    .sort(
+      (a, b) => distanceKm(a.p.location, port.location) - distanceKm(b.p.location, port.location),
+    )
+    .slice(0, 3);
+  if (!news.length) return null;
+  return (
+    <>
+      <h3>市場消息</h3>
+      <ul className="market-news">
+        {news.map(({ p, good }) => (
+          <li key={p.id}>
+            聽說<strong>{p.name}</strong>最近缺
+            <strong>{world.codex.get(good!)?.name}</strong>，收購價比平常高四成。
+          </li>
+        ))}
+      </ul>
+      <p className="meta">消息是這週的，下週可能就不一樣了。</p>
+    </>
+  );
+}
+
 function RivalStatus() {
   const { world, game } = usePort();
   const r = game.rival;
@@ -436,6 +467,7 @@ function Market() {
   const buyGood = useGame((s) => s.buyGood);
   const sellGood = useGame((s) => s.sellGood);
   const quotes = marketQuotes(world, game, port.id);
+  const short = shortageAt(world.content.ports, port, game.day);
   const cap = cargoCapacity(game);
   const used = cargoUsed(game.cargo);
   // 本地特產在前，再來是船上有的貨，最後是其他收購行情
@@ -478,6 +510,7 @@ function Market() {
                 <td>
                   {c.name}
                   {local && <span className="tag">本地特產</span>}
+                  {short === q.good && <span className="tag short">缺貨・高價收購</span>}
                 </td>
                 <td className="meta">{local ? '本地' : origin(q.good)}</td>
                 <td>{q.buy ?? '—'}</td>

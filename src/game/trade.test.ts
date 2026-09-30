@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { GOODS_PRICE, basePrice, cargoUsed, pressureNow, quote } from './trade';
+import { GOODS_PRICE, basePrice, cargoUsed, pressureNow, quote, shortageAt } from './trade';
 import {
   cargoCapacity,
   checkAchievements,
@@ -246,5 +246,22 @@ describe('reputation', () => {
     const famous = quote(ports, port('quanzhou'), 'silk', {}, 0, 3);
     expect(famous.buy!).toBeLessThan(plain.buy!);
     expect(famous.sell).toBeGreaterThan(plain.sell);
+  });
+});
+
+describe('market shortages', () => {
+  it('raise the price of one foreign good in some ports each week', () => {
+    let short = 0;
+    for (const p of ports) {
+      const g = shortageAt(ports, p, 0);
+      if (!g) continue;
+      short++;
+      expect(p.goods).not.toContain(g);
+      expect(shortageAt(ports, p, 6)).toBe(g);
+      const q = quote(ports, p, g, {}, 0);
+      expect(q.sell).toBeGreaterThan(basePrice(ports, p, g));
+    }
+    expect(short).toBeGreaterThan(3);
+    expect(short).toBeLessThan(ports.length);
   });
 });
