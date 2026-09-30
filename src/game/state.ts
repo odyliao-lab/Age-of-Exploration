@@ -107,6 +107,7 @@ import type { Rig } from './progression';
 import { isLand } from '@/geo/landmask';
 import type { World } from './world';
 import { crewTalk, type SeaSight } from './crewTalk';
+import { contractOffers, MAX_CONTRACTS, type Contract } from './contracts';
 import {
   HAIL_KM,
   MAX_FLEETS,
@@ -268,6 +269,10 @@ export interface GameState {
   mists: MistBank[];
   /** 對手船長的比賽 */
   rival: RivalState;
+  /** 接下的商人委託 */
+  contracts: Contract[];
+  /** 完成或過期的委託（不再出現） */
+  contractsDone: string[];
   nextEntityId: number;
   /** 熟悉航線：「出發港>抵達港」→ 親手開過的航跡 */
   routes: Record<string, LonLat[]>;
@@ -389,6 +394,8 @@ export function newGame(world: World, scenarioId: string, seed = newSeed()): Ste
     storms: [],
     mists: [],
     rival: { ...EMPTY_RIVAL },
+    contracts: [],
+    contractsDone: [],
     nextEntityId: 1,
     talkDay: 0.5,
     lastRegionId: null,
@@ -2471,10 +2478,81 @@ function advanceStep(world: World, state: GameState, questId: string): StepResul
   return progressQuests(world, next);
 }
 
-/** 自動推進已滿足的步驟（航行抵達、已發現），並結算完成的任務 */
-export function progressQuests(world: World, state: GameState): StepResult {
-  let s = state;
+// ---------------------------------------------------------------- 商人的委託
+
+/** 這個港口本週可以接的委託（已經接過、做完或過期的不再出現） */
+export function availableContracts(world: World, state: GameState, portId: string): Contract[] {
+  return contractOffers(
+    world.content.ports,
+    portId,
+    state.day,
+    [...new Set([...state.visitedPorts, ...state.unlockedPorts])],
+    state.market,
+    [...state.contracts.map((c) => c.id), ...state.contractsDone],
+  );
+}
+
+export function acceptContract(world: World, state: GameState, id: string): GameState {
+  if (!state.dockedAt || state.contracts.length >= MAX_CONTRACTS) return state;
+  const c = availableContracts(world, state, state.dockedAt).find((x) => x.id === id);
+  if (!c) return state;
+  return { ...state, contracts: [...state.contracts, c] };
+}
+
+/** 靠港時交付委託的貨；過了期限的委託作廢（沒有懲罰） */
+function settleContracts(
+  world: World,
+  state: GameState,
+): { state: GameState; events: GameEvent[] } {
+  if (!state.contracts.length) return { state, events: [] };
   const events: GameEvent[] = [];
+  let { cargo, gold, reputation, stats } = state;
+  const keep: Contract[] = [];
+  const done: string[] = [];
+  for (const c of state.contracts) {
+    const name = world.codex.get(c.good)?.name ?? c.good;
+    const port = world.ports.get(c.portId)?.name ?? c.portId;
+    const lot = cargo[c.good];
+    if (state.dockedAt === c.portId && lot && lot.qty >= c.qty && state.day <= c.due) {
+      const left = lot.qty - c.qty;
+      cargo = { ...cargo };
+      if (left > 0) cargo[c.good] = { qty: left, cost: (lot.cost * left) / lot.qty };
+      else delete cargo[c.good];
+      gold += c.reward;
+      reputation += 2;
+      stats = { ...stats, contracts: stats.contracts + 1 };
+      done.push(c.id);
+      events.push({
+        type: 'warning',
+        text: `委託完成！${name} ${c.qty} 擔交給${port}的商人，收到 ${c.reward} 金幣。`,
+      });
+    } else if (state.day > c.due) {
+      done.push(c.id);
+      events.push({ type: 'warning', text: `${port}的${name}委託過期了，商人另外找人送貨。` });
+    } else {
+      keep.push(c);
+    }
+  }
+  if (!done.length) return { state, events };
+  return {
+    state: {
+      ...state,
+      cargo,
+      gold,
+      reputation,
+      stats,
+      contracts: keep,
+      contractsDone: [...state.contractsDone, ...done].slice(-200),
+    },
+    events,
+  };
+}
+
+/** 自動推進已滿足的步驟（航行抵達、已發現），並結算完成的任務 */
+export function progressQuests(world: World, input: GameState): StepResult {
+  const settled = settleContracts(world, input);
+  let s = settled.state;
+  const events: GameEvent[] = [...settled.events];
   const fogChanged: number[] = [];
   let changed = true;
   while (changed) {

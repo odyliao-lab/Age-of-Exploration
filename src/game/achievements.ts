@@ -22,6 +22,8 @@ export interface AchievementStats {
   soundings: number;
   /** 穿過海霧的次數 */
   mistsCrossed: number;
+  /** 完成的商人委託 */
+  contracts: number;
 }
 
 export const EMPTY_STATS: AchievementStats = {
@@ -34,6 +36,7 @@ export const EMPTY_STATS: AchievementStats = {
   tradeProfit: 0,
   soundings: 0,
   mistsCrossed: 0,
+  contracts: 0,
 };
 
 /** 判斷成就所需的狀態（state.ts 的 GameState 符合這個介面） */
@@ -351,6 +354,14 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     category: '知識',
     title: '通譯',
     check: (s) => languagesHeard(s.visitedPorts) >= 6,
+  },
+  {
+    id: 'contracts-5',
+    name: '信用可靠',
+    description: '完成 5 件商人的委託',
+    category: '成長',
+    title: '可靠的海商',
+    check: (s) => s.stats.contracts >= 5,
   },
   {
     id: 'rival-1',

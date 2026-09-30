@@ -18,11 +18,13 @@ import {
   reportReward,
   rumorsAt,
   shipyardOffers,
+  availableContracts,
   upgradeOffers,
   myShip,
   unreportedFinds,
 } from '@/game/state';
 import { PROFESSIONS } from '@/game/progression';
+import { MAX_CONTRACTS } from '@/game/contracts';
 import { repairCost, resupplyCost } from '@/game/ship';
 import { distanceKm } from '@/geo/geo';
 import { stormRiskAt, windAt } from '@/game/environment';
@@ -202,6 +204,45 @@ function Office() {
       </div>
       <h3>差事</h3>
       <QuestList quests={quests} />
+      <Contracts />
+    </>
+  );
+}
+
+/** 商人的委託：把這裡缺的貨從別處運來 */
+function Contracts() {
+  const { world, game, port } = usePort();
+  const take = useGame((s) => s.acceptContract);
+  const offers = availableContracts(world, game, port.id);
+  const full = game.contracts.length >= MAX_CONTRACTS;
+  return (
+    <>
+      <h3>商人的委託</h3>
+      {offers.length === 0 ? (
+        <p className="meta">這週沒有新的委託。去過更多港口，就會有更多商人找你運貨。</p>
+      ) : (
+        <ul className="quest-list">
+          {offers.map((c) => {
+            const sources = world.content.ports
+              .filter((p) => p.goods.includes(c.good) && game.visitedPorts.includes(p.id))
+              .map((p) => p.name);
+            return (
+              <li key={c.id}>
+                <strong>
+                  運來 {world.codex.get(c.good)?.name} {c.qty} 擔
+                </strong>
+                <div className="meta">
+                  酬勞 {c.reward} 金幣・期限還有 {Math.max(0, Math.ceil(c.due - game.day))} 天
+                  {sources.length > 0 && `・你去過的產地：${sources.join('、')}`}
+                </div>
+                <button type="button" disabled={full} onClick={() => take(c.id)}>
+                  {full ? `最多同時接 ${MAX_CONTRACTS} 件` : '接下委託'}
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      )}
     </>
   );
 }

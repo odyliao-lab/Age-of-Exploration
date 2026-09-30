@@ -7,7 +7,7 @@ export function QuestTracker() {
 
   const active = Object.entries(game.quests).filter(([, p]) => p.status === 'active');
   const rumors = openRumors(world, game);
-  if (active.length === 0 && rumors.length === 0) return null;
+  if (active.length === 0 && rumors.length === 0 && game.contracts.length === 0) return null;
   const targets = activeNavigateTargets(world, game);
 
   return (
@@ -20,6 +20,19 @@ export function QuestTracker() {
           <div>{c.rumor!.text}</div>
         </details>
       ))}
+      {game.contracts.map((c) => {
+        const have = game.cargo[c.good]?.qty ?? 0;
+        const left = Math.max(0, Math.ceil(c.due - game.day));
+        return (
+          <div key={c.id} className="quest-item">
+            <strong>委託</strong>・{world.codex.get(c.good)?.name} {c.qty} 擔運到
+            {world.ports.get(c.portId)?.name}
+            <div>
+              船上有 {have} 擔・還有 {left} 天・酬勞 {c.reward} 金幣
+            </div>
+          </div>
+        );
+      })}
       {active.map(([id, p]) => {
         const quest = world.quests.get(id);
         if (!quest) return null;

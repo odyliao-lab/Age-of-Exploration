@@ -5,6 +5,9 @@ import {
   checkAchievements,
   marketQuotes,
   newGame,
+  acceptContract,
+  availableContracts,
+  progressQuests,
   buyUpgrade,
   buyShip,
   mods,
@@ -163,5 +166,47 @@ describe('ship refits', () => {
     const bought = buyShip(world, leveled, 'fuchuan');
     expect(bought.shipTypeId).toBe('fuchuan');
     expect(bought.upgrades).toEqual([]);
+  });
+});
+
+describe('merchant contracts', () => {
+  const known = (s: GameState): GameState => ({
+    ...s,
+    unlockedPorts: [...s.unlockedPorts, 'malacca', 'galle', 'calicut'],
+  });
+
+  it('offer goods from far-away known ports, the same all week', () => {
+    const s = known(newGame(world, 'treasure-fleet', 1).state);
+    const offers = availableContracts(world, s, 'quanzhou');
+    expect(offers.length).toBe(2);
+    for (const o of offers) {
+      expect(port('quanzhou').goods).not.toContain(o.good);
+      expect(o.reward).toBeGreaterThan(0);
+      expect(o.due).toBeGreaterThan(s.day + 15);
+    }
+    expect(availableContracts(world, { ...s, day: s.day + 1 }, 'quanzhou')).toEqual(offers);
+  });
+
+  it('pay on delivery in time, and quietly expire when late', () => {
+    let s = known(newGame(world, 'treasure-fleet', 1).state);
+    const offer = availableContracts(world, s, 'quanzhou')[0];
+    s = acceptContract(world, s, offer.id);
+    expect(s.contracts).toHaveLength(1);
+    expect(availableContracts(world, s, 'quanzhou').map((c) => c.id)).not.toContain(offer.id);
+    // 帶著貨回到泉州
+    const loaded: GameState = {
+      ...s,
+      cargo: { [offer.good]: { qty: offer.qty + 2, cost: 100 } },
+    };
+    const r = progressQuests(world, loaded);
+    expect(r.state.gold).toBe(loaded.gold + offer.reward);
+    expect(r.state.cargo[offer.good].qty).toBe(2);
+    expect(r.state.contracts).toHaveLength(0);
+    expect(r.state.stats.contracts).toBe(1);
+    // 過期
+    const late = progressQuests(world, { ...s, day: offer.due + 1 });
+    expect(late.state.contracts).toHaveLength(0);
+    expect(late.state.gold).toBe(s.gold);
+    expect(late.state.contractsDone).toContain(offer.id);
   });
 });

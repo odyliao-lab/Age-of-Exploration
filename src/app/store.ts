@@ -13,6 +13,7 @@ import { spendPoint, type AttributeKey } from '@/game/captain';
 import { deleteSave, listSaves, loadSave, writeSave } from '@/game/save';
 import {
   acceptQuest,
+  acceptContract,
   answerReviewItem,
   appendLog,
   claimDaily,
@@ -247,6 +248,8 @@ interface GameStore {
   investigate: (id: string) => void;
 
   accept: (questId: string) => void;
+  /** 接下商人的委託 */
+  acceptContract: (id: string) => void;
   closeDialogue: (questId: string) => void;
   answer: (questId: string, choice: number) => boolean;
   spend: (key: AttributeKey) => void;
@@ -826,6 +829,15 @@ export const useGame = create<GameStore>((set, get) => {
     accept: (questId) => {
       const { world, game } = get();
       if (world && game) apply(acceptQuest(world, game, questId));
+    },
+
+    acceptContract: (id) => {
+      const { world, game } = get();
+      if (!world || !game) return;
+      const next = acceptContract(world, game, id);
+      if (next === game) return;
+      commit(next);
+      toast({ text: '接下委託了，別忘了期限！', kind: 'info' });
     },
 
     closeDialogue: (questId) => {

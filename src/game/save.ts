@@ -83,6 +83,8 @@ export function deserialize(data: SerializedSave): GameState {
     trail: data.trail ?? [],
     rival: { ...EMPTY_RIVAL, ...data.rival },
     upgrades: data.upgrades ?? [],
+    contracts: data.contracts ?? [],
+    contractsDone: data.contractsDone ?? [],
   };
 }
 
