@@ -1,5 +1,6 @@
 import { xpToNext } from '@/game/captain';
 import { Avatar } from './Avatar';
+import { GoldCounter } from './GoldCounter';
 import { SEASON_OF_MONTH } from '@/game/calendar';
 import { gameDate } from '@/game/state';
 import { dailyComplete, dueReviews } from '@/game/learning';
@@ -34,7 +35,7 @@ export function StatusBar(props: {
         <span title={`航海第 ${Math.floor(game.day) + 1} 天`}>
           {d.year}/{d.month}/{d.day}（{SEASON_OF_MONTH[d.month]}）
         </span>
-        <span title="金幣">💰 {game.gold}</span>
+        <GoldCounter />
         <span title={`經驗 ${c.xp}/${xpToNext(c.level)}`}>
           Lv {c.level}
           {game.title && (

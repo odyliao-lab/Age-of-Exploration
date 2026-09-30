@@ -141,13 +141,14 @@ button.primary:hover {
 }
 
 .map-toolbar {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 12px;
   padding: 8px 12px;
   background: var(--parchment);
   border-bottom: 1px solid var(--parchment-dark);
-  z-index: 2;
+  z-index: 6;
 }
 
 .map-title {
@@ -1983,4 +1984,57 @@ table.market .tag {
   font-weight: 700;
   pointer-events: none;
   white-space: nowrap;
+}
+
+/* 金幣變化：飄出 +N / −N */
+.gold-counter {
+  position: relative;
+}
+.gold-pop {
+  position: absolute;
+  left: 100%;
+  top: 50%;
+  margin-left: 4px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  white-space: nowrap;
+  pointer-events: none;
+  animation: gold-pop 1.6s ease-out forwards;
+  text-shadow:
+    0 1px 0 #fbf6ea,
+    0 0 4px #fbf6ea;
+}
+.gold-pop.gain {
+  color: #2f7d3a;
+}
+.gold-pop.loss {
+  color: #b5482b;
+}
+@keyframes gold-pop {
+  0% {
+    opacity: 0;
+    transform: translate(0, -20%) scale(0.8);
+  }
+  15% {
+    opacity: 1;
+    transform: translate(0, -50%) scale(1.15);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(0, -150%) scale(1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gold-pop {
+    animation-duration: 2.4s;
+    animation-name: gold-fade;
+  }
+  @keyframes gold-fade {
+    from {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
+    }
+  }
 }
