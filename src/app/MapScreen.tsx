@@ -425,17 +425,21 @@ export function MapScreen() {
               type="button"
               className={annotating ? 'on' : ''}
               aria-pressed={annotating}
+              aria-label="寫註記"
+              title="在海圖上寫註記"
               onClick={() => useGame.getState().setAnnotating(!annotating)}
             >
-              ✏️ {annotating ? '點海圖寫字…（取消）' : '寫註記'}
+              ✏️ <span className="tool-label">{annotating ? '點海圖寫字…（取消）' : '寫註記'}</span>
             </button>
             <button
               type="button"
               className={windField ? 'on' : ''}
               aria-pressed={windField}
+              aria-label="風與洋流圖"
+              title="風與洋流圖"
               onClick={() => useGame.getState().toggleWindField()}
             >
-              🌬️ {windField ? '關閉風與洋流圖' : '風與洋流圖'}
+              🌬️ <span className="tool-label">{windField ? '關閉風與洋流圖' : '風與洋流圖'}</span>
             </button>
           </div>
         )}

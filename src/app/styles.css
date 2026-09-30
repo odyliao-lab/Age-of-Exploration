@@ -2109,3 +2109,23 @@ html.large-text .helm-left .condition.compact {
 .cond > span:first-child {
   white-space: nowrap;
 }
+
+/* 手機橫放：海圖工具只留圖示，直排在右上角，避開中間的提示訊息 */
+@media (max-height: 500px) {
+  .chart-tools.at-sea {
+    flex-direction: column;
+    top: 8px;
+    right: 8px;
+  }
+  .chart-tools.at-sea .tool-label {
+    display: none;
+  }
+  .chart-tools.at-sea button {
+    min-width: 42px;
+    padding: 4px;
+  }
+  .wind-legend.at-sea {
+    top: 8px;
+    right: 60px;
+  }
+}
