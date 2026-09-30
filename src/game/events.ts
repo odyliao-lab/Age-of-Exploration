@@ -55,6 +55,11 @@ export interface EventEffect {
   correct?: boolean;
 }
 
+/** 大西洋與歐洲的海域（東經 25° 以西）：事件的歷史小故事換成這一帶的例子 */
+function inAtlantic([lon]: LonLat): boolean {
+  return lon < 25;
+}
+
 export interface EventContext {
   position: LonLat;
   heading: number;
@@ -152,8 +157,9 @@ export function createEvent(id: EventId, ctx: EventContext, rand: () => number):
         ...base,
         title: '海盜船逼近！',
         text: '一艘掛著陌生旗幟的快船擋住去路，船上的人高聲喊話，要你們交出貨物。',
-        lesson:
-          '麻六甲海峽等狹窄水道是東西方商船的必經之路，自古就有海盜出沒。據《明史》記載，鄭和船隊曾在舊港（今印尼巨港）擒獲海盜首領陳祖義。',
+        lesson: inAtlantic(ctx.position)
+          ? '狹窄的海峽與沿岸航道是商船的必經之路，自古就有海盜出沒。北歐的維京人曾經駕著長船襲擊歐洲海岸；北非沿岸的海盜船也讓地中海與大西洋的水手害怕了好幾百年。'
+          : '麻六甲海峽等狹窄水道是東西方商船的必經之路，自古就有海盜出沒。據《明史》記載，鄭和船隊曾在舊港（今印尼巨港）擒獲海盜首領陳祖義。',
         choices: [
           { id: 'negotiate', label: '談判', hint: '交出一些金幣換取平安（交涉越高付得越少）' },
           { id: 'flee', label: '揚帆逃離', hint: '靠航海術搶風逃走，失敗會損失更多' },
@@ -232,10 +238,15 @@ export function createEvent(id: EventId, ctx: EventContext, rand: () => number):
         ...base,
         title: '船員生病了',
         text: '在海上待了很久，幾名船員牙齦出血、全身無力。船醫說這是缺乏新鮮蔬果造成的病。',
-        lesson:
-          '這種病叫壞血病，是缺乏維生素 C 造成的，是大航海時代遠洋船員的一大威脅。有一種說法認為，中國船隊會在船上用木桶發豆芽，補充新鮮蔬菜。',
+        lesson: inAtlantic(ctx.position)
+          ? '這種病叫壞血病，是缺乏維生素 C 造成的，是大航海時代遠洋船員的一大威脅。達伽馬前往印度的船隊，有一大半船員因壞血病倒下；直到 18 世紀，歐洲人才確認新鮮的柑橘類水果可以預防。'
+          : '這種病叫壞血病，是缺乏維生素 C 造成的，是大航海時代遠洋船員的一大威脅。有一種說法認為，中國船隊會在船上用木桶發豆芽，補充新鮮蔬菜。',
         choices: [
-          { id: 'sprouts', label: '用存糧發豆芽', hint: '消耗 3 天份糧食，保住士氣' },
+          {
+            id: 'sprouts',
+            label: inAtlantic(ctx.position) ? '拿出存放的洋蔥和果乾' : '用存糧發豆芽',
+            hint: '消耗 3 天份糧食，保住士氣',
+          },
           { id: 'endure', label: '先忍耐，盡快靠港', hint: '士氣大幅下降' },
         ],
       };
@@ -341,7 +352,7 @@ export function resolveChoice(
     case 'scurvy':
       if (choiceId === 'sprouts') {
         return {
-          title: '豆芽救了大家',
+          title: '補充蔬菜救了大家',
           text: '幾天後船員的氣色好轉了。',
           food: -3,
           lesson: ev.lesson,
