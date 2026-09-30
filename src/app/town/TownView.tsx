@@ -6,6 +6,7 @@ import {
   drawGulls,
   drawMooredShip,
   drawLocalBoat,
+  drawTownNight,
   drawPerson,
   drawTownBase,
   drawWater,
@@ -162,6 +163,8 @@ interface Props {
   talk: string[];
   /** 節慶的裝飾 */
   festival: FestivalDecor | null;
+  /** 天色：0 白天到 1 深夜（依到港的時間） */
+  darkness: number;
 }
 
 /** 對話泡泡：最多幾個字換行 */
@@ -183,6 +186,7 @@ export function TownView({
   returnFrom,
   talk,
   festival,
+  darkness,
 }: Props) {
   const hostRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -190,11 +194,13 @@ export function TownView({
   const lookRef = useRef(playerLook(appearance));
   const shipRef = useRef(ship);
   const talkRef = useRef(talk);
+  const darkRef = useRef(darkness);
   useEffect(() => {
     onEnterRef.current = onEnter;
     lookRef.current = playerLook(appearance);
     shipRef.current = ship;
     talkRef.current = talk;
+    darkRef.current = darkness;
   });
 
   useEffect(() => {
@@ -327,10 +333,13 @@ export function TownView({
         drawPerson(fctx, w.x, w.y - 4, w.facing, w.step, w.look);
       }
       drawGulls(fctx, time);
+      drawTownNight(fctx, darkRef.current, time);
 
       // 放大到畫面（不平滑，保留像素感）
       ctx.imageSmoothingEnabled = false;
-      ctx.fillStyle = '#4c84a4';
+      // 畫面邊緣的海也跟著天色變暗
+      const d = Math.min(1, darkRef.current) * 0.6;
+      ctx.fillStyle = `rgb(${Math.round(76 - 56 * d)}, ${Math.round(132 - 92 * d)}, ${Math.round(164 - 94 * d)})`;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(frame, view.ox, view.oy, W * view.scale, H * view.scale);
 

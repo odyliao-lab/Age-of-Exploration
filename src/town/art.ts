@@ -503,6 +503,56 @@ export function drawLocalBoat(ctx: Ctx, culture: Culture, x: number, y0: number,
   }
 }
 
+/**
+ * 夜晚的城鎮：整張蓋上一層深藍，窗戶與門口亮起暖暖的燈光。
+ * dark 是 0（白天）到 1（深夜），黃昏時帶一點橘紅。
+ */
+export function drawTownNight(ctx: Ctx, dark: number, time: number) {
+  if (dark <= 0.02) return;
+  const W = TOWN_W * TILE;
+  const H = TOWN_H * TILE;
+  const dusk = Math.sin(Math.PI * Math.min(1, dark));
+  if (dusk > 0.05) {
+    ctx.fillStyle = `rgba(242, 138, 69, ${0.12 * dusk})`;
+    ctx.fillRect(0, 0, W, H);
+  }
+  ctx.fillStyle = `rgba(11, 26, 51, ${0.55 * dark})`;
+  ctx.fillRect(0, 0, W, H);
+  if (dark < 0.35) return;
+  const glow = Math.min(1, (dark - 0.35) / 0.4);
+  for (const b of BUILDINGS) {
+    const x = b.x * TILE;
+    const y = b.y * TILE;
+    const w = b.w * TILE;
+    const h = b.h * TILE;
+    const wallH = TILE + 2;
+    for (let c = x + 8; c < x + w - 8; c += 16) {
+      if (Math.abs(c - (b.door.x * TILE + 4)) < 10) continue;
+      const flicker = 0.85 + 0.15 * Math.sin(time * 3 + c);
+      ctx.fillStyle = `rgba(255, 200, 110, ${0.9 * glow * flicker})`;
+      ctx.fillRect(c, y + h - wallH + 5, 6, 5);
+      ctx.fillStyle = `rgba(255, 190, 90, ${0.12 * glow})`;
+      ctx.fillRect(c - 4, y + h - wallH + 1, 14, 13);
+    }
+    // 門口的燈籠
+    const dx = b.door.x * TILE + 8;
+    ctx.fillStyle = `rgba(255, 170, 70, ${0.18 * glow})`;
+    ctx.beginPath();
+    ctx.arc(dx, y + h + 2, 10, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = `rgba(230, 80, 50, ${glow})`;
+    ctx.fillRect(dx + 7, y + h - 12, 3, 4);
+  }
+  // 天上的星星
+  for (let k = 0; k < 24; k++) {
+    const sx = (k * 97) % W;
+    const sy = (k * 53) % (TILE * 1.5);
+    const tw = 0.5 + 0.5 * Math.sin(time * 2 + k);
+    ctx.fillStyle = `rgba(255, 250, 230, ${0.7 * glow * tw})`;
+    ctx.fillRect(sx, sy, 1, 1);
+  }
+}
+
 /** 海鷗：在海面上空繞圈 */
 export function drawGulls(ctx: Ctx, time: number) {
   for (let k = 0; k < 3; k++) {
