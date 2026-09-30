@@ -2129,3 +2129,16 @@ html.large-text .helm-left .condition.compact {
     right: 60px;
   }
 }
+
+/* 航海手冊 */
+.handbook h3 {
+  margin: 14px 0 4px;
+}
+.handbook ul {
+  margin: 0;
+  padding-left: 1.2em;
+}
+.handbook li {
+  margin: 3px 0;
+  line-height: 1.55;
+}

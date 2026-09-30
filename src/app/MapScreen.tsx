@@ -32,6 +32,7 @@ import { cultureOf } from '@/town/layout';
 import { setAmbience } from './sound';
 import { folkLines } from '@/town/folkTalk';
 import { NoteEditor } from './panels/NoteEditor';
+import { HandbookPanel } from './panels/HandbookPanel';
 import { festivalAt, type FestivalDecor } from '@/town/festivals';
 
 const FESTIVAL_ICON: Record<FestivalDecor, string> = {
@@ -505,6 +506,7 @@ export function MapScreen() {
       {panel === 'captain' && <CaptainPanel />}
       {panel === 'fleet' && <FleetPanel />}
       {panel === 'logbook' && <LogbookPanel />}
+      {panel === 'handbook' && <HandbookPanel />}
 
       {modals[0] && <RewardModal modal={modals[0]} />}
       {!modals[0] && game.encounter?.kind === 'storm' && <StormModal encounter={game.encounter} />}

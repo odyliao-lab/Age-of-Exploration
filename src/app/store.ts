@@ -93,7 +93,7 @@ export const SAIL_SECONDS_PER_DAY = 6;
 const AUTOSAVE_MS = 4000;
 
 type Screen = 'menu' | 'map';
-export type Panel = 'codex' | 'captain' | 'fleet' | 'logbook' | null;
+export type Panel = 'codex' | 'captain' | 'fleet' | 'logbook' | 'handbook' | null;
 
 export interface Toast {
   id: number;

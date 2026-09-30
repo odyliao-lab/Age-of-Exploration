@@ -68,6 +68,15 @@ export function StatusBar(props: {
             <span className="badge-dot">{c.points + game.skillPoints}</span>
           ) : null}
         </button>
+        <button
+          type="button"
+          className="zoom"
+          aria-label="航海手冊"
+          title="航海手冊"
+          onClick={() => openPanel('handbook')}
+        >
+          ？
+        </button>
         <button type="button" className="zoom" aria-label="縮小" onClick={props.onZoomOut}>
           −
         </button>
