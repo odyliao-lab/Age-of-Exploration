@@ -7,7 +7,7 @@ import {
   dueReviews,
   type Mastery,
 } from '@/game/learning';
-import { RIVAL_NAME, openRumors, unreportedFinds } from '@/game/state';
+import { rivalOf, openRumors, unreportedFinds } from '@/game/state';
 import { useGame } from '../store';
 import { useNow } from '../useNow';
 
@@ -236,7 +236,7 @@ function RumorLog() {
             <div className="meta">
               {port?.name}・{c.rumor!.from}
               {racing?.id === c.id &&
-                `・⚔️ 和${RIVAL_NAME}比賽中（剩 ${Math.max(0, Math.ceil(rival.due - game.day))} 天）`}
+                `・⚔️ 和${rivalOf(world, game).name}比賽中（剩 ${Math.max(0, Math.ceil(rival.due - game.day))} 天）`}
             </div>
             <p>「{c.rumor!.text}」</p>
           </article>

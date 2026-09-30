@@ -44,7 +44,7 @@ const FLEET_NAMES = {
   merchant: '商船',
   envoy: '使節船',
   armada: '鄭和的寶船艦隊',
-  rival: '陸天行的船',
+  rival: '對手船長的船',
 };
 
 /** 寶船艦隊的隊形：旗艦在前，後面的船排成兩列（船頭朝上的座標） */

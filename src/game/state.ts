@@ -4,7 +4,7 @@
  * 所有函式都回傳新的狀態物件；唯一的例外是迷霧陣列（fog）會就地更新，
  * 以免每一幀複製整張格網。事件（GameEvent）交給介面顯示提示與對話框。
  */
-import type { CodexEntry, LonLat, Port, Quest, QuestStep } from '@/data/schema';
+import type { CodexEntry, LonLat, Port, Quest, QuestStep, Scenario } from '@/data/schema';
 import { bearingDeg, compass16, distanceKm } from '@/geo/geo';
 import { addXp, newCaptain, type Captain } from './captain';
 import { ACHIEVEMENT_MAP, EMPTY_STATS, newlyUnlocked, type AchievementStats } from './achievements';
@@ -833,7 +833,7 @@ function seaLife(
       events.push({
         type: 'talk',
         speaker: '瞭望員',
-        text: `${compass16(bearingDeg(pos, f.position))}方那艘藍色船身的船……是${RIVAL_NAME}！他也在找同一個地方！`,
+        text: `${compass16(bearingDeg(pos, f.position))}方那艘藍色船身的船……是${rivalOf(world, state).name}！他也在找同一個地方！`,
       });
     }
   }
@@ -1128,7 +1128,7 @@ export function armadaInReach(state: GameState): SeaFleet | null {
 
 /** 向寶船艦隊致意：艦隊的水船與糧船把你的淡水、糧食補滿，名聲提高 */
 export function greetArmada(
-  _world: World,
+  world: World,
   state: GameState,
   fleetId: number,
 ): (GreetResult & { events: GameEvent[] }) | null {
@@ -1148,7 +1148,7 @@ export function greetArmada(
     },
     events: xp.events,
     title: '寶船艦隊',
-    text: `幾十艘大船排成長長的隊伍，最大的寶船像一座會走的城。旗艦傳來號令：「是泉州來的船吧？辛苦了！」艦隊的水船和糧船把你的淡水、糧食都補滿了。（名聲 +${ARMADA_REWARD.reputation}）`,
+    text: `幾十艘大船排成長長的隊伍，最大的寶船像一座會走的城。旗艦傳來號令：「是${world.ports.get(world.scenarios.get(state.scenarioId)?.home_port ?? '')?.name ?? '遠方'}來的船吧？辛苦了！」艦隊的水船和糧船把你的淡水、糧食都補滿了。（名聲 +${ARMADA_REWARD.reputation}）`,
     lesson:
       '據《明史》等記載，鄭和船隊有六十多艘大船，加上許多小船，共兩萬多人。除了寶船，還有運馬的馬船、運糧的糧船、專門載淡水的水船，以及保護船隊的戰船，就像一座在海上移動的城市。',
   };
@@ -1833,7 +1833,25 @@ export function reportFinds(
  * 對手船長（虛構人物）：在酒館遇到時，會挑一個你聽過、還沒找到的傳聞跟你比賽，
  * 看誰先回報給學者。贏了有額外獎勵；輸了沒有懲罰，只會被他笑一下。
  */
-export const RIVAL_NAME = '陸天行';
+/** 這個劇本的對手船長 */
+export function rivalOf(world: World, state: GameState): Scenario['rival'] {
+  return (
+    world.scenarios.get(state.scenarioId)?.rival ?? {
+      name: '陸天行',
+      from: '廣州',
+      look: '一位穿著綢緞長袍的年輕船長',
+    }
+  );
+}
+
+/** 完成這個任務時的劇本結局（沒有則為 null） */
+export function endingFor(
+  world: World,
+  state: GameState,
+  questId: string,
+): { title: string; text: string } | null {
+  return world.scenarios.get(state.scenarioId)?.endings[questId] ?? null;
+}
 
 export interface RivalState {
   /** 正在比賽的傳聞地點 */
@@ -1883,8 +1901,8 @@ export function hailRival(world: World, state: GameState, fleetId: number): Gree
       ...state,
       fleets: state.fleets.map((x) => (x.id === fleetId ? { ...x, greeted: true } : x)),
     },
-    title: `${RIVAL_NAME}的船`,
-    text: `${RIVAL_NAME}站在船頭大喊：「還在找${c?.rumor?.from ?? '傳聞'}說的那個地方嗎？我看就在前面不遠了！」照他的速度，大約 ${left} 天內就會回報給學者。`,
+    title: `${rivalOf(world, state).name}的船`,
+    text: `${rivalOf(world, state).name}站在船頭大喊：「還在找${c?.rumor?.from ?? '傳聞'}說的那個地方嗎？我看就在前面不遠了！」照他的速度，大約 ${left} 天內就會回報給學者。`,
   };
 }
 /** 比完之後隔幾天才會再下戰帖 */

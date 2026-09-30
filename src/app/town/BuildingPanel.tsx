@@ -5,7 +5,7 @@ import { drawPerson, type PersonLook } from '@/town/art';
 import { BUILDING_NAMES, type BuildingKind, type Culture } from '@/town/layout';
 import {
   PRAY_COST,
-  RIVAL_NAME,
+  rivalOf,
   availableCrew,
   availableQuests,
   cargoCapacity,
@@ -550,7 +550,7 @@ function RivalStatus() {
   const left = Math.max(0, Math.ceil(r.due - game.day));
   return (
     <>
-      <h3>對手船長{RIVAL_NAME}</h3>
+      <h3>對手船長{rivalOf(world, game).name}</h3>
       {c ? (
         <p>
           他也在找{c.rumor?.from ?? '傳聞'}說的那個地方，大約還有 <strong>{left}</strong>{' '}

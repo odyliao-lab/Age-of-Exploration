@@ -237,6 +237,20 @@ export const Scenario = z.object({
       }),
     )
     .min(1),
+  /** 酒館裡的對手船長（虛構人物） */
+  rival: z
+    .object({
+      name: z.string(),
+      /** 從哪裡來 */
+      from: z.string(),
+      /** 第一次見面的樣子 */
+      look: z.string(),
+    })
+    .default({ name: '陸天行', from: '廣州', look: '一位穿著綢緞長袍的年輕船長' }),
+  /** 從這個劇本的文化視角怎麼稱呼各港口（沒列的用港口資料的名字） */
+  port_names: z.record(Id, z.string()).default({}),
+  /** 完成某個主線任務時的結局文字 */
+  endings: z.record(Id, z.object({ title: z.string(), text: z.string() })).default({}),
 });
 export type Scenario = z.infer<typeof Scenario>;
 

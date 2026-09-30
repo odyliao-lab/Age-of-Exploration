@@ -16,6 +16,7 @@ import {
   coastSightBlocked,
   starSightBlocked,
   fishBlocked,
+  rivalOf,
 } from '@/game/state';
 import { isNight, timeLabel } from '@/game/navigation';
 import { useGame } from '../store';
@@ -150,7 +151,7 @@ export function HelmPanel() {
           )}
           {rivalShip && (
             <button type="button" onClick={() => hailRival(rivalShip.id)}>
-              📣 向陸天行喊話
+              📣 向{rivalOf(world, game).name}喊話
             </button>
           )}
           {armada && (

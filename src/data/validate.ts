@@ -138,6 +138,13 @@ export function crossValidate(bundle: ContentBundle): ContentIssue[] {
     const home = bundle.ports.find((p) => p.id === s.home_port);
     if (home && home.region !== s.home_region)
       issues.push({ file: f, message: '家鄉港口不在家鄉海域區內' });
+    for (const pid of Object.keys(s.port_names))
+      if (!portIds.has(pid)) issues.push({ file: f, message: `port_names 含未知港口：${pid}` });
+    for (const qid of Object.keys(s.endings)) {
+      const q = bundle.quests.find((x) => x.id === qid);
+      if (!q || q.scenario !== s.id)
+        issues.push({ file: f, message: `endings 的任務不在這個劇本：${qid}` });
+    }
   }
 
   return issues;

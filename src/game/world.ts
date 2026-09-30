@@ -69,3 +69,26 @@ export function buildWorld(content: ContentBundle, coast: CoastIndex | null = nu
     coast,
   };
 }
+
+const scenarioWorlds = new WeakMap<World, Map<string, World>>();
+
+/**
+ * 劇本用的世界：依劇本的文化視角替港口換名字（例如阿拉伯商人把泉州叫做刺桐）。
+ * 沒有要換的名字時直接回傳原本的世界。
+ */
+export function scenarioWorld(base: World, scenarioId: string): World {
+  const names = base.scenarios.get(scenarioId)?.port_names ?? {};
+  if (!Object.keys(names).length) return base;
+  let cache = scenarioWorlds.get(base);
+  if (!cache) scenarioWorlds.set(base, (cache = new Map()));
+  const hit = cache.get(scenarioId);
+  if (hit) return hit;
+  const ports = base.content.ports.map((p) => (names[p.id] ? { ...p, name: names[p.id] } : p));
+  const world: World = {
+    ...base,
+    content: { ...base.content, ports },
+    ports: new Map(ports.map((p) => [p.id, p])),
+  };
+  cache.set(scenarioId, world);
+  return world;
+}

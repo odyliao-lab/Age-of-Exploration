@@ -52,6 +52,9 @@ const base = (): ContentBundle => ({
       domains: ['A'],
       estimated_hours: 1,
       chapters: [{ index: 0, title: '序章', tier: 0, summary: '' }],
+      rival: { name: '陸天行', from: '廣州', look: '' },
+      port_names: {},
+      endings: {},
     },
   ],
 });
