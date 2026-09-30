@@ -161,6 +161,9 @@ function endingModal(world: World, g: GameState, e: { title: string; text: strin
       `海圖面積約 ${chartedArea(g)} 萬平方公里`,
       `完成任務 ${done} 個，回報傳聞發現 ${g.reported.length} 處`,
       `甩開海盜 ${g.stats.piratesOutwitted} 次，牽星定位 ${g.stats.starsCorrect} 次`,
+      `名聲 ${g.reputation}（${reputationRank(g.reputation).title}），完成商人委託 ${g.stats.contracts} 件`,
+      `和${RIVAL_NAME}比賽：你贏 ${g.rival.wins} 次、他贏 ${g.rival.losses} 次`,
+      `參加節慶 ${g.festivalsSeen.length} 次，在海圖上寫了 ${g.notes.length} 個註記`,
     ],
     lesson: '還有沒找到的傳聞、沒去過的港口嗎？海圖上的空白，就是下一段冒險。',
   };
