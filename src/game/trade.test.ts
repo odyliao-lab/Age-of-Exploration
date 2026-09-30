@@ -1,10 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { GOODS_PRICE, basePrice, cargoUsed, pressureNow, quote } from './trade';
+import { GOODS_PRICE, basePrice, cargoUsed, pressureNow, quote, shortageAt } from './trade';
 import {
   cargoCapacity,
   checkAchievements,
   marketQuotes,
   newGame,
+  acceptContract,
+  availableContracts,
+  progressQuests,
   buyUpgrade,
   buyShip,
   mods,
@@ -17,6 +20,7 @@ import {
   type GameState,
 } from './state';
 import { contentForTests } from './testContent';
+import { reputationRank } from './reputation';
 import { createEvent, type EventContext } from './events';
 import { buildWorld } from './world';
 
@@ -136,6 +140,13 @@ describe('greeting pirates in their own language', () => {
     expect(q.choices[q.answer]).toBe('Apa khabar?');
     expect(new Set(q.choices).size).toBe(3);
   });
+
+  it('works anywhere with an interpreter on board', () => {
+    const base = newGame(world, 'treasure-fleet', 1).state;
+    const interp = world.content.crew.find((c) => c.profession === 'interpreter')!;
+    const q = greetingQuestion(world, { ...base, crew: [interp.id] }, [101, 3], () => 0.4)!;
+    expect(q.prompt).toContain('馬來語');
+  });
 });
 
 describe('ship refits', () => {
@@ -156,5 +167,101 @@ describe('ship refits', () => {
     const bought = buyShip(world, leveled, 'fuchuan');
     expect(bought.shipTypeId).toBe('fuchuan');
     expect(bought.upgrades).toEqual([]);
+  });
+});
+
+describe('merchant contracts', () => {
+  const known = (s: GameState): GameState => ({
+    ...s,
+    unlockedPorts: [...s.unlockedPorts, 'malacca', 'galle', 'calicut'],
+  });
+
+  it('offer goods from far-away known ports, the same all week', () => {
+    const s = known(newGame(world, 'treasure-fleet', 1).state);
+    const offers = availableContracts(world, s, 'quanzhou');
+    expect(offers.length).toBe(2);
+    for (const o of offers) {
+      expect(port('quanzhou').goods).not.toContain(o.good);
+      expect(o.reward).toBeGreaterThan(0);
+      expect(o.due).toBeGreaterThan(s.day + 15);
+    }
+    expect(availableContracts(world, { ...s, day: s.day + 1 }, 'quanzhou')).toEqual(offers);
+  });
+
+  it('pay on delivery in time, and quietly expire when late', () => {
+    let s = known(newGame(world, 'treasure-fleet', 1).state);
+    const offer = availableContracts(world, s, 'quanzhou')[0];
+    s = acceptContract(world, s, offer.id);
+    expect(s.contracts).toHaveLength(1);
+    // 接下一張之後，另一張委託維持原樣
+    expect(availableContracts(world, s, 'quanzhou')).toEqual(
+      availableContracts(world, known(newGame(world, 'treasure-fleet', 1).state), 'quanzhou').slice(
+        1,
+      ),
+    );
+    // 帶著貨回到泉州
+    const loaded: GameState = {
+      ...s,
+      cargo: { [offer.good]: { qty: offer.qty + 2, cost: 100 } },
+    };
+    const r = progressQuests(world, loaded);
+    expect(r.state.gold).toBe(loaded.gold + offer.reward);
+    expect(r.state.cargo[offer.good].qty).toBe(2);
+    expect(r.state.contracts).toHaveLength(0);
+    expect(r.state.stats.contracts).toBe(1);
+    // 過期
+    const late = progressQuests(world, { ...s, day: offer.due + 1 });
+    expect(late.state.contracts).toHaveLength(0);
+    expect(late.state.gold).toBe(s.gold);
+    expect(late.state.contractsDone).toContain(offer.id);
+  });
+});
+
+describe('quest deliveries come before commissions', () => {
+  it('lets the quest take the cargo first when both want the same good', () => {
+    const base = newGame(world, 'treasure-fleet', 1).state;
+    const s: GameState = {
+      ...base,
+      dockedAt: 'malacca',
+      cargo: { porcelain: { qty: 10, cost: 200 } },
+      quests: { ...base.quests, 'tf-r15-porcelain': { status: 'active', step: 1 } },
+      contracts: [
+        { id: 'x', portId: 'malacca', good: 'porcelain', qty: 10, reward: 500, due: 999 },
+      ],
+    };
+    const r = progressQuests(world, s);
+    expect(r.state.quests['tf-r15-porcelain'].step).toBe(2);
+    expect(r.state.contracts).toHaveLength(1);
+    expect(r.state.cargo.porcelain).toBeUndefined();
+  });
+});
+
+describe('reputation', () => {
+  it('ranks up with reputation and gets better prices', () => {
+    expect(reputationRank(0).title).toBe('無名小卒');
+    expect(reputationRank(29).index).toBe(0);
+    expect(reputationRank(30).index).toBe(1);
+    expect(reputationRank(500)).toMatchObject({ title: '海上傳奇', next: null });
+    const plain = quote(ports, port('quanzhou'), 'silk', {}, 0);
+    const famous = quote(ports, port('quanzhou'), 'silk', {}, 0, 3);
+    expect(famous.buy!).toBeLessThan(plain.buy!);
+    expect(famous.sell).toBeGreaterThan(plain.sell);
+  });
+});
+
+describe('market shortages', () => {
+  it('raise the price of one foreign good in some ports each week', () => {
+    let short = 0;
+    for (const p of ports) {
+      const g = shortageAt(ports, p, 0);
+      if (!g) continue;
+      short++;
+      expect(p.goods).not.toContain(g);
+      expect(shortageAt(ports, p, 6)).toBe(g);
+      const q = quote(ports, p, g, {}, 0);
+      expect(q.sell).toBeGreaterThan(basePrice(ports, p, g));
+    }
+    expect(short).toBeGreaterThan(3);
+    expect(short).toBeLessThan(ports.length);
   });
 });

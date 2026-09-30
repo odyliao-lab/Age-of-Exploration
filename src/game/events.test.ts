@@ -176,3 +176,20 @@ describe('events during voyages', () => {
     expect(logged.every((q) => q.firstTry)).toBe(true);
   });
 });
+
+describe('castaways', () => {
+  it('can be rescued for reputation, or left with a little water', () => {
+    const ev = createEvent('castaway', ctx({ position: [115, 15] }), rng());
+    expect(ev.choices?.map((c) => c.id)).toEqual(['rescue', 'pass']);
+    const rescue = resolveChoice(ev, 'rescue', 0.5, { pirateToll: 1, fleeBonus: 0 }, 500);
+    expect(rescue.reputation).toBeGreaterThan(0);
+    expect(rescue.morale).toBeGreaterThan(0);
+    const pass = resolveChoice(ev, 'pass', 0.5, { pirateToll: 1, fleeBonus: 0 }, 500);
+    expect(pass.morale).toBeLessThan(0);
+  });
+
+  it('only drift by in named seas', () => {
+    expect(eventChances(ctx({ regionName: null })).castaway).toBeUndefined();
+    expect(eventChances(ctx()).castaway).toBeGreaterThan(0);
+  });
+});

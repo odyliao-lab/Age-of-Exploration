@@ -1,5 +1,6 @@
 import { xpToNext } from '@/game/captain';
 import { Avatar } from './Avatar';
+import { GoldCounter } from './GoldCounter';
 import { SEASON_OF_MONTH } from '@/game/calendar';
 import { gameDate } from '@/game/state';
 import { dailyComplete, dueReviews } from '@/game/learning';
@@ -34,7 +35,7 @@ export function StatusBar(props: {
         <span title={`航海第 ${Math.floor(game.day) + 1} 天`}>
           {d.year}/{d.month}/{d.day}（{SEASON_OF_MONTH[d.month]}）
         </span>
-        <span title="金幣">💰 {game.gold}</span>
+        <GoldCounter />
         <span title={`經驗 ${c.xp}/${xpToNext(c.level)}`}>
           Lv {c.level}
           {game.title && (
@@ -66,6 +67,15 @@ export function StatusBar(props: {
           {c.points + game.skillPoints ? (
             <span className="badge-dot">{c.points + game.skillPoints}</span>
           ) : null}
+        </button>
+        <button
+          type="button"
+          className="zoom"
+          aria-label="航海手冊"
+          title="航海手冊"
+          onClick={() => openPanel('handbook')}
+        >
+          ？
         </button>
         <button type="button" className="zoom" aria-label="縮小" onClick={props.onZoomOut}>
           −

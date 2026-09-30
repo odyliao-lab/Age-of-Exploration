@@ -9,6 +9,7 @@
  */
 import type { Port } from '@/data/schema';
 import { distanceKm } from '@/geo/geo';
+import { PRICE_PER_RANK } from './reputation';
 
 /** 貨物的基準價（每單位金幣）；產地約為基準價的一半多 */
 export const GOODS_PRICE: Record<string, number> = {
@@ -82,6 +83,28 @@ export function basePrice(ports: Port[], port: Port, good: string): number {
   return base * (1 + DISTANCE_PREMIUM * Math.min(1, nearest / DISTANCE_FULL_KM));
 }
 
+/** 缺貨時收購價提高的倍數 */
+export const SHORTAGE_FACTOR = 1.4;
+
+function hashText(text: string): number {
+  let h = 2166136261;
+  for (let i = 0; i < text.length; i++) h = Math.imul(h ^ text.charCodeAt(i), 16777619);
+  return h >>> 0;
+}
+
+/**
+ * 市場缺貨：每週大約一半的港口缺某一種外地貨，收購價提高。
+ * 依港口與週數決定，同一週都一樣，酒館裡聽得到消息。
+ */
+export function shortageAt(ports: Port[], port: Port, day: number): string | null {
+  const h = hashText(`${port.id}#${Math.floor(day / 7)}`);
+  if (h % 2) return null;
+  const candidates = Object.keys(GOODS_PRICE)
+    .filter((g) => !port.goods.includes(g) && ports.some((p) => p.goods.includes(g)))
+    .sort();
+  return candidates.length ? candidates[(h >>> 1) % candidates.length] : null;
+}
+
 export interface Quote {
   good: string;
   /** 買一單位要付的錢（只有產地有） */
@@ -90,14 +113,24 @@ export interface Quote {
   sell: number;
 }
 
-export function quote(ports: Port[], port: Port, good: string, market: Market, day: number): Quote {
+export function quote(
+  ports: Port[],
+  port: Port,
+  good: string,
+  market: Market,
+  day: number,
+  /** 名聲等級：每級買價便宜、賣價提高一點 */
+  standing = 0,
+): Quote {
   const b = basePrice(ports, port, good);
   const f = Math.min(2.5, Math.max(0.4, 1 + pressureNow(market, port.id, good, day)));
+  const k = PRICE_PER_RANK * standing;
+  const short = shortageAt(ports, port, day) === good ? SHORTAGE_FACTOR : 1;
   // 買價略高於賣價（商人要賺一點）
   return {
     good,
-    buy: port.goods.includes(good) ? Math.max(1, Math.round(b * f * 1.08)) : null,
-    sell: Math.max(1, Math.round(b * f * 0.92)),
+    buy: port.goods.includes(good) ? Math.max(1, Math.round(b * f * 1.08 * (1 - k))) : null,
+    sell: Math.max(1, Math.round(b * f * 0.92 * (1 + k) * short)),
   };
 }
 
@@ -125,13 +158,14 @@ export function buyGoods(
   qty: number,
   capacity: number,
   day: number,
+  standing = 0,
 ): TradeState & { bought: number; spent: number } {
   let { gold, market } = t;
   let bought = 0;
   let spent = 0;
   let room = capacity - cargoUsed(t.cargo);
   while (bought < qty && room > 0) {
-    const q = quote(ports, port, good, market, day);
+    const q = quote(ports, port, good, market, day, standing);
     if (q.buy === null || q.buy > gold) break;
     gold -= q.buy;
     spent += q.buy;
@@ -158,6 +192,7 @@ export function sellGoods(
   good: string,
   qty: number,
   day: number,
+  standing = 0,
 ): TradeState & { sold: number; earned: number; profit: number } {
   const lot = t.cargo[good];
   if (!lot || lot.qty <= 0) return { ...t, sold: 0, earned: 0, profit: 0 };
@@ -165,7 +200,7 @@ export function sellGoods(
   const n = Math.min(qty, lot.qty);
   let earned = 0;
   for (let i = 0; i < n; i++) {
-    const q = quote(ports, port, good, market, day);
+    const q = quote(ports, port, good, market, day, standing);
     gold += q.sell;
     earned += q.sell;
     market = push(market, port.id, good, day, -PRESSURE_PER_UNIT);

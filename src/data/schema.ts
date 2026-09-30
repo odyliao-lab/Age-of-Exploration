@@ -151,6 +151,14 @@ export const QuestStep = z.discriminatedUnion('type', [
     speaker: z.string(),
     lines: z.array(z.string()).min(1),
   }),
+  /** 運貨：把幾擔某種貨運到指定港口（貨物要自己在產地買） */
+  z.object({
+    type: z.literal('deliver'),
+    good: Id,
+    qty: z.number().int().positive(),
+    target: Id,
+    text: z.string().optional(),
+  }),
 ]);
 export type QuestStep = z.infer<typeof QuestStep>;
 
@@ -189,6 +197,8 @@ export const CrewMember = z.object({
   bio: z.string().min(10),
   /** 會說的語言或專長，顯示在招募卡上 */
   specialty: z.string().optional(),
+  /** 航行中會說的話：家鄉與專長的小知識 */
+  lines: z.array(z.string()).default([]),
 });
 export type CrewMember = z.infer<typeof CrewMember>;
 

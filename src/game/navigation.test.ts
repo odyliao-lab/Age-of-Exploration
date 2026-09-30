@@ -38,6 +38,8 @@ import {
   investigateBlocked,
   merchantInReach,
   envoyInReach,
+  armadaInReach,
+  greetArmada,
   greetEnvoy,
   ENVOYS,
   merchantOffer,
@@ -244,6 +246,27 @@ describe('merchant ships', () => {
     expect(r.text).toContain(offer.port.name);
     // 賣完貨還是可以打聽消息
     expect(merchantInReach(r.state)?.id).toBe(3);
+  });
+});
+
+describe('the treasure fleet', () => {
+  it('refills your water and grain once when you hail it', () => {
+    let s: GameState = departPort(world, newGame(world, 'treasure-fleet', 4).state);
+    const a: SeaFleet = {
+      id: 9,
+      kind: 'armada',
+      position: destinationPoint(s.ship.position, 90, 15),
+      heading: 0,
+      mode: 'roam',
+      spawnDay: 0,
+      greeted: false,
+    };
+    s = { ...s, fleets: [a], condition: { ...s.condition, supplies: { water: 5, food: 6 } } };
+    expect(armadaInReach(s)?.id).toBe(9);
+    const r = greetArmada(world, s, 9)!;
+    expect(r.state.condition.supplies.water).toBeGreaterThan(30);
+    expect(r.state.reputation).toBe(s.reputation + 5);
+    expect(armadaInReach(r.state)).toBeNull();
   });
 });
 

@@ -141,13 +141,14 @@ button.primary:hover {
 }
 
 .map-toolbar {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 12px;
   padding: 8px 12px;
   background: var(--parchment);
   border-bottom: 1px solid var(--parchment-dark);
-  z-index: 2;
+  z-index: 6;
 }
 
 .map-title {
@@ -1983,4 +1984,179 @@ table.market .tag {
   font-weight: 700;
   pointer-events: none;
   white-space: nowrap;
+}
+
+/* 金幣變化：飄出 +N / −N */
+.gold-counter {
+  position: relative;
+}
+.gold-pop {
+  position: absolute;
+  left: 100%;
+  top: 50%;
+  margin-left: 4px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  white-space: nowrap;
+  pointer-events: none;
+  animation: gold-pop 1.6s ease-out forwards;
+  text-shadow:
+    0 1px 0 #fbf6ea,
+    0 0 4px #fbf6ea;
+}
+.gold-pop.gain {
+  color: #2f7d3a;
+}
+.gold-pop.loss {
+  color: #b5482b;
+}
+@keyframes gold-pop {
+  0% {
+    opacity: 0;
+    transform: translate(0, -20%) scale(0.8);
+  }
+  15% {
+    opacity: 1;
+    transform: translate(0, -50%) scale(1.15);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(0, -150%) scale(1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gold-pop {
+    animation-duration: 2.4s;
+    animation-name: gold-fade;
+  }
+  @keyframes gold-fade {
+    from {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
+    }
+  }
+}
+
+/* 風與洋流圖 */
+.chart-tools {
+  position: absolute;
+  left: 12px;
+  bottom: 190px;
+  z-index: 4;
+  display: flex;
+  gap: 8px;
+}
+.chart-tools.at-sea {
+  left: auto;
+  bottom: auto;
+  right: 12px;
+  top: 12px;
+}
+.chart-tools button {
+  min-height: 40px;
+  box-shadow: 0 2px 8px rgba(43, 33, 24, 0.25);
+}
+.chart-tools button.on {
+  background: #2c4a7a;
+  color: #fbf6ea;
+}
+.wind-legend {
+  position: absolute;
+  left: 12px;
+  bottom: 236px;
+  z-index: 4;
+  background: rgba(251, 246, 234, 0.92);
+  border: 1px solid var(--parchment-dark);
+  border-radius: 6px;
+  padding: 3px 10px;
+  font-size: 0.8rem;
+  pointer-events: none;
+}
+.wind-legend.at-sea {
+  left: auto;
+  bottom: auto;
+  right: 12px;
+  top: 58px;
+}
+.wind-legend .w {
+  color: #2c4a7a;
+  font-weight: 700;
+}
+.wind-legend .c {
+  color: #2f9fc4;
+  font-weight: 700;
+}
+
+.ship-name-input {
+  width: min(260px, 100%);
+  font-size: 1rem;
+  padding: 6px 10px;
+  border: 1px solid var(--parchment-dark);
+  border-radius: 6px;
+  background: #fffdf7;
+}
+
+/* 大字模式：以 rem 設定的文字都放大 */
+html.large-text {
+  font-size: 18px;
+}
+/* 大字模式下，舵盤旁的船況改成兩欄，字才不會擠成直的 */
+html.large-text .helm-left .condition.compact {
+  grid-template-columns: repeat(2, 1fr);
+}
+.cond > span:first-child {
+  white-space: nowrap;
+}
+
+/* 手機橫放：海圖工具只留圖示，直排在右上角，避開中間的提示訊息 */
+@media (max-height: 500px) {
+  .chart-tools.at-sea {
+    flex-direction: column;
+    top: 8px;
+    right: 8px;
+  }
+  .chart-tools.at-sea .tool-label {
+    display: none;
+  }
+  .chart-tools.at-sea button {
+    min-width: 42px;
+    padding: 4px;
+  }
+  .wind-legend.at-sea {
+    top: 8px;
+    right: 60px;
+  }
+}
+
+/* 航海手冊 */
+.handbook h3 {
+  margin: 14px 0 4px;
+}
+.handbook ul {
+  margin: 0;
+  padding-left: 1.2em;
+}
+.handbook li {
+  margin: 3px 0;
+  line-height: 1.55;
+}
+
+.tag.short {
+  background: #b5482b;
+  color: #fbf6ea;
+}
+.market-news {
+  margin: 4px 0;
+  padding-left: 1.2em;
+}
+
+.quiz-right {
+  color: #2f7d3a;
+  font-weight: 700;
+}
+.quiz-wrong {
+  color: #b5482b;
+  font-weight: 700;
 }

@@ -30,11 +30,19 @@ import {
   reportFinds,
   reportReward,
   rivalAtTavern,
+  rivalShipInReach,
+  hailRival,
   RIVAL_BONUS,
   rumorsAt,
   setHelm,
   unreportedFinds,
   tick,
+  waitInPort,
+  daysUntilMorning,
+  daysUntilNextMonth,
+  gameDate,
+  INN_PRICE_PER_NIGHT,
+  FESTIVAL_REWARD,
   type GameState,
 } from './state';
 import { contentForTests } from './testContent';
@@ -345,5 +353,70 @@ describe('rival captain', () => {
     expect(r.news?.type).toBe('lost');
     expect(r.state.rival).toMatchObject({ target: null, losses: 1 });
     expect(r.state.gold).toBe(late.gold);
+  });
+});
+
+describe('festivals in port', () => {
+  it('reward joining the celebration once when you arrive during one', () => {
+    let s = departPort(world, newGame(world, 'treasure-fleet', 1).state);
+    // 1406 年 2 月：泉州的元宵節
+    s = { ...s, day: 55, condition: { ...s.condition, morale: 40 } };
+    s = { ...s, ship: { position: harborEntrance(world, 'quanzhou')!, heading: 0 } };
+    const r = enterPort(world, s, 'quanzhou');
+    expect(r.state.dockedAt).toBe('quanzhou');
+    expect(r.state.reputation).toBe(s.reputation + FESTIVAL_REWARD.reputation);
+    expect(r.state.festivalsSeen).toHaveLength(1);
+    expect(r.events.some((e) => e.type === 'talk' && e.text.includes('元宵節'))).toBe(true);
+    // 同一年再進港不會重複
+    const again = enterPort(
+      world,
+      {
+        ...departPort(world, r.state),
+        ship: { position: harborEntrance(world, 'quanzhou')!, heading: 0 },
+      },
+      'quanzhou',
+    );
+    expect(again.state.festivalsSeen).toHaveLength(1);
+  });
+});
+
+describe('the rival at sea', () => {
+  it('can be hailed while racing, and reminds you of the deadline', () => {
+    let s = departPort(world, newGame(world, 'treasure-fleet', 1).state);
+    s = {
+      ...s,
+      rumors: ['taiwan'],
+      rival: { ...s.rival, target: 'taiwan', due: s.day + 9 },
+      fleets: [
+        {
+          id: 4,
+          kind: 'rival',
+          position: destinationPoint(s.ship.position, 90, 5),
+          heading: 0,
+          mode: 'roam',
+          spawnDay: 0,
+          greeted: false,
+        },
+      ],
+    };
+    expect(rivalShipInReach(s)?.id).toBe(4);
+    const r = hailRival(world, s, 4)!;
+    expect(r.text).toContain('9 天');
+    expect(rivalShipInReach(r.state)).toBeNull();
+  });
+});
+
+describe('waiting in port', () => {
+  it('passes the night or the rest of the month at the inn', () => {
+    const s = newGame(world, 'treasure-fleet', 1).state;
+    const night = waitInPort(world, s, daysUntilMorning(s)).state;
+    expect(night.day).toBe(1);
+    expect(night.gold).toBe(s.gold - INN_PRICE_PER_NIGHT);
+    const month = waitInPort(world, s, daysUntilNextMonth(s)).state;
+    expect(gameDate(month).day).toBe(1);
+    expect(gameDate(month).month).toBe(1);
+    expect(month.condition.supplies).toEqual(s.condition.supplies);
+    // 錢不夠就住不了
+    expect(waitInPort(world, { ...s, gold: 0 }, 1).state.day).toBe(s.day);
   });
 });

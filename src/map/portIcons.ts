@@ -5,7 +5,7 @@
  */
 import type { Graphics } from 'pixi.js';
 
-export type PortCulture = 'minnan' | 'ryukyu' | 'nanyang' | 'southasia' | 'arabia';
+export type PortCulture = 'minnan' | 'ryukyu' | 'nanyang' | 'southasia' | 'arabia' | 'swahili';
 
 const INK = 0x3a2414;
 
@@ -70,6 +70,14 @@ export function drawPortIcon(g: Graphics, culture: PortCulture, hub: boolean) {
           .fill({ color: 0xd9b27a })
           .stroke({ width: 1, color: INK });
       }
+      break;
+    case 'swahili':
+      flatHouse(g, -13, 8, 6);
+      // 椰葉屋頂的小屋
+      house(g, 5, 8, 5, 0xe7e0cf, 0xa07a45);
+      // 猴麵包樹
+      g.rect(-4, -9, 5, 9).fill({ color: 0x9a7a58 }).stroke({ width: 1, color: INK });
+      g.ellipse(-1.5, -12, 6, 3).fill({ color: 0x4f6d2a });
       break;
     case 'arabia':
       flatHouse(g, -13, 8, 6);

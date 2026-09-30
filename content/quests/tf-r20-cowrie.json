@@ -1,0 +1,56 @@
+{
+  "id": "tf-r20-cowrie",
+  "title": "用貝殼買東西的市場",
+  "scenario": "treasure-fleet",
+  "chapter": 2,
+  "tier": 2,
+  "kind": "region",
+  "giver_port": "chittagong",
+  "objectives": [
+    {
+      "domain": "F",
+      "text": "知道海貝曾在孟加拉當作貨幣。"
+    },
+    {
+      "domain": "B",
+      "text": "能找出溜山與榜葛剌之間的航線。"
+    }
+  ],
+  "prerequisites": ["tf-r9-bengal"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "榜葛剌的換錢商",
+      "lines": [
+        "在我們的市場，買一把菜、一條魚，都用小小的海貝付錢。",
+        "海貝都是從南邊的溜山運來的。幫我運 12 擔過來，市場就不缺零錢了！"
+      ]
+    },
+    {
+      "type": "deliver",
+      "good": "cowrie",
+      "qty": 12,
+      "target": "chittagong",
+      "text": "到溜山（馬爾地夫）的市集買海貝"
+    },
+    {
+      "type": "quiz",
+      "question": "為什麼遠在孟加拉的市場，要用溜山運來的海貝當錢？",
+      "choices": [
+        "海貝大小一樣、耐用又不容易仿冒，孟加拉本地不產，所以適合當小額貨幣",
+        "因為孟加拉的人只吃海貝",
+        "因為海貝可以種出新的海貝",
+        "因為金子在孟加拉不值錢"
+      ],
+      "answer": 0,
+      "explanation": "溜山（馬爾地夫）的淺海盛產一種小海貝。海貝光滑、大小差不多、很難偽造，孟加拉本地又不產，所以被當作買小東西用的零錢。十四世紀的旅行家伊本‧巴杜達就記載過，溜山的海貝大量運往孟加拉。"
+    }
+  ],
+  "reward": {
+    "xp": 160,
+    "gold": 340,
+    "reputation": 8,
+    "unlock_ports": [],
+    "codex": []
+  }
+}

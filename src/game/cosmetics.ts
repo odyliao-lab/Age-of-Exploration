@@ -13,7 +13,12 @@ export interface Appearance {
   sail: string;
   /** 已擁有的塗裝（hull:xxx / sail:xxx） */
   paints: string[];
+  /** 玩家替船取的名字（空字串表示沒取） */
+  shipName: string;
 }
+
+/** 船名最多幾個字 */
+export const SHIP_NAME_MAX = 8;
 
 export interface StyleOption {
   id: string;
@@ -80,6 +85,7 @@ export function defaultAppearance(): Appearance {
     hull: 'wood',
     sail: 'canvas',
     paints: ['hull:wood', 'sail:canvas'],
+    shipName: '',
   };
 }
 

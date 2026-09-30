@@ -5,6 +5,8 @@ import { COLORS, SKIN_TONES, colorOf, type Appearance } from '@/game/cosmetics';
 import {
   drawGulls,
   drawMooredShip,
+  drawLocalBoat,
+  drawTownNight,
   drawPerson,
   drawTownBase,
   drawWater,
@@ -59,13 +61,86 @@ function playerLook(a: Appearance): PersonLook {
   };
 }
 
-const TOWNSFOLK: PersonLook[] = [
-  { skin: '#e0b18a', coat: '#6b8e4e', hat: null, hair: '#2b2118' },
-  { skin: '#c68f63', coat: '#b5482b', hat: '#c9a86a', hair: '#2b2118' },
-  { skin: '#f3d2b3', coat: '#34507e', hat: null, hair: '#4a3020' },
-  { skin: '#8d5a3b', coat: '#e0b94a', hat: '#f4ecd8', hair: '#1c1410' },
-  { skin: '#e0b18a', coat: '#7a5a8a', hat: null, hair: '#2b2118' },
-];
+/** 各文化圈路人的穿著：衣服顏色、帽子與長袍（服飾也是文化地理） */
+const TOWNSFOLK: Record<Culture, PersonLook[]> = {
+  minnan: [
+    { skin: '#e0b18a', coat: '#34507e', hat: null, hair: '#2b2118' },
+    { skin: '#d9a57c', coat: '#7a5a3a', hat: '#c9a86a', hair: '#2b2118' },
+    { skin: '#f0c9a4', coat: '#5c6670', hat: null, hair: '#1c1410' },
+    { skin: '#e0b18a', coat: '#8f3e2b', hat: '#c9a86a', hair: '#2b2118' },
+    { skin: '#e8bd96', coat: '#4f7d6a', hat: null, hair: '#2b2118', robe: true },
+  ],
+  ryukyu: [
+    { skin: '#dcaa80', coat: '#2c3f6b', hat: '#c9402c', hair: '#1c1410', hatStyle: 'cap' },
+    { skin: '#e0b18a', coat: '#a86a3a', hat: null, hair: '#2b2118', robe: true },
+    { skin: '#d9a57c', coat: '#5a6b7a', hat: '#e0b94a', hair: '#1c1410', hatStyle: 'cap' },
+    { skin: '#e0b18a', coat: '#3f6b8a', hat: null, hair: '#2b2118', robe: true },
+    { skin: '#dcaa80', coat: '#7a4a3a', hat: null, hair: '#1c1410' },
+  ],
+  nanyang: [
+    { skin: '#b07a52', coat: '#8a3b27', hat: '#1c1410', hair: '#1c1410', hatStyle: 'cap' },
+    { skin: '#a8714a', coat: '#d0a23a', hat: null, hair: '#1c1410', robe: true },
+    { skin: '#b98459', coat: '#2f6f5a', hat: '#1c1410', hair: '#1c1410', hatStyle: 'cap' },
+    { skin: '#9e6a44', coat: '#6b3f6f', hat: null, hair: '#1c1410', robe: true },
+    { skin: '#b07a52', coat: '#c0642b', hat: '#c9a86a', hair: '#1c1410' },
+  ],
+  southasia: [
+    { skin: '#8d5a3b', coat: '#f4ecd8', hat: '#f4ecd8', hair: '#1c1410', hatStyle: 'turban' },
+    { skin: '#7d4e33', coat: '#e08a2a', hat: null, hair: '#1c1410', robe: true },
+    { skin: '#94603f', coat: '#f4ecd8', hat: null, hair: '#1c1410' },
+    { skin: '#7d4e33', coat: '#b5305a', hat: null, hair: '#1c1410', robe: true },
+    { skin: '#8d5a3b', coat: '#3f7a4a', hat: '#c9402c', hair: '#1c1410', hatStyle: 'turban' },
+  ],
+  arabia: [
+    {
+      skin: '#c68f63',
+      coat: '#f4ecd8',
+      hat: '#f4ecd8',
+      hair: '#1c1410',
+      hatStyle: 'turban',
+      robe: true,
+    },
+    {
+      skin: '#b98459',
+      coat: '#e9dcc0',
+      hat: '#b5482b',
+      hair: '#1c1410',
+      hatStyle: 'turban',
+      robe: true,
+    },
+    { skin: '#c68f63', coat: '#2b2b3a', hat: null, hair: '#1c1410', robe: true },
+    {
+      skin: '#a8714a',
+      coat: '#f4ecd8',
+      hat: '#f4ecd8',
+      hair: '#1c1410',
+      hatStyle: 'turban',
+      robe: true,
+    },
+    { skin: '#b98459', coat: '#6b5a3a', hat: null, hair: '#1c1410' },
+  ],
+  swahili: [
+    {
+      skin: '#6b442b',
+      coat: '#f4ecd8',
+      hat: '#f4ecd8',
+      hair: '#1c1410',
+      hatStyle: 'cap',
+      robe: true,
+    },
+    { skin: '#5e3b25', coat: '#d9653a', hat: null, hair: '#1c1410', robe: true },
+    { skin: '#6b442b', coat: '#2f5f8a', hat: null, hair: '#1c1410' },
+    {
+      skin: '#5e3b25',
+      coat: '#f4ecd8',
+      hat: '#f4ecd8',
+      hair: '#1c1410',
+      hatStyle: 'cap',
+      robe: true,
+    },
+    { skin: '#734a2f', coat: '#e0b94a', hat: null, hair: '#1c1410', robe: true },
+  ],
+};
 
 function randomWalkable(): Point {
   for (;;) {
@@ -88,6 +163,8 @@ interface Props {
   talk: string[];
   /** 節慶的裝飾 */
   festival: FestivalDecor | null;
+  /** 天色：0 白天到 1 深夜（依到港的時間） */
+  darkness: number;
 }
 
 /** 對話泡泡：最多幾個字換行 */
@@ -109,6 +186,7 @@ export function TownView({
   returnFrom,
   talk,
   festival,
+  darkness,
 }: Props) {
   const hostRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -116,11 +194,13 @@ export function TownView({
   const lookRef = useRef(playerLook(appearance));
   const shipRef = useRef(ship);
   const talkRef = useRef(talk);
+  const darkRef = useRef(darkness);
   useEffect(() => {
     onEnterRef.current = onEnter;
     lookRef.current = playerLook(appearance);
     shipRef.current = ship;
     talkRef.current = talk;
+    darkRef.current = darkness;
   });
 
   useEffect(() => {
@@ -154,7 +234,7 @@ export function TownView({
       const below = { x: start.x, y: start.y + 1 };
       if (isWalkable(below.x, below.y)) player.path = [below];
     }
-    const folks: Walker[] = TOWNSFOLK.map((look) => {
+    const folks: Walker[] = TOWNSFOLK[culture].map((look) => {
       const p = randomWalkable();
       return { x: p.x * TILE, y: p.y * TILE, path: [], facing: 'down', step: 0, look };
     });
@@ -240,6 +320,9 @@ export function TownView({
       drawWater(fctx, time);
       const s = shipRef.current;
       drawMooredShip(fctx, s.hull, s.sail, s.flag, time);
+      // 港裡還停著幾艘當地的船
+      drawLocalBoat(fctx, culture, 3 * TILE, 14 * TILE + 4, time);
+      drawLocalBoat(fctx, culture, 21 * TILE, 15 * TILE, time);
       if (festival) drawFestival(fctx, festival, time);
       if (marker) {
         fctx.strokeStyle = 'rgba(181,72,43,0.9)';
@@ -250,10 +333,13 @@ export function TownView({
         drawPerson(fctx, w.x, w.y - 4, w.facing, w.step, w.look);
       }
       drawGulls(fctx, time);
+      drawTownNight(fctx, darkRef.current, time);
 
       // 放大到畫面（不平滑，保留像素感）
       ctx.imageSmoothingEnabled = false;
-      ctx.fillStyle = '#4c84a4';
+      // 畫面邊緣的海也跟著天色變暗
+      const d = Math.min(1, darkRef.current) * 0.6;
+      ctx.fillStyle = `rgb(${Math.round(76 - 56 * d)}, ${Math.round(132 - 92 * d)}, ${Math.round(164 - 94 * d)})`;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(frame, view.ox, view.oy, W * view.scale, H * view.scale);
 

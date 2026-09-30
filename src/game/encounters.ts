@@ -14,7 +14,7 @@ import type { Wind, StormRisk } from './environment';
 import { destinationPoint } from './events';
 import { motion, normDeg } from './sailing';
 
-export type FleetKind = 'pirate' | 'merchant' | 'envoy';
+export type FleetKind = 'pirate' | 'merchant' | 'envoy' | 'armada' | 'rival';
 
 export interface SeaFleet {
   id: number;
@@ -61,6 +61,8 @@ export function pirateChancePerDay([lon, lat]: LonLat, inNamedSea: boolean): num
 export const MERCHANT_CHANCE_PER_DAY = 0.35;
 /** 各國前往明朝的朝貢使節船，偶爾遇得到 */
 export const ENVOY_CHANCE_PER_DAY = 0.08;
+/** 鄭和的寶船艦隊偶爾會從附近經過 */
+export const ARMADA_CHANCE_PER_DAY = 0.03;
 export const MAX_FLEETS = 2;
 /** 海盜發現你並開始追的距離 */
 export const PIRATE_SPOT_KM = 55;
@@ -151,7 +153,13 @@ export function stepFleet(
 
   if (dist > DESPAWN_KM || day - f.spawnDay > FLEET_LIFETIME_DAYS) return { fleet: null, event };
 
-  const base = f.kind === 'pirate' ? PIRATE_BASE_KM_PER_DAY : MERCHANT_BASE_KM_PER_DAY;
+  // 寶船艦隊船多又大，走得比較慢
+  const base =
+    f.kind === 'pirate'
+      ? PIRATE_BASE_KM_PER_DAY
+      : f.kind === 'armada'
+        ? MERCHANT_BASE_KM_PER_DAY * 0.5
+        : MERCHANT_BASE_KM_PER_DAY;
   // 海盜用三角帆快船，一樣吃不到頂風；追擊時會自己找得到風的角度
   let mv = motion(heading, 2, wind, null, f.kind === 'pirate' ? 'lateen' : 'lug', base);
   if (mode === 'chase' && mv.speed < base * 0.3) {

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { LEARNING_DOMAIN_LABELS, type Quest } from '@/data/schema';
 import { formatLonLat } from '@/map/projection';
 import { drawPerson, type PersonLook } from '@/town/art';
@@ -18,12 +18,22 @@ import {
   reportReward,
   rumorsAt,
   shipyardOffers,
+  availableContracts,
+  scholarToday,
+  daysUntilMorning,
+  daysUntilNextMonth,
+  INN_PRICE_PER_NIGHT,
+  standing,
   upgradeOffers,
   myShip,
   unreportedFinds,
 } from '@/game/state';
 import { PROFESSIONS } from '@/game/progression';
+import { MAX_CONTRACTS } from '@/game/contracts';
+import { CONTRACT_BONUS_PER_RANK } from '@/game/reputation';
+import { SCHOLAR_REWARD, type ScholarQuestion } from '@/game/scholar';
 import { repairCost, resupplyCost } from '@/game/ship';
+import { shortageAt } from '@/game/trade';
 import { distanceKm } from '@/geo/geo';
 import { stormRiskAt, windAt } from '@/game/environment';
 import { ConditionBars } from '../panels/Condition';
@@ -202,6 +212,46 @@ function Office() {
       </div>
       <h3>差事</h3>
       <QuestList quests={quests} />
+      <Contracts />
+    </>
+  );
+}
+
+/** 商人的委託：把這裡缺的貨從別處運來 */
+function Contracts() {
+  const { world, game, port } = usePort();
+  const take = useGame((s) => s.acceptContract);
+  const offers = availableContracts(world, game, port.id);
+  const full = game.contracts.length >= MAX_CONTRACTS;
+  return (
+    <>
+      <h3>商人的委託</h3>
+      {offers.length === 0 ? (
+        <p className="meta">這週沒有新的委託。去過更多港口，就會有更多商人找你運貨。</p>
+      ) : (
+        <ul className="quest-list">
+          {offers.map((c) => {
+            const sources = world.content.ports
+              .filter((p) => p.goods.includes(c.good) && game.visitedPorts.includes(p.id))
+              .map((p) => p.name);
+            return (
+              <li key={c.id}>
+                <strong>
+                  運來 {world.codex.get(c.good)?.name} {c.qty} 擔
+                </strong>
+                <div className="meta">
+                  酬勞 {Math.round(c.reward * (1 + CONTRACT_BONUS_PER_RANK * standing(game)))}{' '}
+                  金幣・期限還有 {Math.max(0, Math.ceil(c.due - game.day))} 天
+                  {sources.length > 0 && `・你去過的產地：${sources.join('、')}`}
+                </div>
+                <button type="button" disabled={full} onClick={() => take(c.id)}>
+                  {full ? `最多同時接 ${MAX_CONTRACTS} 件` : '接下委託'}
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      )}
     </>
   );
 }
@@ -231,10 +281,72 @@ function Academy() {
           </button>
         </>
       )}
+      <ScholarQuiz />
       <MonsoonCalendar />
       <h3>學者的挑戰</h3>
       <p className="meta">學者的挑戰都是選擇性的；答錯的題目會在航海日誌裡安排複習。</p>
       <QuestList quests={quests} />
+    </>
+  );
+}
+
+/** 學者的每日小考：用你知道的港口出題，每天三題 */
+function ScholarQuiz() {
+  const { world, game } = usePort();
+  const answer = useGame((s) => s.answerScholar);
+  const [result, setResult] = useState<{
+    correct: boolean;
+    question: ScholarQuestion;
+    picked: number;
+  } | null>(null);
+  const today = scholarToday(world, game);
+  if (result) {
+    const q = result.question;
+    return (
+      <>
+        <h3>學者的每日小考</h3>
+        <p>{q.prompt}</p>
+        <p className={result.correct ? 'quiz-right' : 'quiz-wrong'}>
+          {result.correct
+            ? `答對了！經驗 +${SCHOLAR_REWARD.xp}、金幣 +${SCHOLAR_REWARD.gold}`
+            : `答案是「${q.choices[q.answer]}」。這題會排進航海日誌的錯題複習。`}
+        </p>
+        <p className="lesson">
+          <strong>地理小教室：</strong>
+          {q.explanation}
+        </p>
+        <button type="button" onClick={() => setResult(null)}>
+          {today ? '下一題' : '好'}
+        </button>
+      </>
+    );
+  }
+  return (
+    <>
+      <h3>學者的每日小考</h3>
+      {!today ? (
+        <p className="meta">今天的三題都答完了（或是你知道的港口還太少）。明天再來吧！</p>
+      ) : (
+        <>
+          <p className="meta">今天還有 {today.remaining} 題。</p>
+          <p>{today.question.prompt}</p>
+          <div className="choices">
+            {today.question.choices.map((c, i) => (
+              <button
+                key={c}
+                type="button"
+                className="choice"
+                onClick={() => {
+                  const r = answer(i);
+                  if (r) setResult({ ...r, picked: i });
+                }}
+              >
+                {c}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
     </>
   );
 }
@@ -325,6 +437,8 @@ function Tavern() {
           <span className="meta">隔壁桌的酒客：</span>「{talk}」
         </p>
       )}
+      <Inn />
+      <MarketNews />
       <h3>傳聞</h3>
       {rumors.length === 0 && <p className="meta">今天沒聽到什麼新鮮事。</p>}
       {rumors.map((c) => (
@@ -363,6 +477,71 @@ function Tavern() {
   );
 }
 
+/** 客棧：住一晚等天亮，或住到下個月初等季風轉向 */
+function Inn() {
+  const { game, port } = usePort();
+  const wait = useGame((s) => s.waitInPort);
+  const night = Math.max(1, Math.round(daysUntilMorning(game)));
+  const toMonth = Math.max(1, Math.round(daysUntilNextMonth(game)));
+  const nextMonth = gameDate(game, daysUntilNextMonth(game)).month;
+  const wind = windAt(port.location, nextMonth);
+  return (
+    <>
+      <h3>住宿</h3>
+      <div className="row">
+        <button
+          type="button"
+          disabled={game.gold < night * INN_PRICE_PER_NIGHT}
+          onClick={() => wait('morning')}
+        >
+          🛏️ 住到明天早上（{night * INN_PRICE_PER_NIGHT} 金幣）
+        </button>
+        <button
+          type="button"
+          disabled={game.gold < toMonth * INN_PRICE_PER_NIGHT}
+          onClick={() => wait('month')}
+        >
+          📅 住到 {nextMonth} 月初（{toMonth} 晚，{toMonth * INN_PRICE_PER_NIGHT} 金幣）
+        </button>
+      </div>
+      <p className="meta">
+        {nextMonth} 月這一帶
+        {wind.strength < 0.15 ? '幾乎沒有風' : `吹${wind.name}（從${wind.from}吹來）`}。
+        等對的季風再出航，是古代船隊的智慧。
+      </p>
+    </>
+  );
+}
+
+/** 酒館裡聽到的市場消息：你知道的港口這週缺什麼貨 */
+function MarketNews() {
+  const { world, game, port } = usePort();
+  const known = [...new Set([...game.visitedPorts, ...game.unlockedPorts])];
+  const news = world.content.ports
+    .filter((p) => p.id !== port.id && known.includes(p.id))
+    .map((p) => ({ p, good: shortageAt(world.content.ports, p, game.day) }))
+    .filter((x) => x.good)
+    .sort(
+      (a, b) => distanceKm(a.p.location, port.location) - distanceKm(b.p.location, port.location),
+    )
+    .slice(0, 3);
+  if (!news.length) return null;
+  return (
+    <>
+      <h3>市場消息</h3>
+      <ul className="market-news">
+        {news.map(({ p, good }) => (
+          <li key={p.id}>
+            聽說<strong>{p.name}</strong>最近缺
+            <strong>{world.codex.get(good!)?.name}</strong>，收購價比平常高四成。
+          </li>
+        ))}
+      </ul>
+      <p className="meta">消息是這週的，下週可能就不一樣了。</p>
+    </>
+  );
+}
+
 function RivalStatus() {
   const { world, game } = usePort();
   const r = game.rival;
@@ -392,6 +571,7 @@ function Market() {
   const buyGood = useGame((s) => s.buyGood);
   const sellGood = useGame((s) => s.sellGood);
   const quotes = marketQuotes(world, game, port.id);
+  const short = shortageAt(world.content.ports, port, game.day);
   const cap = cargoCapacity(game);
   const used = cargoUsed(game.cargo);
   // 本地特產在前，再來是船上有的貨，最後是其他收購行情
@@ -434,6 +614,7 @@ function Market() {
                 <td>
                   {c.name}
                   {local && <span className="tag">本地特產</span>}
+                  {short === q.good && <span className="tag short">缺貨・高價收購</span>}
                 </td>
                 <td className="meta">{local ? '本地' : origin(q.good)}</td>
                 <td>{q.buy ?? '—'}</td>

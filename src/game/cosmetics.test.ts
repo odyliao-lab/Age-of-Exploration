@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { PAINT_PRICE } from './cosmetics';
 import { deserialize, serialize } from './save';
-import { buyPaint, newGame, setAppearance } from './state';
+import { addNote, buyPaint, editNote, newGame, setAppearance } from './state';
 import { contentForTests } from './testContent';
 import { buildWorld } from './world';
 
@@ -42,5 +42,31 @@ describe('appearance', () => {
     delete old.appearance;
     old.version = 5;
     expect(deserialize(old as never).appearance.hull).toBe('wood');
+  });
+});
+
+describe('ship name', () => {
+  it('is trimmed and limited to eight characters', () => {
+    const s = newGame(world, 'treasure-fleet', 1).state;
+    expect(s.appearance.shipName).toBe('');
+    const named = setAppearance(s, { shipName: '  清和號  ' });
+    expect(named.appearance.shipName).toBe('清和號');
+    expect(setAppearance(s, { shipName: '一二三四五六七八九十' }).appearance.shipName).toBe(
+      '一二三四五六七八',
+    );
+  });
+});
+
+describe('chart notes', () => {
+  it('can be written, edited and erased', () => {
+    let s = newGame(world, 'treasure-fleet', 1).state;
+    s = addNote(s, [120, 23], '  淺灘小心  ');
+    expect(s.notes).toEqual([{ id: 1, at: [120, 23], text: '淺灘小心' }]);
+    s = addNote(s, [121, 22], '');
+    expect(s.notes).toHaveLength(1);
+    s = editNote(s, 1, '補水的好地方');
+    expect(s.notes[0].text).toBe('補水的好地方');
+    s = editNote(s, 1, '   ');
+    expect(s.notes).toEqual([]);
   });
 });

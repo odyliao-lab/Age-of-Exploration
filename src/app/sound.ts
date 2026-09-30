@@ -13,7 +13,9 @@ export type Sfx =
   | 'wrong'
   | 'warn'
   | 'storm'
-  | 'achievement';
+  | 'achievement'
+  | 'splash'
+  | 'chirp';
 
 interface SoundSettings {
   sfx: boolean;
@@ -112,6 +114,14 @@ const SFX: Record<Sfx, () => void> = {
   storm: () => {
     noise(0, 1.4, 0.35);
     tone(C * 0.25, 0.1, 1.2, 'sawtooth', 0.05);
+  },
+  splash: () => {
+    noise(0, 0.5, 0.18);
+    noise(0.35, 0.4, 0.12);
+  },
+  chirp: () => {
+    tone(1500, 0, 0.12, 'triangle', 0.05);
+    tone(1250, 0.14, 0.12, 'triangle', 0.05);
   },
   achievement: () => {
     [0, 2, 4, 5].forEach((n, i) => tone(C * 2 * PENTA[n], i * 0.09, 0.45, 'triangle', 0.15));

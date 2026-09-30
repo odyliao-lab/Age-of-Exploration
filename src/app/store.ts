@@ -13,12 +13,20 @@ import { spendPoint, type AttributeKey } from '@/game/captain';
 import { deleteSave, listSaves, loadSave, writeSave } from '@/game/save';
 import {
   acceptQuest,
+  acceptContract,
+  answerScholar,
+  waitInPort,
+  gameDate,
+  daysUntilMorning,
+  daysUntilNextMonth,
   answerReviewItem,
   appendLog,
   claimDaily,
   ensureDaily,
   trackDaily,
   buyShip,
+  addNote,
+  editNote,
   buyUpgrade,
   departPort,
   chartedArea,
@@ -28,11 +36,14 @@ import {
   reportFinds,
   greetMerchant,
   greetEnvoy,
+  greetArmada,
+  hailRival,
   rivalAtTavern,
   RIVAL_BONUS,
   RIVAL_NAME,
   sellToMerchant,
   takeSounding,
+  goFishing,
   crewSpeaker,
   sightStars,
   pray,
@@ -78,6 +89,8 @@ import type { World } from '@/game/world';
 import type { Appearance } from '@/game/cosmetics';
 import type { SailSetting } from '@/game/sailing';
 import type { SeaSight } from '@/game/crewTalk';
+import { reputationRank } from '@/game/reputation';
+import type { ScholarQuestion } from '@/game/scholar';
 import type { SightingResult } from '@/game/navigation';
 import type { CoastChoice } from '@/game/state';
 import type { BuildingKind } from '@/town/layout';
@@ -89,7 +102,7 @@ export const SAIL_SECONDS_PER_DAY = 6;
 const AUTOSAVE_MS = 4000;
 
 type Screen = 'menu' | 'map';
-export type Panel = 'codex' | 'captain' | 'fleet' | 'logbook' | null;
+export type Panel = 'codex' | 'captain' | 'fleet' | 'logbook' | 'handbook' | null;
 
 export interface Toast {
   id: number;
@@ -155,6 +168,9 @@ function endingModal(world: World, g: GameState, e: { title: string; text: strin
       `海圖面積約 ${chartedArea(g)} 萬平方公里`,
       `完成任務 ${done} 個，回報傳聞發現 ${g.reported.length} 處`,
       `甩開海盜 ${g.stats.piratesOutwitted} 次，牽星定位 ${g.stats.starsCorrect} 次`,
+      `名聲 ${g.reputation}（${reputationRank(g.reputation).title}），完成商人委託 ${g.stats.contracts} 件`,
+      `和${RIVAL_NAME}比賽：你贏 ${g.rival.wins} 次、他贏 ${g.rival.losses} 次`,
+      `參加節慶 ${g.festivalsSeen.length} 次，在海圖上寫了 ${g.notes.length} 個註記`,
     ],
     lesson: '還有沒找到的傳聞、沒去過的港口嗎？海圖上的空白，就是下一段冒險。',
   };
@@ -191,6 +207,19 @@ interface GameStore {
   seaSight: { kind: SeaSight; key: number } | null;
   /** 剛發現的地點（海圖上放光圈） */
   celebration: { at: LonLat; key: number } | null;
+  /** 下一次點海圖會在那裡寫註記 */
+  annotating: boolean;
+  setAnnotating: (on: boolean) => void;
+  /** 正在寫或修改的註記 */
+  noteEdit: { id: number | null; at: LonLat; text: string } | null;
+  openNoteEditor: (edit: { id: number | null; at: LonLat; text: string } | null) => void;
+  saveNote: (text: string) => void;
+  /** 海圖上顯示風與洋流圖 */
+  windField: boolean;
+  toggleWindField: () => void;
+  /** 從圖鑑跳到海圖上的某個地點 */
+  mapFocus: { at: LonLat; key: number } | null;
+  showOnMap: (at: LonLat) => void;
 
   init: (world: World) => void;
   refreshSaves: () => Promise<void>;
@@ -228,8 +257,13 @@ interface GameStore {
   greetMerchant: (fleetId: number, choice: 'news' | 'supplies') => void;
   /** 測深（打水） */
   sound: () => void;
+  fish: () => void;
   /** 向使節船致意 */
   greetEnvoy: (fleetId: number) => void;
+  /** 向寶船艦隊致意 */
+  greetArmada: (fleetId: number) => void;
+  /** 向對手船長喊話 */
+  hailRival: (fleetId: number) => void;
   /** 把船上的貨賣給商船 */
   sellToMerchant: (fleetId: number) => void;
   setTownView: (on: boolean) => void;
@@ -241,6 +275,12 @@ interface GameStore {
   investigate: (id: string) => void;
 
   accept: (questId: string) => void;
+  /** 接下商人的委託 */
+  acceptContract: (id: string) => void;
+  /** 在港口的客棧住下：等到明天早上，或等到下個月初 */
+  waitInPort: (until: 'morning' | 'month') => void;
+  /** 回答學者的每日小考 */
+  answerScholar: (choice: number) => { correct: boolean; question: ScholarQuestion } | null;
   closeDialogue: (questId: string) => void;
   answer: (questId: string, choice: number) => boolean;
   spend: (key: AttributeKey) => void;
@@ -338,13 +378,26 @@ export const useGame = create<GameStore>((set, get) => {
     const result: StepResult = { state, events, fogChanged: input.fogChanged };
     emitFog(result.fogChanged);
     const toasts: Toast[] = [];
+    // 名聲升級
+    if (prev && reputationRank(state.reputation).index > reputationRank(prev.reputation).index) {
+      toasts.push({
+        id: ++toastSeq,
+        text: `名聲提升：「${reputationRank(state.reputation).title}」！各港商人會給你更好的價錢。`,
+        kind: 'success',
+      });
+    }
     const modals: Modal[] = [];
     let selectedPortId = get().selectedPortId;
     for (const e of result.events)
       handleEvent(world, e, toasts, modals, (id) => (selectedPortId = id));
     // 船員看到海豚、鯨魚等：海圖上畫在船邊
     for (const e of result.events) {
-      if (e.type === 'talk' && e.sight) set({ seaSight: { kind: e.sight, key: Date.now() } });
+      if (e.type === 'talk' && e.sight) {
+        set({ seaSight: { kind: e.sight, key: Date.now() } });
+        if (e.sight === 'dolphins' || e.sight === 'whale' || e.sight === 'flyingfish')
+          play('splash');
+        else if (e.sight === 'birds' || e.sight === 'albatross') play('chirp');
+      }
     }
     // 完成史實航程的終點（麻林）或想像航程（好望角）：航海誌總結
     for (const e of result.events) {
@@ -409,6 +462,21 @@ export const useGame = create<GameStore>((set, get) => {
     stargazing: false,
     coastSight: null,
     celebration: null,
+    mapFocus: null,
+    windField: false,
+    annotating: false,
+    setAnnotating: (on) => set({ annotating: on }),
+    noteEdit: null,
+    openNoteEditor: (edit) => set({ noteEdit: edit, annotating: false }),
+    saveNote: (text) => {
+      const { game, noteEdit } = get();
+      if (!game || !noteEdit) return;
+      const next =
+        noteEdit.id === null ? addNote(game, noteEdit.at, text) : editNote(game, noteEdit.id, text);
+      set({ noteEdit: null });
+      if (next !== game) commit(next);
+    },
+    toggleWindField: () => set((s) => ({ windField: !s.windField })),
     seaSight: null,
 
     init: (world) => {
@@ -525,7 +593,7 @@ export const useGame = create<GameStore>((set, get) => {
     advance: (realSeconds) => {
       const { world, game, paused, speed, modals } = get();
       if (!world || !game || (!game.voyage && !game.helm) || paused || modals.length) return;
-      if (get().stargazing || get().coastSight) return;
+      if (get().stargazing || get().coastSight || get().noteEdit) return;
       const perDay = game.helm ? SAIL_SECONDS_PER_DAY : SECONDS_PER_DAY;
       const days = (Math.min(realSeconds, 0.25) / perDay) * speed;
       apply(tick(world, game, days));
@@ -599,6 +667,10 @@ export const useGame = create<GameStore>((set, get) => {
     },
 
     setTownView: (on) => set({ townView: on, building: null }),
+    showOnMap: (at) => {
+      get().openPanel(null);
+      set({ townView: false, building: null, follow: false, mapFocus: { at, key: Date.now() } });
+    },
 
     openStargazing: (on) => set({ stargazing: on }),
     openCoastSight: (on) => {
@@ -633,6 +705,26 @@ export const useGame = create<GameStore>((set, get) => {
       const r = greetMerchant(world, game, fleetId, choice);
       if (!r) return;
       commit(r.state);
+      set((s) => ({
+        modals: [...s.modals, { type: 'info', title: r.title, text: r.text, lesson: r.lesson }],
+      }));
+    },
+    hailRival: (fleetId) => {
+      const { world, game } = get();
+      if (!world || !game) return;
+      const r = hailRival(world, game, fleetId);
+      if (!r) return;
+      commit(r.state);
+      set((s) => ({ modals: [...s.modals, { type: 'info', title: r.title, text: r.text }] }));
+    },
+    greetArmada: (fleetId) => {
+      const { world, game } = get();
+      if (!world || !game) return;
+      const r = greetArmada(world, game, fleetId);
+      if (!r) return;
+      apply({ state: r.state, events: r.events, fogChanged: [] });
+      scheduleSave(true);
+      play('questComplete');
       set((s) => ({
         modals: [...s.modals, { type: 'info', title: r.title, text: r.text, lesson: r.lesson }],
       }));
@@ -673,6 +765,24 @@ export const useGame = create<GameStore>((set, get) => {
         }));
       } else {
         toast({ text: `${crewSpeaker(world, game)}：「${text}」`, kind: 'talk' });
+      }
+    },
+    fish: () => {
+      const { world, game } = get();
+      if (!world || !game) return;
+      const r = goFishing(world, game);
+      if (!r) return;
+      commit(r.state);
+      if (r.catch.food >= 1.5) play('splash');
+      if (r.lesson) {
+        set((s) => ({
+          modals: [
+            ...s.modals,
+            { type: 'info', title: '撒網捕魚', text: r.catch.text, lesson: r.lesson! },
+          ],
+        }));
+      } else {
+        toast({ text: `${crewSpeaker(world, game)}：「${r.catch.text}」`, kind: 'talk' });
       }
     },
     enterBuilding: (kind) => {
@@ -803,6 +913,36 @@ export const useGame = create<GameStore>((set, get) => {
     accept: (questId) => {
       const { world, game } = get();
       if (world && game) apply(acceptQuest(world, game, questId));
+    },
+
+    waitInPort: (until) => {
+      const { world, game } = get();
+      if (!world || !game) return;
+      const days = until === 'morning' ? daysUntilMorning(game) : daysUntilNextMonth(game);
+      const r = waitInPort(world, game, days);
+      if (r.state === game) return;
+      apply(r);
+      scheduleSave(true);
+      const d = gameDate(r.state);
+      toast({ text: `在客棧住下，現在是 ${d.month} 月 ${d.day} 日早上。`, kind: 'info' });
+    },
+    answerScholar: (choice) => {
+      const { world, game } = get();
+      if (!world || !game) return null;
+      const r = answerScholar(world, game, choice);
+      if (!r) return null;
+      apply({ state: r.state, events: r.events, fogChanged: [] });
+      scheduleSave(true);
+      play(r.correct ? 'correct' : 'wrong');
+      return { correct: r.correct, question: r.question };
+    },
+    acceptContract: (id) => {
+      const { world, game } = get();
+      if (!world || !game) return;
+      const next = acceptContract(world, game, id);
+      if (next === game) return;
+      commit(next);
+      toast({ text: '接下委託了，別忘了期限！', kind: 'info' });
     },
 
     closeDialogue: (questId) => {
@@ -1100,6 +1240,7 @@ function effectStats(e: EventEffect): string[] {
   if (e.morale) out.push(`士氣 ${sign(e.morale)}`);
   if (e.food) out.push(`糧食 ${sign(e.food)} 天份`);
   if (e.water) out.push(`淡水 ${sign(e.water)} 天份`);
+  if (e.reputation) out.push(`名聲 ${sign(e.reputation)}`);
   return out;
 }
 

@@ -6,6 +6,8 @@ import {
   investigateBlocked,
   merchantInReach,
   envoyInReach,
+  armadaInReach,
+  rivalShipInReach,
   merchantOffer,
   portInReach,
   positionErrorKm,
@@ -13,6 +15,7 @@ import {
   sailingStatus,
   coastSightBlocked,
   starSightBlocked,
+  fishBlocked,
 } from '@/game/state';
 import { isNight, timeLabel } from '@/game/navigation';
 import { useGame } from '../store';
@@ -48,8 +51,17 @@ export function HelmPanel() {
   const speed = useGame((s) => s.speed);
   const { steer, trimSail, toggleAnchor, togglePause, setSpeed, dock, investigate } =
     useGame.getState();
-  const { openStargazing, openCoastSight, greetMerchant, sound, sellToMerchant, greetEnvoy } =
-    useGame.getState();
+  const {
+    openStargazing,
+    openCoastSight,
+    greetMerchant,
+    sound,
+    sellToMerchant,
+    greetEnvoy,
+    greetArmada,
+    hailRival,
+    fish,
+  } = useGame.getState();
   const dial = useRef<SVGSVGElement>(null);
   const dragging = useRef(false);
 
@@ -65,6 +77,8 @@ export function HelmPanel() {
   const blocked = rumorHere ? investigateBlocked(world, game, rumorHere) : null;
   const merchant = merchantInReach(game);
   const envoy = envoyInReach(game);
+  const armada = armadaInReach(game);
+  const rivalShip = rivalShipInReach(game);
   const offer = merchant ? merchantOffer(world, game, merchant.id) : null;
   const errKm = Math.round(positionErrorKm(world, game));
   const lat = game.ship.position[1];
@@ -78,6 +92,7 @@ export function HelmPanel() {
   const starBlocked = starSightBlocked(game);
   const night = isNight(game.day);
   const coastBlocked = coastSightBlocked(world, game);
+  const canFish = !fishBlocked(game);
   const kn = knots(st.motion.speed);
   const sailClass =
     st.motion.pointOfSail === '頂風' ? 'bad' : st.motion.pointOfSail === '迎風' ? 'ok' : 'good';
@@ -133,6 +148,16 @@ export function HelmPanel() {
               )}
             </>
           )}
+          {rivalShip && (
+            <button type="button" onClick={() => hailRival(rivalShip.id)}>
+              📣 向陸天行喊話
+            </button>
+          )}
+          {armada && (
+            <button type="button" className="primary" onClick={() => greetArmada(armada.id)}>
+              🚩 向寶船艦隊致意
+            </button>
+          )}
           {envoy && (
             <button type="button" className="primary" onClick={() => greetEnvoy(envoy.id)}>
               🎏 向使節船致意
@@ -146,6 +171,11 @@ export function HelmPanel() {
           <button type="button" onClick={sound} title="放下測深錘，量水深、看海底">
             🪢 測深
           </button>
+          {canFish && (
+            <button type="button" onClick={fish} title="撒網捕魚，補一點糧食（每天一次）">
+              🐟 撒網
+            </button>
+          )}
           {night && !starBlocked && (
             <button type="button" onClick={() => openStargazing(true)}>
               ✨ 觀星定位（牽星術）

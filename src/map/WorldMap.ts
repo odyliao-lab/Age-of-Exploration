@@ -15,6 +15,8 @@ import { SeaFx } from './seaFx';
 import { ShipSprite } from './shipSprite';
 import { NightSky } from './nightSky';
 import { SeaLife } from './seaLife';
+import { ChartNotes, type ChartNote } from './chartNotes';
+import { drawWindField, type FieldSampler } from './windField';
 import { drawPortIcon, type PortCulture } from './portIcons';
 import type { SeaSight } from '@/game/crewTalk';
 import { SeaEntities, type FleetView, type MistView, type StormView } from './seaEntities';
@@ -67,6 +69,8 @@ export interface WorldMapOptions {
   onPortTap: (id: string) => void;
   /** 點海圖上的地名註記（打開圖鑑） */
   onPlaceTap?: (id: string) => void;
+  /** 點玩家自己寫的註記 */
+  onNoteTap?: (id: number) => void;
   onMapTap: (lonLat: LonLat) => void;
   onPointerLonLat: (lonLat: LonLat | null) => void;
   /** 玩家手動拖曳地圖（用來停止自動跟隨船隻） */
@@ -120,6 +124,7 @@ export class WorldMap {
   private routeGfx = new Graphics();
   private marksGfx = new Graphics();
   private places = new PlaceLabels((id) => this.opts.onPlaceTap?.(id));
+  private notes = new ChartNotes((id) => this.opts.onNoteTap?.(id));
   private marks: { lonLat: LonLat; kind: 'guess' | 'answer' }[] = [];
   private ship = new Container();
   private shipSprite = new ShipSprite({ hull: COLORS.hull, sail: COLORS.sail, flag: 0xb5482b });
@@ -128,6 +133,23 @@ export class WorldMap {
   private courseGfx = new Graphics();
   private entities = new SeaEntities();
   private seaLife = new SeaLife();
+  private windGfx = new Graphics();
+  /** 玩家的船名（拉近時顯示在船下方） */
+  private shipLabel = new Text({
+    text: '',
+    style: {
+      fontFamily: 'Noto Sans TC, PingFang TC, Microsoft JhengHei, sans-serif',
+      fontSize: 13,
+      fontWeight: '700',
+      fill: 0x7a2e1b,
+      stroke: { color: 0xfbf6ea, width: 3 },
+    },
+    resolution: 2,
+  });
+  private windSampler: FieldSampler | null = null;
+  /** 風場要重畫（跟著鏡頭移動，限制頻率） */
+  private windDirty = false;
+  private windDrawnAt = 0;
   /** 港口目前畫成城鎮剪影（拉近時） */
   private portIcons = false;
   private sky = new NightSky();
@@ -188,14 +210,19 @@ export class WorldMap {
       this.fog.container,
       this.entities.container,
       this.seaLife.container,
+      this.windGfx,
       this.drawGraticule(),
       this.routeGfx,
       this.courseGfx,
       this.marksGfx,
       this.places.container,
+      this.notes.container,
       this.portLayer,
       this.ship,
+      this.shipLabel,
     );
+    this.shipLabel.anchor.set(0.5, 0);
+    this.shipLabel.visible = false;
     this.app.stage.addChild(this.sky.container);
     this.app.ticker.add((t) => this.frame(Math.min(0.1, t.deltaMS / 1000)));
 
@@ -290,6 +317,11 @@ export class WorldMap {
     this.fx.update(dt);
     this.entities.update(dt);
     this.seaLife.update(dt);
+    if (this.windDirty && this.time - this.windDrawnAt > 0.25) {
+      this.windDirty = false;
+      this.windDrawnAt = this.time;
+      drawWindField(this.windGfx, this.windSampler, this.view, this.size);
+    }
     this.sky.setSize(this.size.width, this.size.height);
     this.sky.setShipScreen(
       this.shipWorld && this.ship.visible
@@ -305,6 +337,12 @@ export class WorldMap {
   /** 海上看得見的其他船隊 */
   setFleets(list: FleetView[]) {
     this.entities.setFleets(list);
+  }
+
+  /** 風與洋流圖：null 表示關閉 */
+  setWindField(sampler: FieldSampler | null) {
+    this.windSampler = sampler;
+    drawWindField(this.windGfx, sampler, this.view, this.size);
   }
 
   /** 船員看到的海洋生物與景象，畫在船邊 */
@@ -497,10 +535,14 @@ export class WorldMap {
     }
     // 拉近航行時船畫大一點，看得到帆的角度
     this.ship.scale.set(inv * (this.view.scale >= 4 && this.sailing ? 1.7 : 1));
+    this.shipLabel.scale.set(inv);
+    this.placeShipLabel();
     this.fx.setView(this.view, this.size);
     this.entities.setView(this.view);
     this.seaLife.setScale(this.view.scale);
+    if (this.windSampler) this.windDirty = true;
     this.places.setScale(this.view.scale);
+    this.notes.setScale(this.view.scale);
     this.drawRoute();
     this.drawMarks();
     this.drawCourse();
@@ -571,6 +613,12 @@ export class WorldMap {
     this.drawRoute();
   }
 
+  /** 玩家寫在海圖上的註記 */
+  setNotes(list: ChartNote[]) {
+    this.notes.set(list);
+    this.notes.setScale(this.view.scale);
+  }
+
   /** 已發現地點的地名註記 */
   setPlaces(list: PlaceLabel[]) {
     this.places.set(list);
@@ -589,8 +637,22 @@ export class WorldMap {
     this.shipWorld = p;
     this.shipHeading = heading;
     this.follow = follow;
+    this.placeShipLabel();
     this.fx.trackShip(position, !!this.sailing?.moving);
     this.drawCourse();
+  }
+
+  /** 玩家替船取的名字；空字串就不顯示 */
+  setShipName(name: string) {
+    this.shipLabel.text = name ? `「${name}」` : '';
+    this.placeShipLabel();
+  }
+
+  private placeShipLabel() {
+    const p = this.shipWorld;
+    this.shipLabel.visible =
+      !!p && this.ship.visible && !!this.shipLabel.text && this.view.scale >= 4;
+    if (p) this.shipLabel.position.set(p.x, p.y + (this.sailing ? 34 : 22) / this.view.scale);
   }
 
   /** 整張迷霧重畫（載入存檔時） */

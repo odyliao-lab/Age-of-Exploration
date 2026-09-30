@@ -26,6 +26,8 @@ export interface TalkContext {
   hinted: string[];
   /** 說話的人（船員名字或老舵工） */
   speakers: string[];
+  /** 船員各自的家鄉話題：{ 說話的人, 內容 } */
+  personal?: { speaker: string; text: string }[];
   /** 0–1 亂數 */
   roll: number;
   /** 距離上次閒聊是否夠久 */
@@ -45,7 +47,8 @@ export interface Talk {
   sight?: SeaSight;
 }
 
-export type SeaSight = 'flyingfish' | 'dolphins' | 'whale' | 'waterspout' | 'albatross' | 'birds';
+export type SeaSight =
+  'flyingfish' | 'dolphins' | 'whale' | 'waterspout' | 'albatross' | 'birds' | 'mirage';
 
 const pick = <T>(xs: T[], roll: number): T =>
   xs[Math.min(xs.length - 1, Math.floor(roll * xs.length))];
@@ -119,6 +122,12 @@ export function crewTalk(ctx: TalkContext): Talk | null {
   if (rid === 'east-china-sea' || rid === 'arabian-sea' || rid === 'east-africa') {
     nature('右舷噴起一道水柱，是鯨魚在換氣！鯨魚跟人一樣是哺乳類，要浮上海面呼吸。', 'whale');
   }
+  if ((rid === 'arabian-sea' || rid === 'east-china-sea') && w.strength < 0.35 && !ctx.night) {
+    nature(
+      '遠方海面上浮著一座島，底下好像懸在半空中……那是海市蜃樓！海面和上方空氣的溫度不一樣，把光線折彎了，遠處的景物就被「搬」到奇怪的位置。',
+      'mirage',
+    );
+  }
   if (rid === 'arabian-sea') {
     lines.push('風裡帶著細細的沙，陸地那邊就是大沙漠了。這一帶一年下不了幾場雨。');
   }
@@ -133,6 +142,12 @@ export function crewTalk(ctx: TalkContext): Talk | null {
   }
   lines.push('老一輩的人說，看海的顏色也能知道水深：越藍越深，發綠發黃就要小心淺灘了。');
   nature('海鳥往陸地飛回去的時候，就是快天黑了，也表示附近有島。', 'birds');
+  // 船員各自的家鄉話題
+  const who = new Map<string, string>();
+  for (const p of ctx.personal ?? []) {
+    lines.push(p.text);
+    who.set(p.text, p.speaker);
+  }
   const text = pick(lines, ctx.roll);
-  return { speaker, text, chat: true, sight: sights.get(text) };
+  return { speaker: who.get(text) ?? speaker, text, chat: true, sight: sights.get(text) };
 }

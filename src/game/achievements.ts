@@ -22,6 +22,8 @@ export interface AchievementStats {
   soundings: number;
   /** 穿過海霧的次數 */
   mistsCrossed: number;
+  /** 完成的商人委託 */
+  contracts: number;
 }
 
 export const EMPTY_STATS: AchievementStats = {
@@ -34,6 +36,7 @@ export const EMPTY_STATS: AchievementStats = {
   tradeProfit: 0,
   soundings: 0,
   mistsCrossed: 0,
+  contracts: 0,
 };
 
 /** 判斷成就所需的狀態（state.ts 的 GameState 符合這個介面） */
@@ -58,6 +61,10 @@ export interface AchievementInput {
   routes: Record<string, unknown>;
   /** 和對手船長比賽的戰績 */
   rival: { wins: number };
+  /** 參加過的節慶（港口:年:節慶名） */
+  festivalsSeen: string[];
+  /** 看過的教學提示（撒網的漁場記在 fish-*） */
+  hinted: string[];
 }
 
 export interface AchievementDef {
@@ -83,6 +90,8 @@ const completed = (s: AchievementInput) =>
 /** 在海上下錨，而四周大多仍是未探索的迷霧（古地圖上「此處有龍」的地方） */
 function atEdgeOfKnownWorld(s: AchievementInput): boolean {
   if (s.dockedAt || s.voyage) return false;
+  // 要真的航行過一大段，才算走到已知世界的邊緣（剛出港時四周本來就還沒畫）
+  if (s.visitedPorts.length < 6 || exploredAreaKm2(s.fog) < 1_500_000) return false;
   let unknown = 0;
   for (let b = 0; b < 360; b += 45) {
     const [lon, lat] = destinationPoint(s.ship.position, b, 450);
@@ -351,6 +360,30 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     category: '知識',
     title: '通譯',
     check: (s) => languagesHeard(s.visitedPorts) >= 6,
+  },
+  {
+    id: 'festivals-3',
+    name: '四海同歡',
+    description: '在 3 個不同的港口參加當地的節慶',
+    category: '探索',
+    title: '節慶旅人',
+    check: (s) => new Set(s.festivalsSeen.map((k) => k.split(':')[0])).size >= 3,
+  },
+  {
+    id: 'fishing-grounds',
+    name: '四方漁場',
+    description: '在 4 種不同的漁場撒網（大陸棚、河口、珊瑚礁、湧升流、近岸、遠洋）',
+    category: '探索',
+    title: '討海人',
+    check: (s) => s.hinted.filter((h) => h.startsWith('fish-')).length >= 4,
+  },
+  {
+    id: 'contracts-5',
+    name: '信用可靠',
+    description: '完成 5 件商人的委託',
+    category: '成長',
+    title: '可靠的海商',
+    check: (s) => s.stats.contracts >= 5,
   },
   {
     id: 'rival-1',

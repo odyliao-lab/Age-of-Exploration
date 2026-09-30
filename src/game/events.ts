@@ -9,7 +9,8 @@ import { bearingDeg, compass16, distanceKm, EARTH_RADIUS_KM } from '@/geo/geo';
 import { formatLonLat } from '@/map/projection';
 import type { Wind } from './environment';
 
-export type EventId = 'doldrums' | 'pirates' | 'flotsam' | 'stargazing' | 'scurvy' | 'lost';
+export type EventId =
+  'doldrums' | 'pirates' | 'flotsam' | 'stargazing' | 'scurvy' | 'lost' | 'castaway';
 
 export interface EventQuestion {
   prompt: string;
@@ -49,6 +50,7 @@ export interface EventEffect {
   morale?: number;
   food?: number;
   water?: number;
+  reputation?: number;
   /** 正確答題 */
   correct?: boolean;
 }
@@ -92,6 +94,7 @@ export function eventChances(ctx: EventContext): Partial<Record<EventId, number>
   if (ctx.wind.strength < 0.2) chances.doldrums = 0.35;
   if (PIRATE_ZONES.some((b) => inBox(ctx.position, b))) chances.pirates = 0.08;
   if (ctx.daysAtSea > 20 && !ctx.scurvyImmune) chances.scurvy = 0.1;
+  if (ctx.regionName) chances.castaway = 0.02;
   return chances;
 }
 
@@ -165,6 +168,18 @@ export function createEvent(id: EventId, ctx: EventContext, rand: () => number):
               rand,
             )
           : undefined,
+      };
+    case 'castaway':
+      return {
+        ...base,
+        title: '海上的漂流者',
+        text: '瞭望員發現一艘翻覆的小漁船，幾個漁夫抓著木板在海上漂了好幾天，看到你們的帆，拚命揮手。',
+        lesson:
+          '漂流的船和人會被洋流與風帶著走。歷史上常有漁民被季風或洋流吹到遙遠的島嶼，有些人因此在異鄉落地生根，也把語言和文化帶到遠方。',
+        choices: [
+          { id: 'rescue', label: '救他們上船', hint: '分出一些淡水和糧食，名聲會提高' },
+          { id: 'pass', label: '丟給他們一些補給就走', hint: '省下補給，但船員心裡過意不去' },
+        ],
       };
     case 'flotsam': {
       return {
@@ -303,6 +318,26 @@ export function resolveChoice(
       }
       return { title: '', text: '' };
     }
+    case 'castaway':
+      if (choiceId === 'rescue') {
+        return {
+          title: '救起漂流的漁夫',
+          text: '漁夫們喝了水、吃了熱粥，終於緩過氣來。他們說家鄉在附近的海岸，一路上幫忙拉繩、掌舵，船員們也很高興做了好事。',
+          water: -2,
+          food: -2,
+          morale: 10,
+          reputation: 4,
+          xp: 15,
+          lesson: ev.lesson,
+        };
+      }
+      return {
+        title: '繼續航行',
+        text: '你們丟下一桶水和一袋乾糧，漸漸看不見那艘小船了。船員們一路上都很安靜。',
+        water: -1,
+        morale: -5,
+        lesson: ev.lesson,
+      };
     case 'scurvy':
       if (choiceId === 'sprouts') {
         return {

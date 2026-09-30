@@ -72,6 +72,7 @@ export function deserialize(data: SerializedSave): GameState {
     nav: data.nav ?? { day: data.day ?? 0, errorKm: 2 },
     starNight: data.starNight ?? -1,
     coastDay: data.coastDay ?? -1,
+    fishDay: data.fishDay ?? -1,
     fleets: data.fleets ?? [],
     storms: data.storms ?? [],
     mists: data.mists ?? [],
@@ -83,6 +84,11 @@ export function deserialize(data: SerializedSave): GameState {
     trail: data.trail ?? [],
     rival: { ...EMPTY_RIVAL, ...data.rival },
     upgrades: data.upgrades ?? [],
+    contracts: data.contracts ?? [],
+    contractsDone: data.contractsDone ?? [],
+    festivalsSeen: data.festivalsSeen ?? [],
+    notes: data.notes ?? [],
+    scholar: data.scholar ?? { day: -1, count: 0 },
   };
 }
 

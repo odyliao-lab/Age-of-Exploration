@@ -7,7 +7,7 @@ export function QuestTracker() {
 
   const active = Object.entries(game.quests).filter(([, p]) => p.status === 'active');
   const rumors = openRumors(world, game);
-  if (active.length === 0 && rumors.length === 0) return null;
+  if (active.length === 0 && rumors.length === 0 && game.contracts.length === 0) return null;
   const targets = activeNavigateTargets(world, game);
 
   return (
@@ -20,6 +20,19 @@ export function QuestTracker() {
           <div>{c.rumor!.text}</div>
         </details>
       ))}
+      {game.contracts.map((c) => {
+        const have = game.cargo[c.good]?.qty ?? 0;
+        const left = Math.max(0, Math.ceil(c.due - game.day));
+        return (
+          <div key={c.id} className="quest-item">
+            <strong>委託</strong>・{world.codex.get(c.good)?.name} {c.qty} 擔運到
+            {world.ports.get(c.portId)?.name}
+            <div>
+              船上有 {have} 擔・還有 {left} 天・酬勞 {c.reward} 金幣
+            </div>
+          </div>
+        );
+      })}
       {active.map(([id, p]) => {
         const quest = world.quests.get(id);
         if (!quest) return null;
@@ -31,6 +44,11 @@ export function QuestTracker() {
           text = t ? navigateHint(world, game, t) : '';
         } else if (step.type === 'discover') {
           text = `發現「${world.codex.get(step.target)?.name}」：航經附近時瞭望員會回報`;
+        } else if (step.type === 'deliver') {
+          const have = game.cargo[step.good]?.qty ?? 0;
+          const good = world.codex.get(step.good)?.name ?? step.good;
+          const to = world.ports.get(step.target)?.name ?? step.target;
+          text = `把${good} ${step.qty} 擔運到${to}（船上有 ${have} 擔）${step.text ? `——${step.text}` : ''}`;
         } else if (step.type === 'dialogue') text = `與${step.speaker}交談`;
         else text = '回答問題';
         return (

@@ -98,6 +98,12 @@ export function crossValidate(bundle: ContentBundle): ContentIssue[] {
           file: f,
           message: `步驟 ${i}：codex ${s.target} 無法在遊戲中發現（需有 location 與 discover_radius_km、為港口特產，或為任務獎勵）`,
         });
+      if (s.type === 'deliver') {
+        if (!portIds.has(s.target))
+          issues.push({ file: f, message: `步驟 ${i}：未知的港口 ${s.target}` });
+        if (!bundle.ports.some((p) => p.goods.includes(s.good)))
+          issues.push({ file: f, message: `步驟 ${i}：沒有港口出產 ${s.good}` });
+      }
       if (s.type === 'quiz' && s.answer >= s.choices.length)
         issues.push({ file: f, message: `步驟 ${i}：answer 超出選項範圍` });
     });

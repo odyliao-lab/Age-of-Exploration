@@ -11,7 +11,9 @@ import {
   sailingStatus,
   visiblePortIds,
   gameDate,
+  landAt,
 } from '@/game/state';
+import { currentAt, windAt } from '@/game/environment';
 import { darkness } from '@/game/navigation';
 import { insideMist, insideStorm } from '@/game/encounters';
 import { bearingDeg } from '@/geo/geo';
@@ -29,7 +31,16 @@ import { BuildingPanel } from './town/BuildingPanel';
 import { cultureOf } from '@/town/layout';
 import { setAmbience } from './sound';
 import { folkLines } from '@/town/folkTalk';
-import { festivalAt } from '@/town/festivals';
+import { NoteEditor } from './panels/NoteEditor';
+import { HandbookPanel } from './panels/HandbookPanel';
+import { festivalAt, type FestivalDecor } from '@/town/festivals';
+
+const FESTIVAL_ICON: Record<FestivalDecor, string> = {
+  lanterns: '🏮',
+  lamps: '🪔',
+  flowers: '🌼',
+  pennants: '🎉',
+};
 import { QuestTracker } from './panels/QuestTracker';
 import { Toasts } from './panels/Toasts';
 import { DialogueModal, EventModal, QuizModal, RewardModal, StormModal } from './panels/Modals';
@@ -89,13 +100,19 @@ export function MapScreen() {
       onMapTap: (p) => {
         const s = useGame.getState();
         const pending = s.world && s.game ? pendingInteraction(s.world, s.game) : null;
-        if (pending?.data.type === 'locate' && !s.modals.length) s.locate(p);
+        if (s.annotating) s.openNoteEditor({ id: null, at: p, text: '' });
+        else if (pending?.data.type === 'locate' && !s.modals.length) s.locate(p);
         else if (s.planning) s.addWaypoint(p);
         else if (s.game?.helm) s.steer(bearingDeg(s.game.ship.position, p));
         else s.selectPort(null);
       },
       onPointerLonLat: setPointer,
       onPlaceTap: (id) => useGame.getState().openPanel('codex', id),
+      onNoteTap: (id) => {
+        const s = useGame.getState();
+        const n = s.game?.notes.find((x) => x.id === id);
+        if (n) s.openNoteEditor({ id: n.id, at: n.at, text: n.text });
+      },
       onUserPan: () => useGame.getState().setFollow(false),
     }).then((m) => {
       if (cancelled) {
@@ -271,6 +288,44 @@ export function MapScreen() {
     if (ready && seaSight) mapRef.current?.showSight(seaSight.kind);
   }, [ready, seaSight]);
 
+  // ---- 玩家寫在海圖上的註記
+  const notes = game.notes;
+  useEffect(() => {
+    if (ready) mapRef.current?.setNotes(notes);
+  }, [ready, notes]);
+  const annotating = useGame((s) => s.annotating);
+  const noteEdit = useGame((s) => s.noteEdit);
+
+  // ---- 船名
+  const shipName = game.appearance.shipName;
+  useEffect(() => {
+    if (ready) mapRef.current?.setShipName(shipName);
+  }, [ready, shipName]);
+
+  // ---- 風與洋流圖：這個月各處的風向與洋流
+  const windField = useGame((s) => s.windField);
+  const month = gameDate(game).month;
+  useEffect(() => {
+    if (!ready) return;
+    mapRef.current?.setWindField(
+      windField
+        ? (p) => ({
+            land: landAt(world, p),
+            wind: windAt(p, month),
+            current: currentAt(p, month),
+          })
+        : null,
+    );
+  }, [ready, windField, month, world]);
+
+  // ---- 從圖鑑跳到海圖上的地點：移過去並放光圈標出位置
+  const mapFocus = useGame((s) => s.mapFocus);
+  useEffect(() => {
+    if (!ready || !mapFocus) return;
+    mapRef.current?.centerOn(mapFocus.at, 12);
+    mapRef.current?.celebrate(mapFocus.at);
+  }, [ready, mapFocus]);
+
   // ---- 調查發現新地方時，海圖上放金色光圈
   const celebration = useGame((s) => s.celebration);
   useEffect(() => {
@@ -301,7 +356,7 @@ export function MapScreen() {
     !game.helm && !game.voyage && game.dockedAt ? world.ports.get(game.dockedAt) : null;
   const showTown = !!dockedPort && townView && !locating && !planning;
   const culture = dockedPort ? cultureOf(dockedPort.country) : 'minnan';
-  const festival = dockedPort ? festivalAt(dockedPort.id, gameDate(game).month) : null;
+  const festival = dockedPort ? festivalAt(dockedPort.id, gameDate(game)) : null;
 
   // ---- 環境音：海上聽得到浪和風（隨風力變化），港口裡是輕浪和海鷗
   const ambMode = game.helm || game.voyage ? 'sea' : showTown ? 'town' : null;
@@ -342,11 +397,13 @@ export function MapScreen() {
               returnFrom={lastBuilding}
               talk={folkLines(dockedPort!.id, culture, dockedPort!.gossip, festival?.text)}
               festival={festival?.decor ?? null}
+              darkness={darkness(game.day)}
               onEnter={(kind) => useGame.getState().enterBuilding(kind)}
             />
             {festival && (
               <div className="festival-badge">
-                🏮 {dockedPort!.name}正在過{festival.name}！點路人聽聽看。
+                {FESTIVAL_ICON[festival.decor]} {dockedPort!.name}正在過{festival.name}
+                ！點路人聽聽看。
               </div>
             )}
             <div className="town-hint">
@@ -362,6 +419,38 @@ export function MapScreen() {
           >
             {showTown ? '🗺️ 看海圖' : `🏘️ 回到${dockedPort.name}城裡`}
           </button>
+        )}
+
+        {!showTown && (
+          <div className={`chart-tools ${atSea ? 'at-sea' : ''}`}>
+            <button
+              type="button"
+              className={annotating ? 'on' : ''}
+              aria-pressed={annotating}
+              aria-label="寫註記"
+              title="在海圖上寫註記"
+              onClick={() => useGame.getState().setAnnotating(!annotating)}
+            >
+              ✏️ <span className="tool-label">{annotating ? '點海圖寫字…（取消）' : '寫註記'}</span>
+            </button>
+            <button
+              type="button"
+              className={windField ? 'on' : ''}
+              aria-pressed={windField}
+              aria-label="風與洋流圖"
+              title="風與洋流圖"
+              onClick={() => useGame.getState().toggleWindField()}
+            >
+              🌬️ <span className="tool-label">{windField ? '關閉風與洋流圖' : '風與洋流圖'}</span>
+            </button>
+          </div>
+        )}
+        {noteEdit && <NoteEditor key={`${noteEdit.id}-${noteEdit.at.join(',')}`} />}
+        {windField && !showTown && (
+          <div className={`wind-legend ${atSea ? 'at-sea' : ''}`}>
+            <span className="w">➜</span> 風（{month} 月）{'  '}
+            <span className="c">➜</span> 洋流
+          </div>
         )}
 
         <QuestTracker />
@@ -418,6 +507,7 @@ export function MapScreen() {
       {panel === 'captain' && <CaptainPanel />}
       {panel === 'fleet' && <FleetPanel />}
       {panel === 'logbook' && <LogbookPanel />}
+      {panel === 'handbook' && <HandbookPanel />}
 
       {modals[0] && <RewardModal modal={modals[0]} />}
       {!modals[0] && game.encounter?.kind === 'storm' && <StormModal encounter={game.encounter} />}

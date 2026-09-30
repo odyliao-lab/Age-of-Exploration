@@ -101,7 +101,10 @@ export const PROFESSIONS = {
   lookout: { name: '瞭望員', effect: '瞭望範圍 +20%' },
   cook: { name: '廚師', effect: '淡水與糧食消耗 -15%' },
   naturalist: { name: '博物學家', effect: '地標發現範圍 +20%' },
-  interpreter: { name: '翻譯官', effect: '補給與修船價格 -10%，海盜談判付出 -20%' },
+  interpreter: {
+    name: '翻譯官',
+    effect: '補給與修船價格 -10%，海盜談判付出 -20%，會說各地的問候語，海上賣貨多賺 10%',
+  },
   doctor: { name: '船醫', effect: '士氣流失 -25%，不會發生壞血病' },
 } as const;
 

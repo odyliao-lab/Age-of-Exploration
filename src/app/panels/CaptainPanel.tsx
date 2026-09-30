@@ -6,6 +6,8 @@ import { exportSaveJson, importSaveJson } from '@/game/save';
 import { chartedArea, skillStatus } from '@/game/state';
 import { useGame } from '../store';
 import { getSoundSettings, setSoundSettings } from '../sound';
+import { getLargeText, setLargeText } from '../display';
+import { reputationRank } from '@/game/reputation';
 import {
   COLORS,
   EMBLEMS,
@@ -17,6 +19,7 @@ import {
   optionUnlocked,
   paintOwned,
   type StyleOption,
+  SHIP_NAME_MAX,
 } from '@/game/cosmetics';
 import { ACHIEVEMENT_MAP } from '@/game/achievements';
 import { Avatar, Emblem, Flag } from './Avatar';
@@ -157,7 +160,18 @@ function CaptainTab() {
           圖鑑：{game.discovered.length} / {world.content.codex.length}
         </li>
         <li>完成任務：{completed}</li>
-        <li>名聲：{game.reputation}</li>
+        <li>
+          名聲：{game.reputation}（{reputationRank(game.reputation).title}
+          {reputationRank(game.reputation).next !== null &&
+            `，${reputationRank(game.reputation).next} 升下一級`}
+          ）
+          {reputationRank(game.reputation).index > 0 && (
+            <div className="meta">
+              商人給你的價錢好 {reputationRank(game.reputation).index * 2}%、委託酬勞多{' '}
+              {reputationRank(game.reputation).index * 5}%
+            </div>
+          )}
+        </li>
         <li>
           問答：{quizzes} 題，一次答對 {firstTry} 題
         </li>
@@ -309,6 +323,29 @@ function SoundSettings() {
           {s.music ? '🎵 音樂：開' : '🎵 音樂：關'}
         </button>
       </div>
+      <DisplaySettings />
+    </>
+  );
+}
+
+function DisplaySettings() {
+  const [large, setLarge] = useState(getLargeText());
+  return (
+    <>
+      <h3>文字</h3>
+      <div className="row">
+        <button
+          type="button"
+          aria-pressed={large}
+          className={large ? 'active' : ''}
+          onClick={() => {
+            setLargeText(!large);
+            setLarge(!large);
+          }}
+        >
+          {large ? '🔠 大字：開' : '🔠 大字：關'}
+        </button>
+      </div>
     </>
   );
 }
@@ -420,6 +457,19 @@ function LooksTab() {
           </svg>
         ),
       )}
+      <h3>船名</h3>
+      <input
+        className="ship-name-input"
+        type="text"
+        maxLength={SHIP_NAME_MAX}
+        placeholder="替你的船取個名字"
+        defaultValue={look.shipName}
+        onBlur={(e) => customize({ shipName: e.currentTarget.value })}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' && !e.nativeEvent.isComposing) e.currentTarget.blur();
+        }}
+        aria-label="船名"
+      />
       <h3>船身塗裝</h3>
       {paints('hull', HULL_PAINTS, look.hull)}
       <h3>船帆</h3>

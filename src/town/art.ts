@@ -33,6 +33,10 @@ interface Palette {
   palm: boolean;
   /** 平屋頂（阿拉伯、斯瓦希里海岸的珊瑚石屋） */
   flat?: boolean;
+  /** 客棧、市集、造船廠用椰葉編的斜屋頂（斯瓦希里海岸） */
+  makuti?: boolean;
+  /** 樹林裡夾雜猴麵包樹 */
+  baobab?: boolean;
 }
 
 export const PALETTES: Record<Culture, Palette> = {
@@ -70,6 +74,26 @@ export const PALETTES: Record<Culture, Palette> = {
     trunk: '#8a6a3a',
     palm: true,
     flat: true,
+  },
+  swahili: {
+    ground: '#d9c392',
+    groundDot: '#c4ab78',
+    road: '#cfc0a0',
+    roadLine: '#b2a27f',
+    wall: '#e7e0cf',
+    wallShade: '#bdb39b',
+    roof: '#ddd3bd',
+    roofLine: '#8a6a3a',
+    ridge: '#a89a7a',
+    temple: '#ece6d8',
+    office: '#ddd3bd',
+    leaf: '#6b8f3a',
+    leafDark: '#4f6d2a',
+    trunk: '#8a6a3a',
+    palm: true,
+    flat: true,
+    makuti: true,
+    baobab: true,
   },
   minnan: {
     ground: '#d8c08c',
@@ -177,6 +201,18 @@ function drawTree(ctx: Ctx, tx: number, ty: number, p: Palette) {
   drawGround(ctx, tx, ty, p);
   const x = tx * TILE;
   const y = ty * TILE;
+  if (p.baobab && hash(tx, ty, 9) > 0.7) {
+    // 猴麵包樹：粗胖的樹幹，頂上稀疏的枝葉
+    px(ctx, x + 5, y + 6, 6, 9, '#9a7a58');
+    px(ctx, x + 4, y + 9, 8, 5, '#9a7a58');
+    px(ctx, x + 6, y + 6, 1, 8, '#7d6043');
+    px(ctx, x + 3, y + 3, 3, 3, p.trunk);
+    px(ctx, x + 10, y + 3, 3, 3, p.trunk);
+    px(ctx, x + 1, y + 1, 5, 3, p.leafDark);
+    px(ctx, x + 9, y + 1, 6, 3, p.leaf);
+    px(ctx, x + 6, y + 2, 4, 3, p.leafDark);
+    return;
+  }
   if (p.palm) {
     px(ctx, x + 7, y + 6, 2, 9, p.trunk);
     const leaves = [
@@ -231,7 +267,14 @@ function drawBuilding(ctx: Ctx, b: Building, p: Palette, culture: Culture) {
   const y = b.y * TILE;
   const w = b.w * TILE;
   const h = b.h * TILE;
-  const roofColor = b.kind === 'temple' ? p.temple : b.kind === 'office' ? p.office : p.roof;
+  const thatched = p.makuti && ['tavern', 'market', 'shipyard'].includes(b.kind);
+  const roofColor = thatched
+    ? '#a8834c'
+    : b.kind === 'temple'
+      ? p.temple
+      : b.kind === 'office'
+        ? p.office
+        : p.roof;
   const wallH = TILE + 2;
   const roofH = h - wallH + 4;
 
@@ -261,7 +304,7 @@ function drawBuilding(ctx: Ctx, b: Building, p: Palette, culture: Culture) {
   );
   px(ctx, dx + 4, y + h - 11, 1, 11, '#3a2414');
 
-  if (p.flat) {
+  if (p.flat && !thatched) {
     // 平屋頂：珊瑚石牆頂著矮女兒牆；清真寺加上白色圓頂與宣禮塔
     const ry = y;
     px(ctx, x, ry, w, roofH, p.roof);
@@ -283,7 +326,7 @@ function drawBuilding(ctx: Ctx, b: Building, p: Palette, culture: Culture) {
     // 屋頂
     const ry = y;
     px(ctx, x, ry, w, roofH, roofColor);
-    if (culture === 'nanyang' && b.kind !== 'temple') {
+    if ((culture === 'nanyang' && b.kind !== 'temple') || thatched) {
       // 茅草屋頂：斜線紋
       for (let k = 0; k < w; k += 3) px(ctx, x + k, ry + ((k * 7) % roofH), 1, 4, p.roofLine);
       for (let r = ry + 3; r < ry + roofH; r += 4) px(ctx, x, r, w, 1, p.roofLine);
@@ -347,6 +390,10 @@ export interface PersonLook {
   coat: string;
   hat: string | null;
   hair: string;
+  /** 帽子樣式：寬邊斗笠（預設）、纏頭巾、無邊小帽 */
+  hatStyle?: 'brim' | 'turban' | 'cap';
+  /** 長袍：衣服蓋到腳踝 */
+  robe?: boolean;
 }
 
 export type Facing = 'down' | 'up' | 'left' | 'right';
@@ -368,9 +415,9 @@ export function drawPerson(
   const a = step % 2 === 0;
   px(ctx, X + 5, Y + 11, 2, a ? 4 : 3, '#3a2a1c');
   px(ctx, X + 9, Y + 11, 2, a ? 3 : 4, '#3a2a1c');
-  // 身體
-  px(ctx, X + 4, Y + 6, 8, 6, look.coat);
-  px(ctx, X + 4, Y + 11, 8, 1, 'rgba(0,0,0,0.25)');
+  // 身體（長袍蓋到腳踝）
+  px(ctx, X + 4, Y + 6, 8, look.robe ? 8 : 6, look.coat);
+  px(ctx, X + 4, Y + (look.robe ? 13 : 11), 8, 1, 'rgba(0,0,0,0.25)');
   // 手
   const arm = a ? 0 : 1;
   px(ctx, X + 3, Y + 7 + arm, 1, 4, look.skin);
@@ -386,8 +433,18 @@ export function drawPerson(
     px(ctx, X + (facing === 'left' ? 6 : 9), Y + 4, 1, 1, '#2b2118');
   }
   if (look.hat) {
-    px(ctx, X + 3, Y + 1, 10, 2, look.hat);
-    px(ctx, X + 5, Y - 1, 6, 2, look.hat);
+    if (look.hatStyle === 'turban') {
+      // 纏頭巾：圓鼓鼓地包住頭頂
+      px(ctx, X + 4, Y - 1, 8, 3, look.hat);
+      px(ctx, X + 5, Y - 2, 6, 1, look.hat);
+      px(ctx, X + 5, Y, 6, 1, 'rgba(0,0,0,0.12)');
+    } else if (look.hatStyle === 'cap') {
+      // 無邊小帽（宋谷帽、庫菲帽）
+      px(ctx, X + 5, Y - 1, 6, 2, look.hat);
+    } else {
+      px(ctx, X + 3, Y + 1, 10, 2, look.hat);
+      px(ctx, X + 5, Y - 1, 6, 2, look.hat);
+    }
   }
 }
 
@@ -408,6 +465,92 @@ export function drawMooredShip(ctx: Ctx, hull: string, sail: string, flag: strin
   }
   px(ctx, x + 16, y - 4, 6, 4, flag);
   px(ctx, x + 15, y - 4, 1, 8, '#3a2414');
+}
+
+/** 港裡停著的當地船（俯視、船頭朝右）：阿拉伯與斯瓦希里的三角帆船、中國與琉球的硬帆船、南洋的邊架艇 */
+export function drawLocalBoat(ctx: Ctx, culture: Culture, x: number, y0: number, time: number) {
+  const y = y0 + Math.round(Math.sin(time * 1.3 + x) * 1);
+  px(ctx, x + 2, y + 3, 40, 12, 'rgba(0,0,0,0.18)');
+  if (culture === 'nanyang') {
+    // 邊架艇：細長的船身，兩側用橫桿綁著浮木
+    px(ctx, x + 4, y + 4, 32, 6, '#7a5a3a');
+    px(ctx, x + 36, y + 5, 4, 4, '#7a5a3a');
+    px(ctx, x + 12, y - 2, 2, 18, '#5e3c1c');
+    px(ctx, x + 26, y - 2, 2, 18, '#5e3c1c');
+    px(ctx, x + 8, y - 3, 26, 2, '#9a7a4a');
+    px(ctx, x + 8, y + 15, 26, 2, '#9a7a4a');
+    px(ctx, x + 16, y + 1, 10, 10, '#e0c080');
+    return;
+  }
+  const arab = culture === 'arabia' || culture === 'swahili' || culture === 'southasia';
+  const hull = arab ? '#9a6a3a' : '#6b3f1f';
+  px(ctx, x, y + 2, 36, 12, hull);
+  // 尖尖的船頭
+  px(ctx, x + 36, y + 4, 4, 8, hull);
+  px(ctx, x + 40, y + 6, 3, 4, hull);
+  px(ctx, x, y + 2, 36, 2, '#3a2414');
+  px(ctx, x + 2, y + 5, 30, 6, arab ? '#b48a5a' : '#8a5a33');
+  if (arab) {
+    // 三角帆：一根長長的斜桁
+    for (let k = 0; k < 14; k++) px(ctx, x + 6 + k * 2, y - 6 + k, 3, 1, '#5e3c1c');
+    for (let k = 0; k < 10; k++) px(ctx, x + 10 + k * 2, y - 3 + k, 14 - k, 1, '#efe4cc');
+  } else {
+    // 硬帆：竹條撐開，一段一段
+    for (let k = 0; k < 3; k++) {
+      px(ctx, x + 8 + k * 8, y - 3, 3, 20, '#8f4a2a');
+      px(ctx, x + 8 + k * 8, y - 3, 3, 1, 'rgba(0,0,0,0.25)');
+    }
+  }
+}
+
+/**
+ * 夜晚的城鎮：整張蓋上一層深藍，窗戶與門口亮起暖暖的燈光。
+ * dark 是 0（白天）到 1（深夜），黃昏時帶一點橘紅。
+ */
+export function drawTownNight(ctx: Ctx, dark: number, time: number) {
+  if (dark <= 0.02) return;
+  const W = TOWN_W * TILE;
+  const H = TOWN_H * TILE;
+  const dusk = Math.sin(Math.PI * Math.min(1, dark));
+  if (dusk > 0.05) {
+    ctx.fillStyle = `rgba(242, 138, 69, ${0.12 * dusk})`;
+    ctx.fillRect(0, 0, W, H);
+  }
+  ctx.fillStyle = `rgba(11, 26, 51, ${0.55 * dark})`;
+  ctx.fillRect(0, 0, W, H);
+  if (dark < 0.35) return;
+  const glow = Math.min(1, (dark - 0.35) / 0.4);
+  for (const b of BUILDINGS) {
+    const x = b.x * TILE;
+    const y = b.y * TILE;
+    const w = b.w * TILE;
+    const h = b.h * TILE;
+    const wallH = TILE + 2;
+    for (let c = x + 8; c < x + w - 8; c += 16) {
+      if (Math.abs(c - (b.door.x * TILE + 4)) < 10) continue;
+      const flicker = 0.85 + 0.15 * Math.sin(time * 3 + c);
+      ctx.fillStyle = `rgba(255, 200, 110, ${0.9 * glow * flicker})`;
+      ctx.fillRect(c, y + h - wallH + 5, 6, 5);
+      ctx.fillStyle = `rgba(255, 190, 90, ${0.12 * glow})`;
+      ctx.fillRect(c - 4, y + h - wallH + 1, 14, 13);
+    }
+    // 門口的燈籠
+    const dx = b.door.x * TILE + 8;
+    ctx.fillStyle = `rgba(255, 170, 70, ${0.18 * glow})`;
+    ctx.beginPath();
+    ctx.arc(dx, y + h + 2, 10, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = `rgba(230, 80, 50, ${glow})`;
+    ctx.fillRect(dx + 7, y + h - 12, 3, 4);
+  }
+  // 天上的星星
+  for (let k = 0; k < 24; k++) {
+    const sx = (k * 97) % W;
+    const sy = (k * 53) % (TILE * 1.5);
+    const tw = 0.5 + 0.5 * Math.sin(time * 2 + k);
+    ctx.fillStyle = `rgba(255, 250, 230, ${0.7 * glow * tw})`;
+    ctx.fillRect(sx, sy, 1, 1);
+  }
 }
 
 /** 海鷗：在海面上空繞圈 */

@@ -70,6 +70,19 @@ export class NightSky {
       const a = 0.55 * d + (this.raining ? 0.18 : 0);
       this.dark.rect(0, 0, w, h).fill({ color: 0x0b1a33, alpha: Math.min(0.72, a) });
     }
+    // 黃昏與黎明：天邊一層暖暖的橘紅色霞光
+    const glow = Math.sin(Math.PI * Math.min(1, d)) * (this.raining ? 0.3 : 1) * (1 - this.mist);
+    if (glow > 0.02) {
+      // 細細的橫帶一層層變淡，看起來像漸層
+      const bands = 48;
+      const band = Math.ceil((h * 0.55) / bands);
+      for (let k = 0; k < bands; k++) {
+        const t = k / bands;
+        this.dark
+          .rect(0, k * band, w, band)
+          .fill({ color: 0xf28a45, alpha: glow * 0.28 * (1 - t) * (1 - t) });
+      }
+    }
 
     // 船燈：夜裡船的周圍亮一圈
     this.lantern.clear();

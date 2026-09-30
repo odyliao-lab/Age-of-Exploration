@@ -17,6 +17,7 @@ import {
   PAINT_PRICE,
   SAIL_PAINTS,
   SKIN_TONES,
+  SHIP_NAME_MAX,
   defaultAppearance,
   optionUnlocked,
   paintOwned,
@@ -71,6 +72,10 @@ import {
   type VoyageEvent,
 } from './events';
 import { greetingFor } from '@/town/folkTalk';
+import { festivalAt } from '@/town/festivals';
+
+/** 參加節慶的收穫：和當地人一起慶祝，學到東西、也交到朋友 */
+export const FESTIVAL_REWARD = { xp: 25, reputation: 3 };
 import { createFog, exploredAreaKm2, exploredFraction, revealAround } from './fog';
 import { newSeed, nextRandom } from './rng';
 import {
@@ -107,11 +112,16 @@ import type { Rig } from './progression';
 import { isLand } from '@/geo/landmask';
 import type { World } from './world';
 import { crewTalk, type SeaSight } from './crewTalk';
+import { castNet, GROUND_LESSON, type Catch } from './fishing';
+import { contractOffers, MAX_CONTRACTS, type Contract } from './contracts';
+import { CONTRACT_BONUS_PER_RANK, reputationRank } from './reputation';
+import { scholarQuestion, SCHOLAR_PER_DAY, SCHOLAR_REWARD, type ScholarQuestion } from './scholar';
 import {
   HAIL_KM,
   MAX_FLEETS,
   MERCHANT_CHANCE_PER_DAY,
   ENVOY_CHANCE_PER_DAY,
+  ARMADA_CHANCE_PER_DAY,
   insideStorm,
   pirateChancePerDay,
   spawnFleet,
@@ -260,6 +270,8 @@ export interface GameState {
   starNight: number;
   /** 上次看岸形定位是第幾天（每天一次） */
   coastDay: number;
+  /** 上次撒網捕魚的遊戲日（每天一次） */
+  fishDay: number;
   /** 海上看得見的船隊與風暴雲團 */
   fleets: SeaFleet[];
   storms: StormCell[];
@@ -267,6 +279,16 @@ export interface GameState {
   mists: MistBank[];
   /** 對手船長的比賽 */
   rival: RivalState;
+  /** 接下的商人委託 */
+  contracts: Contract[];
+  /** 參加過的節慶（港口:年:節慶名） */
+  festivalsSeen: string[];
+  /** 學者每日小考：哪一天、答了幾題 */
+  scholar: { day: number; count: number };
+  /** 玩家自己寫在海圖上的註記 */
+  notes: { id: number; at: LonLat; text: string }[];
+  /** 完成或過期的委託（不再出現） */
+  contractsDone: string[];
   nextEntityId: number;
   /** 熟悉航線：「出發港>抵達港」→ 親手開過的航跡 */
   routes: Record<string, LonLat[]>;
@@ -384,10 +406,16 @@ export function newGame(world: World, scenarioId: string, seed = newSeed()): Ste
     nav: { day: 0, errorKm: 2 },
     starNight: -1,
     coastDay: -1,
+    fishDay: -1,
     fleets: [],
     storms: [],
     mists: [],
     rival: { ...EMPTY_RIVAL },
+    contracts: [],
+    contractsDone: [],
+    festivalsSeen: [],
+    notes: [],
+    scholar: { day: -1, count: 0 },
     nextEntityId: 1,
     talkDay: 0.5,
     lastRegionId: null,
@@ -758,7 +786,12 @@ function seaLife(
           ? 'merchant'
           : rand() < perStep(regionId && ENVOYS[regionId] ? ENVOY_CHANCE_PER_DAY : 0)
             ? 'envoy'
-            : null;
+            : rand() <
+                perStep(
+                  regionId && !fleets.some((x) => x.kind === 'armada') ? ARMADA_CHANCE_PER_DAY : 0,
+                )
+              ? 'armada'
+              : null;
     if (kind) {
       const f = spawnFleet(kind, nextEntityId, pos, day, rand, isLand);
       if (f) {
@@ -769,6 +802,12 @@ function seaLife(
             type: 'warning',
             text: `瞭望員：${compass16(bearingDeg(pos, f.position))}方遠處有一艘陌生的快船！`,
           });
+        } else if (kind === 'armada') {
+          events.push({
+            type: 'talk',
+            speaker: '瞭望員',
+            text: `${compass16(bearingDeg(pos, f.position))}方的海面上一大片帆影……是寶船艦隊！快靠過去看看！`,
+          });
         } else if (kind === 'envoy') {
           events.push({
             type: 'talk',
@@ -777,6 +816,25 @@ function seaLife(
           });
         }
       }
+    }
+  }
+
+  // 比賽中的對手船長偶爾會出現在附近
+  if (
+    state.rival.target &&
+    fleets.length < MAX_FLEETS + 1 &&
+    !fleets.some((f) => f.kind === 'rival') &&
+    rand() < perStep(RIVAL_SIGHT_CHANCE_PER_DAY)
+  ) {
+    const f = spawnFleet('rival', nextEntityId, pos, day, rand, isLand);
+    if (f) {
+      nextEntityId++;
+      fleets = [...fleets, f];
+      events.push({
+        type: 'talk',
+        speaker: '瞭望員',
+        text: `${compass16(bearingDeg(pos, f.position))}方那艘藍色船身的船……是${RIVAL_NAME}！他也在找同一個地方！`,
+      });
     }
   }
 
@@ -832,6 +890,11 @@ function seaLife(
     if (rand() < perStep(stormSpawnChance(risk))) {
       const w = windAt(pos, month);
       storms = [spawnStorm(nextEntityId++, pos, risk, w, day, rand)];
+      events.push({
+        type: 'talk',
+        speaker: crewSpeaker(world, state),
+        text: stormOmen(storms[0], pos, isNight(day)),
+      });
     }
   }
   storms = storms.map((c) => stepStorm(c, stepDays, day)).filter((c): c is StormCell => !!c);
@@ -885,6 +948,10 @@ function seaLife(
       openRumors: openRumors(world, state),
       hinted,
       speakers: state.crew.map((id) => world.crew.get(id)?.name).filter((n): n is string => !!n),
+      personal: state.crew.flatMap((id) => {
+        const c = world.crew.get(id);
+        return c ? c.lines.map((text) => ({ speaker: c.name, text })) : [];
+      }),
       roll: rand(),
       chatReady: day >= talkDay,
     });
@@ -919,6 +986,23 @@ function seaLife(
 }
 
 /**
+ * 風暴的前兆：雲團剛出現在上游時，船員從海象、天色看出來，並指出方向。
+ * 颱風外圍的長浪跑得比颱風本身快，所以「無風起長浪」是古老的預警。
+ */
+export function stormOmen(storm: StormCell, pos: LonLat, night: boolean): string {
+  const dir = compass16(bearingDeg(pos, storm.center));
+  if (storm.kind === 'typhoon' || storm.kind === 'hurricane' || storm.kind === 'cyclone') {
+    return (
+      `長浪從${dir}方一波一波湧過來，浪很長，風卻不大。老船員說「無風起長浪，風暴在後頭」——` +
+      `${storm.name}的長浪跑得比風暴本身快，${dir}方大概有${storm.name}，快想辦法避開！`
+    );
+  }
+  return night
+    ? `${dir}方的星星一顆顆被雲吞掉，閃電在雲裡亮個不停——那邊的天氣要變壞了，繞開走吧。`
+    : `${dir}方的天邊堆起又高又黑的雲，海鳥都往岸邊飛，風向也亂了——那邊要起大風，繞開走吧。`;
+}
+
+/**
  * 被海盜追上時的知識挑戰：如果在附近港口學過當地的問候語，
  * 就改成「用對方的語言回應」（語言也是文化地理）。
  */
@@ -932,7 +1016,9 @@ export function greetingQuestion(
     (a, b) => distanceKm(a.location, pos) - distanceKm(b.location, pos),
   )[0];
   const g = near && distanceKm(near.location, pos) < 1500 ? greetingFor(near.id) : null;
-  if (!g || !state.visitedPorts.some((id) => greetingFor(id)?.lang === g.lang)) return undefined;
+  const hasInterpreter = state.crew.some((id) => world.crew.get(id)?.profession === 'interpreter');
+  if (!g || !(hasInterpreter || state.visitedPorts.some((id) => greetingFor(id)?.lang === g.lang)))
+    return undefined;
   const others = [
     ...new Map(
       world.content.ports
@@ -1025,6 +1111,49 @@ export function greetEnvoy(
   };
 }
 
+export const ARMADA_REWARD = { xp: 20, reputation: 5 };
+
+/** 附近可以致意的寶船艦隊（船隊很大，遠一點也喊得到） */
+export function armadaInReach(state: GameState): SeaFleet | null {
+  if (!state.helm) return null;
+  return (
+    state.fleets.find(
+      (f) =>
+        f.kind === 'armada' &&
+        !f.greeted &&
+        distanceKm(f.position, state.ship.position) <= HAIL_KM * 3,
+    ) ?? null
+  );
+}
+
+/** 向寶船艦隊致意：艦隊的水船與糧船把你的淡水、糧食補滿，名聲提高 */
+export function greetArmada(
+  _world: World,
+  state: GameState,
+  fleetId: number,
+): (GreetResult & { events: GameEvent[] }) | null {
+  const f = armadaInReach(state);
+  if (!f || f.id !== fleetId) return null;
+  const cap = myShip(state).supplyDays;
+  const fleets = state.fleets.map((x) => (x.id === fleetId ? { ...x, greeted: true } : x));
+  const xp = gainXp(state, ARMADA_REWARD.xp);
+  return {
+    state: {
+      ...state,
+      fleets,
+      captain: xp.captain,
+      skillPoints: xp.skillPoints,
+      reputation: state.reputation + ARMADA_REWARD.reputation,
+      condition: { ...state.condition, supplies: { water: cap, food: cap } },
+    },
+    events: xp.events,
+    title: '寶船艦隊',
+    text: `幾十艘大船排成長長的隊伍，最大的寶船像一座會走的城。旗艦傳來號令：「是泉州來的船吧？辛苦了！」艦隊的水船和糧船把你的淡水、糧食都補滿了。（名聲 +${ARMADA_REWARD.reputation}）`,
+    lesson:
+      '據《明史》等記載，鄭和船隊有六十多艘大船，加上許多小船，共兩萬多人。除了寶船，還有運馬的馬船、運糧的糧船、專門載淡水的水船，以及保護船隊的戰船，就像一座在海上移動的城市。',
+  };
+}
+
 /** 船上說話的人：第一位船員，沒有船員時是老舵工 */
 export function crewSpeaker(world: World, state: GameState): string {
   return world.crew.get(state.crew[0] ?? '')?.name ?? '老舵工';
@@ -1092,7 +1221,8 @@ export function merchantOffer(
         1,
         Math.round(
           quote(world.content.ports, port, good, state.market, state.day).sell *
-            MERCHANT_BUY_FACTOR,
+            MERCHANT_BUY_FACTOR *
+            (state.crew.some((id) => world.crew.get(id)?.profession === 'interpreter') ? 1.1 : 1),
         ),
       ),
     }));
@@ -1359,6 +1489,45 @@ export function takeSounding(
   return { state: next, sounding, text: soundingText(sounding), fixed, lesson };
 }
 
+/** 為什麼現在不能撒網；可以時回傳 null */
+export function fishBlocked(state: GameState): string | null {
+  if (!state.helm) return '要在海上才能撒網';
+  if (state.fishDay === Math.floor(state.day)) return '今天已經撒過網了';
+  return null;
+}
+
+/**
+ * 撒網捕魚：每天一次，補一點糧食（不超過船能裝的量）。
+ * 漁獲依漁場而定；每種漁場第一次撒網時附上地理小教室。
+ */
+export function goFishing(
+  world: World,
+  state: GameState,
+): { state: GameState; catch: Catch; lesson: string | null } | null {
+  if (fishBlocked(state)) return null;
+  const sounding = soundAt(state.ship.position, (p) => landAt(world, p));
+  const [luck, seed] = nextRandom(state.seed);
+  const c = castNet(state.ship.position, sounding, gameDate(state).month, luck);
+  const cap = myShip(state).supplyDays;
+  const sup = state.condition.supplies;
+  let next: GameState = {
+    ...state,
+    seed,
+    fishDay: Math.floor(state.day),
+    condition: {
+      ...state.condition,
+      supplies: { ...sup, food: Math.min(cap, sup.food + c.food) },
+    },
+  };
+  let lesson: string | null = null;
+  const key = `fish-${c.ground}`;
+  if (!state.hinted.includes(key)) {
+    lesson = GROUND_LESSON[c.ground];
+    next = { ...next, hinted: [...next.hinted, key] };
+  }
+  return { state: next, catch: c, lesson };
+}
+
 // ---------------------------------------------------------------- 親手駕船
 
 /** 從港口出海：找到港外最近的海面，升半帆，船頭朝向外海 */
@@ -1474,12 +1643,17 @@ export function cargoCapacity(state: GameState): number {
 export { cargoUsed };
 
 /** 港口市場的報價：這裡的特產可以買，所有貨物都可以賣 */
+/** 名聲等級（影響買賣價格與委託酬勞） */
+export function standing(state: GameState): number {
+  return reputationRank(state.reputation).index;
+}
+
 export function marketQuotes(world: World, state: GameState, portId: string): Quote[] {
   const port = world.ports.get(portId);
   if (!port) return [];
   return Object.keys(GOODS_PRICE)
     .filter((g) => world.codex.has(g))
-    .map((g) => quote(world.content.ports, port, g, state.market, state.day));
+    .map((g) => quote(world.content.ports, port, g, state.market, state.day, standing(state)));
 }
 
 export interface TradeResult {
@@ -1495,7 +1669,16 @@ export interface TradeResult {
 export function tradeBuy(world: World, state: GameState, good: string, qty: number): TradeResult {
   const port = state.dockedAt ? world.ports.get(state.dockedAt) : null;
   if (!port) return { state, qty: 0, amount: 0, profit: 0 };
-  const r = buyGoods(world.content.ports, port, state, good, qty, cargoCapacity(state), state.day);
+  const r = buyGoods(
+    world.content.ports,
+    port,
+    state,
+    good,
+    qty,
+    cargoCapacity(state),
+    state.day,
+    standing(state),
+  );
   if (!r.bought) return { state, qty: 0, amount: 0, profit: 0 };
   return {
     state: { ...state, gold: r.gold, cargo: r.cargo, market: r.market },
@@ -1508,7 +1691,7 @@ export function tradeBuy(world: World, state: GameState, good: string, qty: numb
 export function tradeSell(world: World, state: GameState, good: string, qty: number): TradeResult {
   const port = state.dockedAt ? world.ports.get(state.dockedAt) : null;
   if (!port) return { state, qty: 0, amount: 0, profit: 0 };
-  const r = sellGoods(world.content.ports, port, state, good, qty, state.day);
+  const r = sellGoods(world.content.ports, port, state, good, qty, state.day, standing(state));
   if (!r.sold) return { state, qty: 0, amount: 0, profit: 0 };
   return {
     state: {
@@ -1672,6 +1855,38 @@ export const EMPTY_RIVAL: RivalState = {
 };
 
 export const RIVAL_BONUS = { gold: 120, reputation: 5 };
+/** 比賽期間，對手的船每天出現在附近的機率 */
+const RIVAL_SIGHT_CHANCE_PER_DAY = 0.12;
+
+/** 附近可以喊話的對手船 */
+export function rivalShipInReach(state: GameState): SeaFleet | null {
+  if (!state.helm) return null;
+  return (
+    state.fleets.find(
+      (f) =>
+        f.kind === 'rival' &&
+        !f.greeted &&
+        !!state.rival.target &&
+        distanceKm(f.position, state.ship.position) <= HAIL_KM * 2,
+    ) ?? null
+  );
+}
+
+/** 向對手喊話：他會炫耀一下，也提醒你比賽還剩幾天 */
+export function hailRival(world: World, state: GameState, fleetId: number): GreetResult | null {
+  const f = rivalShipInReach(state);
+  if (!f || f.id !== fleetId || !state.rival.target) return null;
+  const c = world.codex.get(state.rival.target);
+  const left = Math.max(0, Math.ceil(state.rival.due - state.day));
+  return {
+    state: {
+      ...state,
+      fleets: state.fleets.map((x) => (x.id === fleetId ? { ...x, greeted: true } : x)),
+    },
+    title: `${RIVAL_NAME}的船`,
+    text: `${RIVAL_NAME}站在船頭大喊：「還在找${c?.rumor?.from ?? '傳聞'}說的那個地方嗎？我看就在前面不遠了！」照他的速度，大約 ${left} 天內就會回報給學者。`,
+  };
+}
 /** 比完之後隔幾天才會再下戰帖 */
 const RIVAL_COOLDOWN_DAYS = 3;
 
@@ -1898,7 +2113,15 @@ function warnConditionChanges(before: ShipCondition, after: ShipCondition, event
   }
 }
 
-const EVENT_ORDER: EventId[] = ['pirates', 'doldrums', 'scurvy', 'stargazing', 'lost', 'flotsam'];
+const EVENT_ORDER: EventId[] = [
+  'pirates',
+  'doldrums',
+  'scurvy',
+  'stargazing',
+  'lost',
+  'castaway',
+  'flotsam',
+];
 
 function rollEvent(
   world: World,
@@ -2068,6 +2291,7 @@ export function resolveEvent(
       skillPoints: xp?.skillPoints ?? state.skillPoints,
       condition,
       gold: Math.max(0, state.gold + (effect.gold ?? 0)),
+      reputation: state.reputation + (effect.reputation ?? 0),
       day: state.day + (effect.days ?? 0),
     },
     events,
@@ -2170,9 +2394,35 @@ function arrive(world: World, state: GameState, portId: string): StepResult {
   for (const g of newGoods) events.push({ type: 'discovered', codexId: g });
   const fogChanged = revealAround(state.fog, port.location, PORT_REVEAL_KM);
   const gift = firstVisit ? mods(world, state).firstVisitGold : 0;
+  // 碰上港口的節慶：上岸同樂，得到經驗與名聲（每個節慶每年一次）
+  const condition = rest(state.condition);
+  let festivalsSeen = state.festivalsSeen;
+  let reputation = state.reputation;
+  let captain = state.captain;
+  let skillPoints = state.skillPoints;
+  const date = gameDate(state);
+  const festival = festivalAt(portId, date);
+  const festivalKey = festival ? `${portId}:${date.year}:${festival.name}` : null;
+  if (festival && festivalKey && !festivalsSeen.includes(festivalKey)) {
+    festivalsSeen = [...festivalsSeen, festivalKey];
+    reputation += FESTIVAL_REWARD.reputation;
+    const xp = gainXp(state, FESTIVAL_REWARD.xp);
+    captain = xp.captain;
+    skillPoints = xp.skillPoints;
+    events.push(...xp.events);
+    events.push({
+      type: 'talk',
+      speaker: crewSpeaker(world, state),
+      text: `${port.name}正在過${festival.name}！大家上岸和當地人一起慶祝，聽了好多故事（經驗 +${FESTIVAL_REWARD.xp}、名聲 +${FESTIVAL_REWARD.reputation}）。`,
+    });
+  }
   return {
     state: {
       ...state,
+      festivalsSeen,
+      reputation,
+      captain,
+      skillPoints,
       gold: state.gold + gift,
       voyage: null,
       helm: null,
@@ -2182,7 +2432,7 @@ function arrive(world: World, state: GameState, portId: string): StepResult {
       mists: [],
       dockedAt: portId,
       lastPortId: portId,
-      condition: rest(state.condition),
+      condition,
       ship: { position: port.location, heading: state.ship.heading },
       discovered: [...state.discovered, ...newGoods],
       visitedPorts: firstVisit ? [...state.visitedPorts, portId] : state.visitedPorts,
@@ -2218,6 +2468,8 @@ export function activeNavigateTargets(world: World, state: GameState): NavigateT
     const step = world.quests.get(questId)?.steps[p.step];
     if (step?.type === 'navigate') {
       out.push({ questId, portId: step.target, hintLevel: step.hint_level, text: step.text });
+    } else if (step?.type === 'deliver') {
+      out.push({ questId, portId: step.target, hintLevel: 1, text: step.text });
     }
   }
   return out;
@@ -2407,6 +2659,77 @@ function advanceStep(world: World, state: GameState, questId: string): StepResul
   return progressQuests(world, next);
 }
 
+// ---------------------------------------------------------------- 商人的委託
+
+/** 這個港口本週可以接的委託（已經接過、做完或過期的不再出現） */
+export function availableContracts(world: World, state: GameState, portId: string): Contract[] {
+  return contractOffers(
+    world.content.ports,
+    portId,
+    state.day,
+    [...new Set([...state.visitedPorts, ...state.unlockedPorts])],
+    state.market,
+    [...state.contracts.map((c) => c.id), ...state.contractsDone],
+  );
+}
+
+export function acceptContract(world: World, state: GameState, id: string): GameState {
+  if (!state.dockedAt || state.contracts.length >= MAX_CONTRACTS) return state;
+  const c = availableContracts(world, state, state.dockedAt).find((x) => x.id === id);
+  if (!c) return state;
+  return { ...state, contracts: [...state.contracts, c] };
+}
+
+/** 靠港時交付委託的貨；過了期限的委託作廢（沒有懲罰） */
+function settleContracts(
+  world: World,
+  state: GameState,
+): { state: GameState; events: GameEvent[] } {
+  if (!state.contracts.length) return { state, events: [] };
+  const events: GameEvent[] = [];
+  let { cargo, gold, reputation, stats } = state;
+  const keep: Contract[] = [];
+  const done: string[] = [];
+  for (const c of state.contracts) {
+    const name = world.codex.get(c.good)?.name ?? c.good;
+    const port = world.ports.get(c.portId)?.name ?? c.portId;
+    const lot = cargo[c.good];
+    if (state.dockedAt === c.portId && lot && lot.qty >= c.qty && state.day <= c.due) {
+      const left = lot.qty - c.qty;
+      cargo = { ...cargo };
+      if (left > 0) cargo[c.good] = { qty: left, cost: (lot.cost * left) / lot.qty };
+      else delete cargo[c.good];
+      const reward = Math.round(c.reward * (1 + CONTRACT_BONUS_PER_RANK * standing(state)));
+      gold += reward;
+      reputation += 2;
+      stats = { ...stats, contracts: stats.contracts + 1 };
+      done.push(c.id);
+      events.push({
+        type: 'warning',
+        text: `委託完成！${name} ${c.qty} 擔交給${port}的商人，收到 ${reward} 金幣。`,
+      });
+    } else if (state.day > c.due) {
+      done.push(c.id);
+      events.push({ type: 'warning', text: `${port}的${name}委託過期了，商人另外找人送貨。` });
+    } else {
+      keep.push(c);
+    }
+  }
+  if (!done.length) return { state, events };
+  return {
+    state: {
+      ...state,
+      cargo,
+      gold,
+      reputation,
+      stats,
+      contracts: keep,
+      contractsDone: [...state.contractsDone, ...done].slice(-200),
+    },
+    events,
+  };
+}
+
 /** 自動推進已滿足的步驟（航行抵達、已發現），並結算完成的任務 */
 export function progressQuests(world: World, state: GameState): StepResult {
   let s = state;
@@ -2428,6 +2751,25 @@ export function progressQuests(world: World, state: GameState): StepResult {
         continue;
       }
       const step = quest.steps[p.step];
+      if (
+        step.type === 'deliver' &&
+        s.dockedAt === step.target &&
+        (s.cargo[step.good]?.qty ?? 0) >= step.qty
+      ) {
+        // 交貨：從船艙搬下約定的數量
+        const lot = s.cargo[step.good];
+        const left = lot.qty - step.qty;
+        const cargo = { ...s.cargo };
+        if (left > 0) cargo[step.good] = { qty: left, cost: (lot.cost * left) / lot.qty };
+        else delete cargo[step.good];
+        s = { ...s, cargo, quests: { ...s.quests, [questId]: { ...p, step: p.step + 1 } } };
+        events.push({
+          type: 'warning',
+          text: `交貨完成：${world.codex.get(step.good)?.name ?? step.good} ${step.qty} 擔已經送到${world.ports.get(step.target)?.name}。`,
+        });
+        changed = true;
+        continue;
+      }
       const satisfied =
         (step.type === 'navigate' && s.dockedAt === step.target) ||
         (step.type === 'discover' && s.discovered.includes(step.target));
@@ -2437,6 +2779,10 @@ export function progressQuests(world: World, state: GameState): StepResult {
       }
     }
   }
+  // 任務交貨優先，剩下的貨再交給商人的委託
+  const settled = settleContracts(world, s);
+  s = settled.state;
+  events.push(...settled.events);
   return { state: s, events, fogChanged };
 }
 
@@ -2617,6 +2963,135 @@ export function buyUpgrade(world: World, state: GameState, id: string): GameStat
   return { ...state, upgrades: [...state.upgrades, id], gold: state.gold - offer.cost };
 }
 
+// ---------------------------------------------------------------- 在港口等待
+
+/** 客棧一晚的價錢 */
+export const INN_PRICE_PER_NIGHT = 3;
+
+/** 住到明天早上要幾天（遊戲日從早上 6 點開始，整數就是早上 6 點） */
+export function daysUntilMorning(state: GameState): number {
+  return Math.floor(state.day) + 1 - state.day;
+}
+
+/** 住到下個月一號早上要幾天 */
+export function daysUntilNextMonth(state: GameState): number {
+  const today = Math.floor(state.day);
+  const month = gameDate(state).month;
+  let d = 1;
+  while (gameDate({ ...state, day: today + d }).month === month) d++;
+  return today + d - state.day;
+}
+
+/**
+ * 在港口的客棧住下，等天亮或等季風轉向。港口裡不消耗補給；
+ * 期間過期的委託會作廢，等完之後照常檢查任務與委託。
+ */
+export function waitInPort(world: World, state: GameState, days: number): StepResult {
+  if (!state.dockedAt || days <= 0) return { state, events: [], fogChanged: [] };
+  const nights = Math.max(1, Math.round(days));
+  const cost = nights * INN_PRICE_PER_NIGHT;
+  if (state.gold < cost) return { state, events: [], fogChanged: [] };
+  return progressQuests(world, { ...state, day: state.day + days, gold: state.gold - cost });
+}
+
+// ---------------------------------------------------------------- 學者的每日小考
+
+/** 今天還能答的題目（沒有題目或今天答完了回傳 null） */
+export function scholarToday(
+  world: World,
+  state: GameState,
+): { question: ScholarQuestion; remaining: number } | null {
+  const today = Math.floor(state.day);
+  const count = state.scholar.day === today ? state.scholar.count : 0;
+  if (count >= SCHOLAR_PER_DAY) return null;
+  const known = [...new Set([...state.visitedPorts, ...state.unlockedPorts])]
+    .map((id) => world.ports.get(id))
+    .filter((p): p is Port => !!p);
+  const question = scholarQuestion(known, (g) => world.codex.get(g)?.name ?? g, today, count);
+  return question ? { question, remaining: SCHOLAR_PER_DAY - count } : null;
+}
+
+/** 回答學者的題目：答對得經驗與金幣，答錯排進錯題複習 */
+export function answerScholar(
+  world: World,
+  state: GameState,
+  choice: number,
+  now = Date.now(),
+): { state: GameState; correct: boolean; question: ScholarQuestion; events: GameEvent[] } | null {
+  const t = scholarToday(world, state);
+  if (!t) return null;
+  const q = t.question;
+  const today = Math.floor(state.day);
+  const count = state.scholar.day === today ? state.scholar.count : 0;
+  const correct = choice === q.answer;
+  let next: GameState = {
+    ...state,
+    scholar: { day: today, count: count + 1 },
+    quizLog: [
+      ...state.quizLog,
+      {
+        questId: 'scholar',
+        step: today * 10 + count,
+        domains: [q.domain],
+        attempts: 1,
+        firstTry: correct,
+        day: state.day,
+      },
+    ],
+  };
+  const events: GameEvent[] = [];
+  if (correct) {
+    const xp = gainXp(next, SCHOLAR_REWARD.xp);
+    events.push(...xp.events);
+    next = {
+      ...next,
+      captain: xp.captain,
+      skillPoints: xp.skillPoints,
+      gold: next.gold + SCHOLAR_REWARD.gold,
+    };
+  } else {
+    next = {
+      ...next,
+      reviews: scheduleReview(
+        next.reviews,
+        `scholar:${today}:${count}`,
+        { prompt: q.prompt, choices: q.choices, answer: q.answer, explanation: q.explanation },
+        [q.domain],
+        now,
+      ),
+    };
+  }
+  return { state: next, correct, question: q, events };
+}
+
+// ---------------------------------------------------------------- 海圖註記
+
+export const NOTE_MAX_CHARS = 12;
+export const MAX_NOTES = 40;
+
+function cleanNote(text: string): string {
+  return [...text.replace(/\s+/g, ' ').trim()].slice(0, NOTE_MAX_CHARS).join('');
+}
+
+/** 在海圖上寫一個註記（空白不寫；超過上限時不再增加） */
+export function addNote(state: GameState, at: LonLat, text: string): GameState {
+  const t = cleanNote(text);
+  if (!t || state.notes.length >= MAX_NOTES) return state;
+  const id = state.notes.reduce((m, n) => Math.max(m, n.id), 0) + 1;
+  return { ...state, notes: [...state.notes, { id, at, text: t }] };
+}
+
+/** 修改註記；改成空白就刪掉 */
+export function editNote(state: GameState, id: number, text: string): GameState {
+  const t = cleanNote(text);
+  return {
+    ...state,
+    notes: t
+      ? state.notes.map((n) => (n.id === id ? { ...n, text: t } : n))
+      : state.notes.filter((n) => n.id !== id),
+  };
+}
+
 export function setTitle(state: GameState, achievementId: string | null): GameState {
   if (achievementId && !state.achievements.includes(achievementId)) return state;
   if (achievementId && !ACHIEVEMENT_MAP.get(achievementId)?.title) return state;
@@ -2782,6 +3257,9 @@ export function setAppearance(
   a.coat = pick(COLORS, patch.coat) ?? a.coat;
   a.flagColor = pick(COLORS, patch.flagColor) ?? a.flagColor;
   a.emblem = pick(EMBLEMS, patch.emblem) ?? a.emblem;
+  if (patch.shipName !== undefined) {
+    a.shipName = [...patch.shipName.replace(/\s+/g, ' ').trim()].slice(0, SHIP_NAME_MAX).join('');
+  }
   if (patch.hull) {
     const o = HULL_PAINTS.find((x) => x.id === patch.hull);
     if (o && paintOwned('hull', o, a, ach)) a.hull = o.id;
