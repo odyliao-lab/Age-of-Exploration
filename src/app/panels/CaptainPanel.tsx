@@ -7,6 +7,7 @@ import { chartedArea, skillStatus } from '@/game/state';
 import { useGame } from '../store';
 import { getSoundSettings, setSoundSettings } from '../sound';
 import { getLargeText, setLargeText } from '../display';
+import { reputationRank } from '@/game/reputation';
 import {
   COLORS,
   EMBLEMS,
@@ -159,7 +160,18 @@ function CaptainTab() {
           圖鑑：{game.discovered.length} / {world.content.codex.length}
         </li>
         <li>完成任務：{completed}</li>
-        <li>名聲：{game.reputation}</li>
+        <li>
+          名聲：{game.reputation}（{reputationRank(game.reputation).title}
+          {reputationRank(game.reputation).next !== null &&
+            `，${reputationRank(game.reputation).next} 升下一級`}
+          ）
+          {reputationRank(game.reputation).index > 0 && (
+            <div className="meta">
+              商人給你的價錢好 {reputationRank(game.reputation).index * 2}%、委託酬勞多{' '}
+              {reputationRank(game.reputation).index * 5}%
+            </div>
+          )}
+        </li>
         <li>
           問答：{quizzes} 題，一次答對 {firstTry} 題
         </li>

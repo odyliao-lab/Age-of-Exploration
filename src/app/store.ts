@@ -83,6 +83,7 @@ import type { World } from '@/game/world';
 import type { Appearance } from '@/game/cosmetics';
 import type { SailSetting } from '@/game/sailing';
 import type { SeaSight } from '@/game/crewTalk';
+import { reputationRank } from '@/game/reputation';
 import type { SightingResult } from '@/game/navigation';
 import type { CoastChoice } from '@/game/state';
 import type { BuildingKind } from '@/town/layout';
@@ -362,6 +363,14 @@ export const useGame = create<GameStore>((set, get) => {
     const result: StepResult = { state, events, fogChanged: input.fogChanged };
     emitFog(result.fogChanged);
     const toasts: Toast[] = [];
+    // 名聲升級
+    if (prev && reputationRank(state.reputation).index > reputationRank(prev.reputation).index) {
+      toasts.push({
+        id: ++toastSeq,
+        text: `名聲提升：「${reputationRank(state.reputation).title}」！各港商人會給你更好的價錢。`,
+        kind: 'success',
+      });
+    }
     const modals: Modal[] = [];
     let selectedPortId = get().selectedPortId;
     for (const e of result.events)

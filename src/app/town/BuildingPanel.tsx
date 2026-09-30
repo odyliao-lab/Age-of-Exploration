@@ -19,12 +19,14 @@ import {
   rumorsAt,
   shipyardOffers,
   availableContracts,
+  standing,
   upgradeOffers,
   myShip,
   unreportedFinds,
 } from '@/game/state';
 import { PROFESSIONS } from '@/game/progression';
 import { MAX_CONTRACTS } from '@/game/contracts';
+import { CONTRACT_BONUS_PER_RANK } from '@/game/reputation';
 import { repairCost, resupplyCost } from '@/game/ship';
 import { distanceKm } from '@/geo/geo';
 import { stormRiskAt, windAt } from '@/game/environment';
@@ -232,7 +234,8 @@ function Contracts() {
                   運來 {world.codex.get(c.good)?.name} {c.qty} 擔
                 </strong>
                 <div className="meta">
-                  酬勞 {c.reward} 金幣・期限還有 {Math.max(0, Math.ceil(c.due - game.day))} 天
+                  酬勞 {Math.round(c.reward * (1 + CONTRACT_BONUS_PER_RANK * standing(game)))}{' '}
+                  金幣・期限還有 {Math.max(0, Math.ceil(c.due - game.day))} 天
                   {sources.length > 0 && `・你去過的產地：${sources.join('、')}`}
                 </div>
                 <button type="button" disabled={full} onClick={() => take(c.id)}>

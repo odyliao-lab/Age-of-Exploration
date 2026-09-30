@@ -20,6 +20,7 @@ import {
   type GameState,
 } from './state';
 import { contentForTests } from './testContent';
+import { reputationRank } from './reputation';
 import { createEvent, type EventContext } from './events';
 import { buildWorld } from './world';
 
@@ -232,5 +233,18 @@ describe('quest deliveries come before commissions', () => {
     expect(r.state.quests['tf-r15-porcelain'].step).toBe(2);
     expect(r.state.contracts).toHaveLength(1);
     expect(r.state.cargo.porcelain).toBeUndefined();
+  });
+});
+
+describe('reputation', () => {
+  it('ranks up with reputation and gets better prices', () => {
+    expect(reputationRank(0).title).toBe('無名小卒');
+    expect(reputationRank(29).index).toBe(0);
+    expect(reputationRank(30).index).toBe(1);
+    expect(reputationRank(500)).toMatchObject({ title: '海上傳奇', next: null });
+    const plain = quote(ports, port('quanzhou'), 'silk', {}, 0);
+    const famous = quote(ports, port('quanzhou'), 'silk', {}, 0, 3);
+    expect(famous.buy!).toBeLessThan(plain.buy!);
+    expect(famous.sell).toBeGreaterThan(plain.sell);
   });
 });

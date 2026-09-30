@@ -113,6 +113,7 @@ import { isLand } from '@/geo/landmask';
 import type { World } from './world';
 import { crewTalk, type SeaSight } from './crewTalk';
 import { contractOffers, MAX_CONTRACTS, type Contract } from './contracts';
+import { CONTRACT_BONUS_PER_RANK, reputationRank } from './reputation';
 import {
   HAIL_KM,
   MAX_FLEETS,
@@ -1573,12 +1574,17 @@ export function cargoCapacity(state: GameState): number {
 export { cargoUsed };
 
 /** 港口市場的報價：這裡的特產可以買，所有貨物都可以賣 */
+/** 名聲等級（影響買賣價格與委託酬勞） */
+export function standing(state: GameState): number {
+  return reputationRank(state.reputation).index;
+}
+
 export function marketQuotes(world: World, state: GameState, portId: string): Quote[] {
   const port = world.ports.get(portId);
   if (!port) return [];
   return Object.keys(GOODS_PRICE)
     .filter((g) => world.codex.has(g))
-    .map((g) => quote(world.content.ports, port, g, state.market, state.day));
+    .map((g) => quote(world.content.ports, port, g, state.market, state.day, standing(state)));
 }
 
 export interface TradeResult {
@@ -1594,7 +1600,16 @@ export interface TradeResult {
 export function tradeBuy(world: World, state: GameState, good: string, qty: number): TradeResult {
   const port = state.dockedAt ? world.ports.get(state.dockedAt) : null;
   if (!port) return { state, qty: 0, amount: 0, profit: 0 };
-  const r = buyGoods(world.content.ports, port, state, good, qty, cargoCapacity(state), state.day);
+  const r = buyGoods(
+    world.content.ports,
+    port,
+    state,
+    good,
+    qty,
+    cargoCapacity(state),
+    state.day,
+    standing(state),
+  );
   if (!r.bought) return { state, qty: 0, amount: 0, profit: 0 };
   return {
     state: { ...state, gold: r.gold, cargo: r.cargo, market: r.market },
@@ -1607,7 +1622,7 @@ export function tradeBuy(world: World, state: GameState, good: string, qty: numb
 export function tradeSell(world: World, state: GameState, good: string, qty: number): TradeResult {
   const port = state.dockedAt ? world.ports.get(state.dockedAt) : null;
   if (!port) return { state, qty: 0, amount: 0, profit: 0 };
-  const r = sellGoods(world.content.ports, port, state, good, qty, state.day);
+  const r = sellGoods(world.content.ports, port, state, good, qty, state.day, standing(state));
   if (!r.sold) return { state, qty: 0, amount: 0, profit: 0 };
   return {
     state: {
@@ -2604,13 +2619,14 @@ function settleContracts(
       cargo = { ...cargo };
       if (left > 0) cargo[c.good] = { qty: left, cost: (lot.cost * left) / lot.qty };
       else delete cargo[c.good];
-      gold += c.reward;
+      const reward = Math.round(c.reward * (1 + CONTRACT_BONUS_PER_RANK * standing(state)));
+      gold += reward;
       reputation += 2;
       stats = { ...stats, contracts: stats.contracts + 1 };
       done.push(c.id);
       events.push({
         type: 'warning',
-        text: `委託完成！${name} ${c.qty} 擔交給${port}的商人，收到 ${c.reward} 金幣。`,
+        text: `委託完成！${name} ${c.qty} 擔交給${port}的商人，收到 ${reward} 金幣。`,
       });
     } else if (state.day > c.due) {
       done.push(c.id);

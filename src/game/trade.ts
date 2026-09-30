@@ -9,6 +9,7 @@
  */
 import type { Port } from '@/data/schema';
 import { distanceKm } from '@/geo/geo';
+import { PRICE_PER_RANK } from './reputation';
 
 /** 貨物的基準價（每單位金幣）；產地約為基準價的一半多 */
 export const GOODS_PRICE: Record<string, number> = {
@@ -90,14 +91,23 @@ export interface Quote {
   sell: number;
 }
 
-export function quote(ports: Port[], port: Port, good: string, market: Market, day: number): Quote {
+export function quote(
+  ports: Port[],
+  port: Port,
+  good: string,
+  market: Market,
+  day: number,
+  /** 名聲等級：每級買價便宜、賣價提高一點 */
+  standing = 0,
+): Quote {
   const b = basePrice(ports, port, good);
   const f = Math.min(2.5, Math.max(0.4, 1 + pressureNow(market, port.id, good, day)));
+  const k = PRICE_PER_RANK * standing;
   // 買價略高於賣價（商人要賺一點）
   return {
     good,
-    buy: port.goods.includes(good) ? Math.max(1, Math.round(b * f * 1.08)) : null,
-    sell: Math.max(1, Math.round(b * f * 0.92)),
+    buy: port.goods.includes(good) ? Math.max(1, Math.round(b * f * 1.08 * (1 - k))) : null,
+    sell: Math.max(1, Math.round(b * f * 0.92 * (1 + k))),
   };
 }
 
@@ -125,13 +135,14 @@ export function buyGoods(
   qty: number,
   capacity: number,
   day: number,
+  standing = 0,
 ): TradeState & { bought: number; spent: number } {
   let { gold, market } = t;
   let bought = 0;
   let spent = 0;
   let room = capacity - cargoUsed(t.cargo);
   while (bought < qty && room > 0) {
-    const q = quote(ports, port, good, market, day);
+    const q = quote(ports, port, good, market, day, standing);
     if (q.buy === null || q.buy > gold) break;
     gold -= q.buy;
     spent += q.buy;
@@ -158,6 +169,7 @@ export function sellGoods(
   good: string,
   qty: number,
   day: number,
+  standing = 0,
 ): TradeState & { sold: number; earned: number; profit: number } {
   const lot = t.cargo[good];
   if (!lot || lot.qty <= 0) return { ...t, sold: 0, earned: 0, profit: 0 };
@@ -165,7 +177,7 @@ export function sellGoods(
   const n = Math.min(qty, lot.qty);
   let earned = 0;
   for (let i = 0; i < n; i++) {
-    const q = quote(ports, port, good, market, day);
+    const q = quote(ports, port, good, market, day, standing);
     gold += q.sell;
     earned += q.sell;
     market = push(market, port.id, good, day, -PRESSURE_PER_UNIT);
