@@ -37,9 +37,50 @@ interface Palette {
   makuti?: boolean;
   /** 樹林裡夾雜猴麵包樹 */
   baobab?: boolean;
+  /** 全部建築都是茅草屋頂（西非） */
+  thatchAll?: boolean;
+  /** 教堂：鐘樓與十字架（伊比利半島） */
+  church?: boolean;
 }
 
 export const PALETTES: Record<Culture, Palette> = {
+  iberia: {
+    ground: '#d9c7a0',
+    groundDot: '#c4b087',
+    road: '#cfc6b5',
+    roadLine: '#a89f8d',
+    wall: '#f6f2ea',
+    wallShade: '#cfc7b6',
+    roof: '#c0603a',
+    roofLine: '#9a4428',
+    ridge: '#7a3420',
+    temple: '#b8573a',
+    office: '#a84e33',
+    leaf: '#6f8a4a',
+    leafDark: '#526b34',
+    trunk: '#6b5a3a',
+    palm: false,
+    church: true,
+  },
+  westafrica: {
+    ground: '#c99a64',
+    groundDot: '#b3844f',
+    road: '#bf9564',
+    roadLine: '#a37a4b',
+    wall: '#b9794a',
+    wallShade: '#94592f',
+    roof: '#b89455',
+    roofLine: '#8f6c33',
+    ridge: '#6f5226',
+    temple: '#a8834c',
+    office: '#b89455',
+    leaf: '#3f8a4a',
+    leafDark: '#2c6a36',
+    trunk: '#8a6a3a',
+    palm: true,
+    baobab: true,
+    thatchAll: true,
+  },
   southasia: {
     ground: '#d4b37a',
     groundDot: '#bf9a5e',
@@ -267,7 +308,7 @@ function drawBuilding(ctx: Ctx, b: Building, p: Palette, culture: Culture) {
   const y = b.y * TILE;
   const w = b.w * TILE;
   const h = b.h * TILE;
-  const thatched = p.makuti && ['tavern', 'market', 'shipyard'].includes(b.kind);
+  const thatched = p.thatchAll || (p.makuti && ['tavern', 'market', 'shipyard'].includes(b.kind));
   const roofColor = thatched
     ? '#a8834c'
     : b.kind === 'temple'
@@ -279,11 +320,12 @@ function drawBuilding(ctx: Ctx, b: Building, p: Palette, culture: Culture) {
   const roofH = h - wallH + 4;
 
   // 牆面（正面）
-  const wall = b.kind === 'office' || b.kind === 'academy' ? '#eee4d2' : p.wall;
+  const wall = (b.kind === 'office' || b.kind === 'academy') && !p.thatchAll ? '#eee4d2' : p.wall;
   px(ctx, x + 1, y + h - wallH, w - 2, wallH, wall);
   px(ctx, x + 1, y + h - 2, w - 2, 2, p.wallShade);
   // 柱子
-  const pillar = b.kind === 'temple' || b.kind === 'office' ? '#a8322a' : p.wallShade;
+  const pillar =
+    (b.kind === 'temple' || b.kind === 'office') && !p.thatchAll ? '#a8322a' : p.wallShade;
   for (let c = x + 3; c < x + w - 3; c += 16) px(ctx, c, y + h - wallH, 2, wallH - 2, pillar);
   // 窗戶
   for (let c = x + 8; c < x + w - 8; c += 16) {
@@ -347,8 +389,17 @@ function drawBuilding(ctx: Ctx, b: Building, p: Palette, culture: Culture) {
       px(ctx, x + w - 1, ridgeY - 3, 3, 2, p.ridge);
       px(ctx, x + w + 1, ridgeY - 5, 2, 2, p.ridge);
     }
-    // 廟宇屋脊上的金色裝飾
-    if (b.kind === 'temple') {
+    // 教堂：屋頂一側的鐘樓，塔頂有十字架
+    if (b.kind === 'temple' && p.church) {
+      const tx0 = x + w - 22;
+      px(ctx, tx0, ry - 20, 14, roofH + 20, p.wall);
+      px(ctx, tx0, ry - 20, 14, 2, p.wallShade);
+      px(ctx, tx0 + 4, ry - 14, 6, 7, '#3a2a1c');
+      px(ctx, tx0 + 6, ry - 12, 2, 3, '#c9a13a');
+      px(ctx, tx0 - 1, ry - 24, 16, 4, p.roof);
+      px(ctx, tx0 + 6, ry - 33, 2, 9, '#3a2414');
+      px(ctx, tx0 + 3, ry - 30, 8, 2, '#3a2414');
+    } else if (b.kind === 'temple' && !thatched) {
       const ridgeY = ry + Math.floor(roofH / 2) - 1;
       px(ctx, x + w / 2 - 3, ridgeY - 4, 6, 4, '#e0b94a');
       px(ctx, x + w / 2 - 1, ridgeY - 6, 2, 2, '#e0b94a');
@@ -512,7 +563,24 @@ export function drawLocalBoat(ctx: Ctx, culture: Culture, x: number, y0: number,
     px(ctx, x + 16, y + 1, 10, 10, '#e0c080');
     return;
   }
-  const arab = culture === 'arabia' || culture === 'swahili' || culture === 'southasia';
+  if (culture === 'westafrica') {
+    // 獨木舟：一整根樹幹挖成的細長小船，幾個人一起划槳
+    px(ctx, x + 2, y + 6, 36, 5, '#6b4426');
+    px(ctx, x + 38, y + 7, 3, 3, '#6b4426');
+    px(ctx, x + 4, y + 7, 32, 2, '#3a2414');
+    for (let k = 0; k < 3; k++) {
+      const rx = x + 9 + k * 10;
+      px(ctx, rx, y + 2, 3, 4, '#4e321f');
+      px(ctx, rx - 2, y + 10, 1, 5, '#8a6a3a');
+    }
+    return;
+  }
+  // 阿拉伯、斯瓦希里、南亞的三角帆船；葡萄牙的卡拉維爾帆船也掛三角帆
+  const arab =
+    culture === 'arabia' ||
+    culture === 'swahili' ||
+    culture === 'southasia' ||
+    culture === 'iberia';
   const hull = arab ? '#9a6a3a' : '#6b3f1f';
   px(ctx, x, y + 2, 36, 12, hull);
   // 尖尖的船頭

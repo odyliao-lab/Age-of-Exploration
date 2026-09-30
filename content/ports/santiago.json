@@ -1,0 +1,19 @@
+{
+  "id": "santiago",
+  "name": "大里貝拉（聖地牙哥島）",
+  "name_en": "Ribeira Grande (Santiago)",
+  "historical_names": ["Cidade Velha"],
+  "country": "維德角",
+  "country_en": "Cape Verde",
+  "region": "west-africa",
+  "location": [-23.6, 14.92],
+  "kind": "port",
+  "goods": ["salt"],
+  "climate": "熱帶沙漠氣候",
+  "blurb": "維德角群島聖地牙哥島上的港口，1460 年代開始有葡萄牙人定居，是往返非洲與大西洋的船隻補給淡水的中途站。",
+  "sights": [],
+  "gossip": [
+    "這些島雖然叫「綠角」，其實乾得很，要看雨季下得多不多。",
+    "附近幾座平坦的島上有天然的鹽田，船員常來裝鹽。"
+  ]
+}

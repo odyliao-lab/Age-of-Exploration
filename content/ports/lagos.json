@@ -1,0 +1,19 @@
+{
+  "id": "lagos",
+  "name": "拉哥斯",
+  "name_en": "Lagos",
+  "historical_names": [],
+  "country": "葡萄牙",
+  "country_en": "Portugal",
+  "region": "iberian-atlantic",
+  "location": [-8.67, 37.1],
+  "kind": "port",
+  "goods": ["salt"],
+  "climate": "地中海型氣候",
+  "blurb": "葡萄牙南部阿爾加維海岸的港口，離歐洲西南角的聖文森角不遠。早年往非洲探險的船隊，很多都從這裡出發。",
+  "sights": ["cape-st-vincent"],
+  "gossip": [
+    "從這裡往西一點就是聖文森角，古人以為那是世界的盡頭。",
+    "海邊的鹽田曬出白花花的鹽，醃魚、保存食物都靠它。"
+  ]
+}

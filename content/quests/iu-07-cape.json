@@ -1,0 +1,60 @@
+{
+  "id": "iu-07-cape",
+  "title": "風暴之角",
+  "scenario": "into-the-unknown",
+  "chapter": 3,
+  "tier": 3,
+  "kind": "main",
+  "giver_port": "mpinda",
+  "objectives": [
+    {
+      "domain": "B",
+      "text": "能找到非洲的最南端。"
+    },
+    {
+      "domain": "D",
+      "text": "能說明繞過非洲南端要利用西風帶。"
+    }
+  ],
+  "prerequisites": ["iu-06-equator"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "姆平達的葡萄牙船長",
+      "lines": [
+        "從這裡往南，一路頂著東南信風，沿岸還有往北流的冰冷寒流。貼著海岸走，一天走不了多遠。",
+        "聽說有艘船被暴風吹離海岸，往南漂了十幾天，轉向東再往北，竟然發現陸地在船的左手邊——他們已經繞過非洲的盡頭了！",
+        "你也試試：往南開進大海，找到往東吹的西風，再繞回來。"
+      ]
+    },
+    {
+      "type": "discover",
+      "target": "cape-of-good-hope"
+    },
+    {
+      "type": "navigate",
+      "target": "mozambique",
+      "hint_level": 3,
+      "text": "線索：繞過非洲南端後沿東岸往北，季風區邊緣一座斯瓦希里商人的小島。"
+    },
+    {
+      "type": "quiz",
+      "question": "非洲南端原本被叫做「風暴角」，後來葡萄牙國王改了什麼名字？為什麼？",
+      "choices": [
+        "「好望角」——因為繞過它，就有希望到達印度",
+        "「黃金角」——因為那裡產黃金",
+        "「冰雪角」——因為那裡終年積雪",
+        "「無風角」——因為那裡從來不起風"
+      ],
+      "answer": 0,
+      "explanation": "迪亞士在 1488 年繞過非洲南端，因為風浪險惡叫它「風暴角」；國王若昂二世認為繞過這裡就有希望到達印度，改名為「好望角」。其實非洲大陸最南端是東南方的厄加勒斯角。"
+    }
+  ],
+  "reward": {
+    "xp": 320,
+    "gold": 420,
+    "reputation": 25,
+    "unlock_ports": ["mozambique"],
+    "codex": []
+  }
+}

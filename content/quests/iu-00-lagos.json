@@ -1,0 +1,61 @@
+{
+  "id": "iu-00-lagos",
+  "title": "第一趟航行：歐洲的西南角",
+  "scenario": "into-the-unknown",
+  "chapter": 0,
+  "tier": 0,
+  "kind": "main",
+  "giver_port": "lisbon",
+  "objectives": [
+    {
+      "domain": "A",
+      "text": "能在海圖上找到伊比利半島與歐洲的西南角。"
+    },
+    {
+      "domain": "B",
+      "text": "能說明葡萄牙面向大西洋的地理位置。"
+    }
+  ],
+  "prerequisites": [],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "王室製圖師",
+      "lines": [
+        "你就是新來的見習領航員？很好。國王要的是一條繞過非洲、通往印度的海路，我們得先把海岸一段一段畫出來。",
+        "第一趟先到南邊的拉哥斯。出了太加斯河口往南，會經過歐洲大陸的西南角——古人以為那裡就是世界的盡頭。"
+      ]
+    },
+    {
+      "type": "locate",
+      "prompt": "出發前先考考你：請在海圖上點出歐洲大陸的西南角。",
+      "target": [-8.99, 37.02],
+      "tolerance_km": 120,
+      "explanation": "那是聖文森角，歐洲大陸的西南角。葡萄牙的東邊和北邊都被卡斯提亞王國包圍，只有西邊和南邊面對大西洋，往海上發展是它最自然的出路。"
+    },
+    {
+      "type": "navigate",
+      "target": "lagos",
+      "hint_level": 1
+    },
+    {
+      "type": "quiz",
+      "question": "葡萄牙為什麼會成為最早往大西洋南方探險的國家之一？",
+      "choices": [
+        "國土面向大西洋，陸上又被鄰國包圍，只能往海上發展",
+        "因為葡萄牙在赤道上",
+        "因為葡萄牙沒有海岸",
+        "因為葡萄牙離印度最近"
+      ],
+      "answer": 0,
+      "explanation": "葡萄牙位在伊比利半島西部，長長的海岸線面對大西洋，陸地上被卡斯提亞包圍。從十五世紀初開始，葡萄牙王室便支持船隊沿著非洲海岸往南探索。"
+    }
+  ],
+  "reward": {
+    "xp": 50,
+    "gold": 100,
+    "reputation": 5,
+    "unlock_ports": ["lagos"],
+    "codex": ["cape-st-vincent"]
+  }
+}

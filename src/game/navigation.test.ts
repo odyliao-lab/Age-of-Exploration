@@ -292,9 +292,10 @@ describe('envoy ships', () => {
     expect(greetEnvoy(world, r.state, 7)).toBeNull();
   });
 
-  it('come from every named sea except the imagined far south', () => {
+  it('come from every named sea of the Treasure Fleet except the imagined far south', () => {
+    const tiers = world.scenarios.get('treasure-fleet')!.region_tiers;
     for (const r of world.content.regions) {
-      if (r.id === 'southern-africa') continue;
+      if (r.id === 'southern-africa' || tiers[r.id] === undefined) continue;
       expect(ENVOYS[r.id], r.id).toBeDefined();
     }
   });

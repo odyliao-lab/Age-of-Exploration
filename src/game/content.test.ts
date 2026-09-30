@@ -23,6 +23,7 @@ import {
 } from './state';
 import { contentForTests } from './testContent';
 import { buildWorld } from './world';
+import { distanceKm } from '@/geo/geo';
 
 const world = buildWorld(contentForTests());
 const allHarbors = [...world.harbors.values()];
@@ -139,9 +140,12 @@ describe('Treasure Fleet MVP content', () => {
     expect(world.content.codex.length).toBeGreaterThanOrEqual(40);
   });
 
-  it('can reach every port by sea from home', () => {
-    const home = world.ports.get('quanzhou')!;
+  it('can reach every port by sea from the nearest scenario home', () => {
+    const homes = world.content.scenarios.map((sc) => world.ports.get(sc.home_port)!);
     for (const p of world.content.ports) {
+      const home = homes.reduce((a, b) =>
+        distanceKm(a.location, p.location) <= distanceKm(b.location, p.location) ? a : b,
+      );
       const path = route(home.location, p.location);
       for (let i = 1; i < path.length; i++) {
         expect(checkLeg(path[i - 1], path[i], allHarbors).ok, `${p.id} 第 ${i} 段`).toBe(true);
@@ -224,11 +228,40 @@ describe('historic routes', () => {
     for (const sc of world.content.scenarios) {
       for (const r of sc.historic_routes) {
         for (let k = 1; k < r.ports.length; k++) {
-          const a = world.ports.get(r.ports[k - 1])!.location;
-          const b = world.ports.get(r.ports[k])!.location;
+          const at = (x: string | LonLat) =>
+            typeof x === 'string' ? world.ports.get(x)!.location : x;
+          const a = at(r.ports[k - 1]);
+          const b = at(r.ports[k]);
           expect(findSeaPath(a, b, allHarbors), `${sc.id} ${r.name} 第 ${k} 段`).not.toBeNull();
         }
       }
     }
+  });
+});
+
+describe('Into the Unknown content', () => {
+  it('plays every quest from start to finish', () => {
+    let s = newGame(world, 'into-the-unknown', 2026).state;
+    expect(s.dockedAt).toBe('lisbon');
+    expect(s.shipTypeId).toBe('caravel');
+    expect(s.appearance.hat).toBe('barrete');
+    const remaining = new Set(
+      world.content.quests.filter((q) => q.scenario === 'into-the-unknown').map((q) => q.id),
+    );
+    for (let round = 0; round < 30 && remaining.size; round++) {
+      const ready = [...remaining].filter((id) =>
+        world.quests.get(id)!.prerequisites.every((p) => s.quests[p]?.status === 'completed'),
+      );
+      expect(ready.length, `卡住的任務：${[...remaining].join(', ')}`).toBeGreaterThan(0);
+      for (const id of ready) {
+        s = playQuest(s, id);
+        remaining.delete(id);
+      }
+    }
+    expect(remaining.size).toBe(0);
+    expect(s.visitedPorts).toEqual(
+      expect.arrayContaining(['lisbon', 'elmina', 'malindi', 'calicut']),
+    );
+    expect(s.discovered).toEqual(expect.arrayContaining(['equator', 'cape-of-good-hope']));
   });
 });

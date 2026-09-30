@@ -260,7 +260,8 @@ export const Scenario = z.object({
     .array(
       z.object({
         name: z.string(),
-        ports: z.array(Id).min(2),
+        /** 依序經過的港口 id，或海上的經緯度（例如繞過海角的轉折點） */
+        ports: z.array(z.union([Id, LonLat])).min(2),
       }),
     )
     .default([]),

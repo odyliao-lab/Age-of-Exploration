@@ -5,7 +5,8 @@
  */
 import type { Graphics } from 'pixi.js';
 
-export type PortCulture = 'minnan' | 'ryukyu' | 'nanyang' | 'southasia' | 'arabia' | 'swahili';
+export type PortCulture =
+  'minnan' | 'ryukyu' | 'nanyang' | 'southasia' | 'arabia' | 'swahili' | 'iberia' | 'westafrica';
 
 const INK = 0x3a2414;
 
@@ -78,6 +79,26 @@ export function drawPortIcon(g: Graphics, culture: PortCulture, hub: boolean) {
       // 猴麵包樹
       g.rect(-4, -9, 5, 9).fill({ color: 0x9a7a58 }).stroke({ width: 1, color: INK });
       g.ellipse(-1.5, -12, 6, 3).fill({ color: 0x4f6d2a });
+      break;
+    case 'iberia':
+      // 白牆紅瓦的房子，中間是有十字架的教堂鐘樓
+      house(g, -13, 8, 6, 0xf6f2ea, 0xc0603a);
+      house(g, 5, 8, 6, 0xf6f2ea, 0xc0603a);
+      g.rect(-3, -14, 6, 14).fill({ color: 0xf6f2ea }).stroke({ width: 1, color: INK });
+      g.poly([-4, -14, 0, -18, 4, -14], true)
+        .fill({ color: 0xc0603a })
+        .stroke({ width: 1, color: INK });
+      g.rect(-0.5, -23, 1, 5).fill({ color: INK });
+      g.rect(-2, -21.5, 4, 1).fill({ color: INK });
+      break;
+    case 'westafrica':
+      // 圓形土屋與尖尖的茅草屋頂
+      for (const x of [-12, -3, 6]) {
+        g.rect(x, -5, 7, 5).fill({ color: 0xb9794a }).stroke({ width: 1, color: INK });
+        g.poly([x - 1.5, -5, x + 3.5, -11, x + 8.5, -5], true)
+          .fill({ color: 0xc9a86a })
+          .stroke({ width: 1, color: INK });
+      }
       break;
     case 'arabia':
       flatHouse(g, -13, 8, 6);

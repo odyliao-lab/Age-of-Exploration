@@ -1,0 +1,17 @@
+{
+  "id": "mount-cameroon",
+  "category": "mountain",
+  "name": "喀麥隆火山",
+  "name_en": "Mount Cameroon",
+  "location": [9.0, 3.85],
+  "domains": ["B", "D"],
+  "body": "幾內亞灣東北角的活火山，海拔約 4040 公尺，是西非最高的山，至今仍會噴發。山的西南坡是世界上最多雨的地方之一，一年雨量超過一萬毫米。",
+  "source": "維基百科「喀麥隆火山」條目",
+  "rumor": {
+    "port": "elmina",
+    "from": "划獨木舟的漁夫",
+    "text": "順著海岸往東走，走到海灣最深的地方，有一座高到插進雲裡的大山。夜裡山頂會發出紅光，雨下得比哪裡都多。",
+    "investigate_km": 70
+  },
+  "reviewed": false
+}

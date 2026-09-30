@@ -1,0 +1,12 @@
+{
+  "id": "cape-st-vincent",
+  "category": "landmark",
+  "name": "聖文森角",
+  "name_en": "Cape St. Vincent",
+  "location": [-8.99, 37.02],
+  "discover_radius_km": 60,
+  "domains": ["A", "B"],
+  "body": "歐洲大陸的西南角，高聳的懸崖面對大西洋。古人曾以為這裡是世界的盡頭。附近的薩格里什流傳著亨利王子在此建立「航海學校」的故事，不過現代歷史學家認為並沒有正式的學校，而是他召集了許多航海者與製圖師。",
+  "source": "維基百科「聖文森角」「航海家亨利王子」條目",
+  "reviewed": false
+}

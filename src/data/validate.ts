@@ -143,7 +143,7 @@ export function crossValidate(bundle: ContentBundle): ContentIssue[] {
       issues.push({ file: f, message: `未知的帽子：${s.start_hat}` });
     for (const r of s.historic_routes)
       for (const pid of r.ports)
-        if (!portIds.has(pid))
+        if (typeof pid === 'string' && !portIds.has(pid))
           issues.push({ file: f, message: `歷史航線「${r.name}」含未知港口：${pid}` });
     for (const pid of Object.keys(s.port_names))
       if (!portIds.has(pid)) issues.push({ file: f, message: `port_names 含未知港口：${pid}` });

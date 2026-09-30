@@ -19,6 +19,7 @@ const ARABIC: Greeting = {
   meaning: '願平安與你同在',
 };
 const SWAHILI: Greeting = { phrase: 'Jambo！', lang: '斯瓦希里語', meaning: '你好' };
+const PORTUGUESE: Greeting = { phrase: 'Bom dia！', lang: '葡萄牙語', meaning: '早安、日安' };
 const MALAYALAM: Greeting = {
   phrase: 'Namaskaram！',
   lang: '馬拉雅拉姆語',
@@ -53,9 +54,32 @@ const GREETINGS: Record<string, Greeting> = {
   brava: ARABIC,
   malindi: SWAHILI,
   kilwa: SWAHILI,
+  lisbon: PORTUGUESE,
+  lagos: PORTUGUESE,
+  funchal: PORTUGUESE,
+  santiago: PORTUGUESE,
+  'sao-tome': PORTUGUESE,
+  arguin: ARABIC,
+  elmina: { phrase: 'Akwaaba！', lang: '芳蒂語（阿坎語）', meaning: '歡迎' },
+  mpinda: { phrase: 'Mbote！', lang: '剛果語', meaning: '你好' },
+  mozambique: SWAHILI,
 };
 
 const CULTURE_LINES: Record<Culture, string[]> = {
+  iberia: [
+    '國王一心想找到繞過非洲、通往印度的海路，港口裡天天都在談這件事。',
+    '往南航行的船，得先頂著北風沿非洲海岸走，回程還要繞一個大圈到亞速群島附近，才吹得到往東的西風。',
+    '這裡夏天乾燥炎熱，冬天才下雨，山坡上種滿了橄欖樹和葡萄。',
+    '製圖師把每一艘船帶回來的消息畫進海圖，新的海岸線一年比一年更往南。',
+    '海角上立著刻了國王徽章的石柱，那是我們的船到過那裡的記號。',
+  ],
+  westafrica: [
+    '我們用黃金砂換外國人的布、銅盆和鹽。黃金是從內陸的河邊淘出來的。',
+    '雨季一來，雨下得又大又急；乾季時，從北方沙漠吹來的風帶著滿天的沙塵。',
+    '海浪很大，港外沒有能停大船的地方，要靠獨木舟把貨一趟趟划上岸。',
+    '森林裡有油棕、可樂果和各種藥草，市集上什麼都買得到。',
+    '外國人的船從北方來，他們說要找通往印度的路，可是海岸好像永遠走不完。',
+  ],
   minnan: [
     '冬天吹東北風，船往南洋去；夏天吹西南風，船就回來了。',
     '港裡停滿了福船，尖尖的船底最適合在深海乘風破浪。',

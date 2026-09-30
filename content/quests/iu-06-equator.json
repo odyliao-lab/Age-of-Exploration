@@ -1,0 +1,59 @@
+{
+  "id": "iu-06-equator",
+  "title": "北極星沉入海面",
+  "scenario": "into-the-unknown",
+  "chapter": 2,
+  "tier": 2,
+  "kind": "main",
+  "giver_port": "elmina",
+  "objectives": [
+    {
+      "domain": "A",
+      "text": "能說明越過赤道後看不到北極星。"
+    },
+    {
+      "domain": "B",
+      "text": "能找到剛果河口。"
+    }
+  ],
+  "prerequisites": ["iu-05-mina"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "艾爾米納的葡萄牙領航員",
+      "lines": [
+        "再往南就要越過赤道了。到時候北極星會沉到海平面下，你得改看正午太陽的高度，再查表算緯度。",
+        "剛果河口有剛果王國的港口姆平達，幾年前我們的船在那裡立了刻著國王徽章的石柱。"
+      ]
+    },
+    {
+      "type": "discover",
+      "target": "congo-mouth"
+    },
+    {
+      "type": "navigate",
+      "target": "mpinda",
+      "hint_level": 3,
+      "text": "線索：越過赤道往南，一條大河把混濁的河水推進大海的地方。"
+    },
+    {
+      "type": "quiz",
+      "question": "為什麼越過赤道往南走，就看不到北極星了？",
+      "choices": [
+        "北極星在北天極附近，它的高度約等於緯度；到了南半球就在地平線以下",
+        "因為南半球的天空比較暗",
+        "因為北極星只在冬天出現",
+        "因為赤道上有高山擋住"
+      ],
+      "answer": 0,
+      "explanation": "北極星的仰角約等於所在的緯度：在赤道上它貼著海平面，到了南半球就沉到地平線以下看不見。南半球的航海者改看南十字星，葡萄牙領航員也用正午太陽的高度來算緯度。"
+    }
+  ],
+  "reward": {
+    "xp": 250,
+    "gold": 320,
+    "reputation": 18,
+    "unlock_ports": ["mpinda"],
+    "codex": ["southern-cross", "padrao"]
+  }
+}

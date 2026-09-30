@@ -1,0 +1,8 @@
+{
+  "id": "gulf-of-guinea",
+  "name": "幾內亞灣與剛果河口",
+  "name_en": "Gulf of Guinea & the Congo",
+  "description": "非洲海岸在這裡轉向東方，形成一個大海灣。赤道穿過灣口，天氣炎熱潮濕；再往南，大河剛果河把混濁的河水推進大海好幾十公里。",
+  "center": [4, -4],
+  "bbox": [-5, -18, 16, 8]
+}

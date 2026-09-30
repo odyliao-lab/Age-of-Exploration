@@ -48,6 +48,7 @@ const HAT_COLORS: Record<string, string | null> = {
   futou: '#2b2118',
   douli: '#c9a86a',
   turban: '#f4ecd8',
+  barrete: '#9b2f1f',
   captain: '#2c4a7a',
   feather: '#6b3f1f',
 };
@@ -58,12 +59,26 @@ function playerLook(a: Appearance): PersonLook {
     coat: colorOf(COLORS, a.coat),
     hat: HAT_COLORS[a.hat] ?? null,
     hair: '#2b2118',
-    hatStyle: a.hat === 'turban' ? 'turban' : undefined,
+    hatStyle: a.hat === 'turban' ? 'turban' : a.hat === 'barrete' ? 'cap' : undefined,
   };
 }
 
 /** 各文化圈路人的穿著：衣服顏色、帽子與長袍（服飾也是文化地理） */
 const TOWNSFOLK: Record<Culture, PersonLook[]> = {
+  iberia: [
+    { skin: '#e8c4a0', coat: '#2b2b3a', hat: '#2b2118', hair: '#3a2414', hatStyle: 'cap' },
+    { skin: '#e0b58f', coat: '#7a2e2a', hat: null, hair: '#2b2118', robe: true },
+    { skin: '#e8c4a0', coat: '#4a5a3a', hat: '#6b3f1f', hair: '#3a2414' },
+    { skin: '#d9a57c', coat: '#5a4a7a', hat: null, hair: '#1c1410', robe: true },
+    { skin: '#e8c4a0', coat: '#8a6a3a', hat: '#2b2118', hair: '#3a2414', hatStyle: 'cap' },
+  ],
+  westafrica: [
+    { skin: '#5a3a24', coat: '#c9402c', hat: null, hair: '#1c1410', robe: true },
+    { skin: '#4e321f', coat: '#e0b94a', hat: null, hair: '#1c1410' },
+    { skin: '#5a3a24', coat: '#2f6f5a', hat: '#e0b94a', hair: '#1c1410', hatStyle: 'cap' },
+    { skin: '#63402a', coat: '#6b3f6f', hat: null, hair: '#1c1410', robe: true },
+    { skin: '#4e321f', coat: '#f4ecd8', hat: null, hair: '#1c1410' },
+  ],
   minnan: [
     { skin: '#e0b18a', coat: '#34507e', hat: null, hair: '#2b2118' },
     { skin: '#d9a57c', coat: '#7a5a3a', hat: '#c9a86a', hair: '#2b2118' },

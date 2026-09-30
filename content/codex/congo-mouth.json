@@ -1,0 +1,12 @@
+{
+  "id": "congo-mouth",
+  "category": "river",
+  "name": "剛果河口",
+  "name_en": "Mouth of the Congo",
+  "location": [12.3, -6.0],
+  "discover_radius_km": 100,
+  "domains": ["B", "C"],
+  "body": "剛果河是世界上流量第二大的河，河口寬闊，混濁的河水衝進大西洋，把海水染成褐色。1482 年葡萄牙航海者抵達河口，在岸邊立下刻有國王徽章的石柱「帕德朗」。",
+  "source": "維基百科「剛果河」「迪亞哥·康」條目",
+  "reviewed": false
+}

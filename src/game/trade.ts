@@ -36,6 +36,13 @@ export const GOODS_PRICE: Record<string, number> = {
   myrrh: 42,
   dates: 10,
   ambergris: 95,
+  wine: 20,
+  sugar: 34,
+  salt: 8,
+  'gold-dust': 110,
+  ivory: 70,
+  'gum-arabic': 24,
+  malagueta: 28,
 };
 
 const PRODUCER_FACTOR = 0.55;

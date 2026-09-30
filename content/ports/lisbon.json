@@ -1,0 +1,19 @@
+{
+  "id": "lisbon",
+  "name": "里斯本",
+  "name_en": "Lisbon",
+  "historical_names": ["Olisipo（羅馬時代）"],
+  "country": "葡萄牙",
+  "country_en": "Portugal",
+  "region": "iberian-atlantic",
+  "location": [-9.14, 38.71],
+  "kind": "hub",
+  "goods": ["wine"],
+  "climate": "地中海型氣候",
+  "blurb": "位在太加斯河口的葡萄牙首都。十五世紀，國王在這裡設立商館管理非洲貿易，一艘艘卡拉維爾帆船從河口出發，沿著非洲海岸越走越遠。",
+  "sights": [],
+  "gossip": [
+    "太加斯河口又寬又深，大船可以一直開進城裡。",
+    "聽說國王派了兩路人去找印度：一路走海，一路走陸路去問阿拉伯商人。"
+  ]
+}

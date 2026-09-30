@@ -1,0 +1,59 @@
+{
+  "id": "iu-03-cap-vert",
+  "title": "綠色的海角",
+  "scenario": "into-the-unknown",
+  "chapter": 1,
+  "tier": 1,
+  "kind": "main",
+  "giver_port": "arguin",
+  "objectives": [
+    {
+      "domain": "A",
+      "text": "能找到非洲最西端的維德角。"
+    },
+    {
+      "domain": "D",
+      "text": "能描述從沙漠到熱帶草原的景觀變化。"
+    }
+  ],
+  "prerequisites": ["iu-02-bojador"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "阿爾金的柏柏爾商人",
+      "lines": [
+        "往南再走幾天，沙漠就會慢慢變成草原，海角上長滿綠色的樹。你們的人叫它「綠角」。",
+        "海角外的海上還有一群島，葡萄牙人在那裡蓋了港口。"
+      ]
+    },
+    {
+      "type": "discover",
+      "target": "cap-vert"
+    },
+    {
+      "type": "navigate",
+      "target": "santiago",
+      "hint_level": 2,
+      "text": "線索：非洲最西端的海角再往西，大西洋上的一群火山島。"
+    },
+    {
+      "type": "quiz",
+      "question": "從阿爾金往南航行到維德角，岸上的景色會怎麼變？",
+      "choices": [
+        "從黃沙滿地的沙漠，漸漸變成有草和樹的熱帶草原",
+        "從森林變成冰原",
+        "一直都是沙漠，沒有變化",
+        "從草原變成高山"
+      ],
+      "answer": 0,
+      "explanation": "越往南越接近赤道，夏天的雨帶能到達，雨量增加：撒哈拉沙漠往南變成稀樹草原（薩赫爾、熱帶莽原），再往南就是熱帶雨林。這種依緯度與雨量排列的景觀帶，是非洲地理的特色。"
+    }
+  ],
+  "reward": {
+    "xp": 120,
+    "gold": 180,
+    "reputation": 10,
+    "unlock_ports": ["santiago"],
+    "codex": []
+  }
+}

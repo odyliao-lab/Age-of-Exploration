@@ -48,14 +48,29 @@ interface Npc {
 /** 伊斯蘭文化圈的港口（阿拉伯與斯瓦希里） */
 const islamic = (c: Culture) => c === 'arabia' || c === 'swahili';
 /** 白袍纏頭巾（阿拉伯、斯瓦希里、南亞） */
-const robed = (c: Culture, coat: string, skin: string): PersonLook | null =>
-  islamic(c) || c === 'southasia'
-    ? { skin, coat, hat: '#f4ecd8', hair: '#2b2118', hatStyle: 'turban', robe: true }
-    : null;
+const robed = (c: Culture, coat: string, skin: string): PersonLook | null => {
+  if (islamic(c) || c === 'southasia')
+    return { skin, coat, hat: '#f4ecd8', hair: '#2b2118', hatStyle: 'turban', robe: true };
+  // 葡萄牙：深色外衣、小圓帽
+  if (c === 'iberia')
+    return { skin: '#e8c4a0', coat, hat: '#2b2118', hair: '#3a2414', hatStyle: 'cap' };
+  // 西非：寬大的長袍、不戴帽
+  if (c === 'westafrica') return { skin: '#5a3a24', coat, hat: null, hair: '#1c1410', robe: true };
+  return null;
+};
 
 const NPCS: Record<BuildingKind, (c: Culture) => Npc> = {
   office: (c) => ({
-    name: c === 'nanyang' ? '宮廷書記官' : islamic(c) ? '書記官' : '港口官員',
+    name:
+      c === 'nanyang'
+        ? '宮廷書記官'
+        : islamic(c)
+          ? '書記官'
+          : c === 'iberia'
+            ? '商館書記'
+            : c === 'westafrica'
+              ? '首領的傳令人'
+              : '港口官員',
     look: robed(c, '#34507e', '#c68f63') ?? {
       skin: '#e0b18a',
       coat: '#34507e',
@@ -86,7 +101,11 @@ const NPCS: Record<BuildingKind, (c: Culture) => Npc> = {
   }),
   tavern: (c) => ({
     name:
-      c === 'nanyang' ? '茶棚老闆' : islamic(c) || c === 'southasia' ? '客棧老闆' : '酒館老闆娘',
+      c === 'nanyang'
+        ? '茶棚老闆'
+        : islamic(c) || c === 'southasia' || c === 'westafrica'
+          ? '客棧老闆'
+          : '酒館老闆娘',
     look: robed(c, '#b5482b', '#c68f63') ?? {
       skin: '#e0b18a',
       coat: '#b5482b',
@@ -124,6 +143,20 @@ const TEMPLE: Record<
   Culture,
   { keeper: string; greeting: string; action: string; lesson: string }
 > = {
+  iberia: {
+    keeper: '神父',
+    greeting: '願主保佑遠航的人。出海前，水手們都會來這裡祈禱。',
+    action: '點蠟燭祈福',
+    lesson:
+      '里斯本西邊的貝倫是船隊出發的地方。水手們出海前在海邊的小教堂守夜祈禱，家人在岸邊送行——一趟往非洲南端的航行常常要一兩年，不一定回得來。',
+  },
+  westafrica: {
+    keeper: '祭司',
+    greeting: '祖先的靈看顧著這片土地和海。遠來的客人，請先向他們致意。',
+    action: '獻上祭品祈福',
+    lesson:
+      '西非許多民族相信祖先的靈與自然的力量守護著村落，森林裡保留著不能砍伐的「聖林」。這些聖林也因此保存了許多原生的樹木和動物，像是天然的保護區。',
+  },
   minnan: {
     keeper: '天妃宮廟公',
     greeting: '天妃娘娘（媽祖）是討海人的守護神。出海前上炷香，求個平安吧。',

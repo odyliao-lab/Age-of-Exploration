@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { COLORS, HULL_PAINTS, SAIL_PAINTS, colorOf } from '@/game/cosmetics';
 import type { LonLat } from '@/data/schema';
+import type { World } from '@/game/world';
 import { formatLonLat } from '@/map/projection';
 import { WorldMap, type PortMarker, type RouteView } from '@/map/WorldMap';
 import {
@@ -57,6 +58,11 @@ import { StatusBar } from './panels/StatusBar';
 const HOME_ZOOM = 5;
 /** 親手駕船時的鏡頭：約 4–6 度見方 */
 const SAIL_ZOOM = 30;
+
+/** 歷史航線的一站：港口或海上的一點 */
+function stopAt(world: World, stop: string | LonLat): LonLat {
+  return typeof stop === 'string' ? world.ports.get(stop)!.location : stop;
+}
 
 /** 歷史航線的顏色：朱紅、紫、青、赭 */
 const HISTORY_COLORS = [0x9b2f1f, 0x5b3f8a, 0x1f6b6b, 0x9a6a1a];
@@ -333,8 +339,8 @@ export function MapScreen() {
     return scenario.historic_routes.map((r, i) => {
       const points: LonLat[] = [];
       for (let k = 1; k < r.ports.length; k++) {
-        const a = world.ports.get(r.ports[k - 1])!.location;
-        const b = world.ports.get(r.ports[k])!.location;
+        const a = stopAt(world, r.ports[k - 1]);
+        const b = stopAt(world, r.ports[k]);
         const leg = findSeaPath(a, b, harbors) ?? [a, b];
         points.push(...(points.length ? leg.slice(1) : leg));
       }

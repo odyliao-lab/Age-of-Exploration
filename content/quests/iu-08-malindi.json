@@ -1,0 +1,55 @@
+{
+  "id": "iu-08-malindi",
+  "title": "季風的領航員",
+  "scenario": "into-the-unknown",
+  "chapter": 4,
+  "tier": 3,
+  "kind": "main",
+  "giver_port": "mozambique",
+  "objectives": [
+    {
+      "domain": "D",
+      "text": "知道要橫渡印度洋必須懂得季風。"
+    },
+    {
+      "domain": "E",
+      "text": "知道印度洋早已有成熟的貿易網。"
+    }
+  ],
+  "prerequisites": ["iu-07-cape"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "莫三比克島的斯瓦希里商人",
+      "lines": [
+        "你們從南邊的大海來？真稀奇。這裡的船都是跟著季風往來阿拉伯、印度的。",
+        "想去印度，就往北到馬林迪。那裡的蘇丹歡迎外國船，也找得到熟悉季風的領航員。"
+      ]
+    },
+    {
+      "type": "navigate",
+      "target": "malindi",
+      "hint_level": 3,
+      "text": "線索：沿著東非海岸往北，赤道以南不遠的斯瓦希里城邦。"
+    },
+    {
+      "type": "quiz",
+      "question": "歐洲的船來到東非後，為什麼要在當地找領航員才能橫渡印度洋？",
+      "choices": [
+        "當地領航員熟悉季風的時節與航線，印度洋的貿易網早已運作了好幾百年",
+        "因為歐洲的船沒有帆",
+        "因為印度洋沒有風",
+        "因為領航員會畫地圖給他們帶回歐洲"
+      ],
+      "answer": 0,
+      "explanation": "印度洋的航行全看季風：什麼月份吹什麼風、從哪裡出發最順，阿拉伯、印度、斯瓦希里的航海者早就瞭若指掌。歐洲船隊是加入了一個已經很成熟的海上世界。"
+    }
+  ],
+  "reward": {
+    "xp": 340,
+    "gold": 450,
+    "reputation": 25,
+    "unlock_ports": ["malindi"],
+    "codex": []
+  }
+}

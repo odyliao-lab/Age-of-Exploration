@@ -1,0 +1,58 @@
+{
+  "id": "iu-04-volta",
+  "title": "大迴轉：借風回家",
+  "scenario": "into-the-unknown",
+  "chapter": 1,
+  "tier": 1,
+  "kind": "main",
+  "giver_port": "santiago",
+  "objectives": [
+    {
+      "domain": "D",
+      "text": "能說明「大迴轉」如何利用風帶回航。"
+    },
+    {
+      "domain": "B",
+      "text": "能找到亞速群島。"
+    }
+  ],
+  "prerequisites": ["iu-03-cap-vert"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "聖地牙哥島的老領航員",
+      "lines": [
+        "要回里斯本？沿著海岸往北走可不行，一路都是頂著東北信風和北風。",
+        "先往西北開進大西洋，一直開到亞速群島附近。那裡的風是往東吹的，順著它就能回家。聽起來繞了遠路，其實更快。"
+      ]
+    },
+    {
+      "type": "discover",
+      "target": "azores"
+    },
+    {
+      "type": "navigate",
+      "target": "lisbon",
+      "hint_level": 1
+    },
+    {
+      "type": "quiz",
+      "question": "從維德角回葡萄牙，為什麼要先往西北開到亞速群島附近？",
+      "choices": [
+        "沿岸一路頂風；亞速群島附近是盛行西風帶，能順風往東回家",
+        "因為亞速群島有黃金",
+        "因為沿岸的海水太淺",
+        "因為羅盤在海岸附近會失靈"
+      ],
+      "answer": 0,
+      "explanation": "北緯 30° 以南吹東北信風，沿著非洲海岸往北都是頂風。往西北開到北緯 35°～40° 的亞速群島附近，就進入往東吹的盛行西風帶。這就是葡萄牙人的「大迴轉」：先繞遠路，再借風回家。"
+    }
+  ],
+  "reward": {
+    "xp": 150,
+    "gold": 220,
+    "reputation": 12,
+    "unlock_ports": [],
+    "codex": ["volta-do-mar"]
+  }
+}
