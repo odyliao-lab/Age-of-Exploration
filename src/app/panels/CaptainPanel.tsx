@@ -6,6 +6,7 @@ import { exportSaveJson, importSaveJson } from '@/game/save';
 import { chartedArea, skillStatus } from '@/game/state';
 import { useGame } from '../store';
 import { getSoundSettings, setSoundSettings } from '../sound';
+import { getLargeText, setLargeText } from '../display';
 import {
   COLORS,
   EMBLEMS,
@@ -308,6 +309,29 @@ function SoundSettings() {
           onClick={() => toggle('music')}
         >
           {s.music ? '🎵 音樂：開' : '🎵 音樂：關'}
+        </button>
+      </div>
+      <DisplaySettings />
+    </>
+  );
+}
+
+function DisplaySettings() {
+  const [large, setLarge] = useState(getLargeText());
+  return (
+    <>
+      <h3>文字</h3>
+      <div className="row">
+        <button
+          type="button"
+          aria-pressed={large}
+          className={large ? 'active' : ''}
+          onClick={() => {
+            setLargeText(!large);
+            setLarge(!large);
+          }}
+        >
+          {large ? '🔠 大字：開' : '🔠 大字：關'}
         </button>
       </div>
     </>

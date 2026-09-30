@@ -2093,3 +2093,15 @@ table.market .tag {
   border-radius: 6px;
   background: #fffdf7;
 }
+
+/* 大字模式：以 rem 設定的文字都放大 */
+html.large-text {
+  font-size: 18px;
+}
+/* 大字模式下，舵盤旁的船況改成兩欄，字才不會擠成直的 */
+html.large-text .helm-left .condition.compact {
+  grid-template-columns: repeat(2, 1fr);
+}
+.cond > span:first-child {
+  white-space: nowrap;
+}

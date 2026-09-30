@@ -88,6 +88,8 @@ const completed = (s: AchievementInput) =>
 /** 在海上下錨，而四周大多仍是未探索的迷霧（古地圖上「此處有龍」的地方） */
 function atEdgeOfKnownWorld(s: AchievementInput): boolean {
   if (s.dockedAt || s.voyage) return false;
+  // 要真的航行過一大段，才算走到已知世界的邊緣（剛出港時四周本來就還沒畫）
+  if (s.visitedPorts.length < 6 || exploredAreaKm2(s.fog) < 1_500_000) return false;
   let unknown = 0;
   for (let b = 0; b < 360; b += 45) {
     const [lon, lat] = destinationPoint(s.ship.position, b, 450);

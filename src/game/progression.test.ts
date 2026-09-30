@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { ACHIEVEMENTS } from './achievements';
+import { FOG_COLS, FOG_RES } from './fog';
 import { newCaptain } from './captain';
 import { modifiersFor } from './modifiers';
 import { SHIPS, SKILLS, skillPointsEarned } from './progression';
@@ -7,6 +8,7 @@ import {
   availableCrew,
   buyShip,
   checkAchievements,
+  departPort,
   dismissCrew,
   hireCrew,
   learnSkill,
@@ -158,7 +160,20 @@ describe('achievements', () => {
   });
 
   it('finds the hidden "here be dragons" achievement at the edge of the map', () => {
+    // 剛出港時四周本來就還沒畫，不算
+    const start = departPort(world, fresh());
+    expect(checkAchievements(world, start).state.achievements).not.toContain('here-be-dragons');
+    // 航行過一大段（去過 6 個港口、在印度洋畫出一大片海圖）之後，才算走到已知世界的邊緣
     let s = fresh();
+    const fog = new Uint8Array(s.fog);
+    for (let lat = -10; lat < 20; lat += FOG_RES)
+      for (let lon = 60; lon < 95; lon += FOG_RES)
+        fog[Math.floor((90 - lat) / FOG_RES) * FOG_COLS + Math.floor((lon + 180) / FOG_RES)] = 1;
+    s = {
+      ...s,
+      fog,
+      visitedPorts: ['quanzhou', 'fuzhou', 'guangzhou', 'champa', 'malacca', 'galle'],
+    };
     s = startVoyage(
       s,
       [

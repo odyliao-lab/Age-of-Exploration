@@ -4,6 +4,9 @@ import { App } from './app/App';
 import { unlockAudio } from './app/sound';
 import { initCloud } from './app/cloudSync';
 import './app/styles.css';
+import { applyLargeText } from './app/display';
+
+applyLargeText();
 
 // 瀏覽器要求使用者互動後才能播放聲音
 window.addEventListener('pointerdown', unlockAudio, { once: true });
