@@ -466,7 +466,7 @@ function LooksTab() {
         defaultValue={look.shipName}
         onBlur={(e) => customize({ shipName: e.currentTarget.value })}
         onKeyDown={(e) => {
-          if (e.key === 'Enter') e.currentTarget.blur();
+          if (e.key === 'Enter' && !e.nativeEvent.isComposing) e.currentTarget.blur();
         }}
         aria-label="船名"
       />

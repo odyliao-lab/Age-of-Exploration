@@ -74,8 +74,8 @@ import {
 import { greetingFor } from '@/town/folkTalk';
 import { festivalAt } from '@/town/festivals';
 
-/** 參加節慶提升的士氣 */
-export const FESTIVAL_MORALE = 15;
+/** 參加節慶的收穫：和當地人一起慶祝，學到東西、也交到朋友 */
+export const FESTIVAL_REWARD = { xp: 25, reputation: 3 };
 import { createFog, exploredAreaKm2, exploredFraction, revealAround } from './fog';
 import { newSeed, nextRandom } from './rng';
 import {
@@ -1801,6 +1801,7 @@ export function rivalShipInReach(state: GameState): SeaFleet | null {
       (f) =>
         f.kind === 'rival' &&
         !f.greeted &&
+        !!state.rival.target &&
         distanceKm(f.position, state.ship.position) <= HAIL_KM * 2,
     ) ?? null
   );
@@ -2328,25 +2329,35 @@ function arrive(world: World, state: GameState, portId: string): StepResult {
   for (const g of newGoods) events.push({ type: 'discovered', codexId: g });
   const fogChanged = revealAround(state.fog, port.location, PORT_REVEAL_KM);
   const gift = firstVisit ? mods(world, state).firstVisitGold : 0;
-  // 碰上港口的節慶：船員上岸同樂，士氣大振（每個節慶每年一次）
-  let condition = rest(state.condition);
+  // 碰上港口的節慶：上岸同樂，得到經驗與名聲（每個節慶每年一次）
+  const condition = rest(state.condition);
   let festivalsSeen = state.festivalsSeen;
+  let reputation = state.reputation;
+  let captain = state.captain;
+  let skillPoints = state.skillPoints;
   const date = gameDate(state);
   const festival = festivalAt(portId, date);
   const festivalKey = festival ? `${portId}:${date.year}:${festival.name}` : null;
   if (festival && festivalKey && !festivalsSeen.includes(festivalKey)) {
     festivalsSeen = [...festivalsSeen, festivalKey];
-    condition = { ...condition, morale: Math.min(100, condition.morale + FESTIVAL_MORALE) };
+    reputation += FESTIVAL_REWARD.reputation;
+    const xp = gainXp(state, FESTIVAL_REWARD.xp);
+    captain = xp.captain;
+    skillPoints = xp.skillPoints;
+    events.push(...xp.events);
     events.push({
       type: 'talk',
       speaker: crewSpeaker(world, state),
-      text: `${port.name}正在過${festival.name}！大家上岸湊熱鬧，士氣大振（士氣 +${FESTIVAL_MORALE}）。`,
+      text: `${port.name}正在過${festival.name}！大家上岸和當地人一起慶祝，聽了好多故事（經驗 +${FESTIVAL_REWARD.xp}、名聲 +${FESTIVAL_REWARD.reputation}）。`,
     });
   }
   return {
     state: {
       ...state,
       festivalsSeen,
+      reputation,
+      captain,
+      skillPoints,
       gold: state.gold + gift,
       voyage: null,
       helm: null,

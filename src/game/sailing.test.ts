@@ -37,7 +37,7 @@ import {
   setHelm,
   unreportedFinds,
   tick,
-  FESTIVAL_MORALE,
+  FESTIVAL_REWARD,
   type GameState,
 } from './state';
 import { contentForTests } from './testContent';
@@ -352,14 +352,14 @@ describe('rival captain', () => {
 });
 
 describe('festivals in port', () => {
-  it('cheer the crew up once when you arrive during one', () => {
+  it('reward joining the celebration once when you arrive during one', () => {
     let s = departPort(world, newGame(world, 'treasure-fleet', 1).state);
     // 1406 年 2 月：泉州的元宵節
     s = { ...s, day: 55, condition: { ...s.condition, morale: 40 } };
     s = { ...s, ship: { position: harborEntrance(world, 'quanzhou')!, heading: 0 } };
     const r = enterPort(world, s, 'quanzhou');
     expect(r.state.dockedAt).toBe('quanzhou');
-    expect(r.state.condition.morale).toBeGreaterThanOrEqual(40 + FESTIVAL_MORALE);
+    expect(r.state.reputation).toBe(s.reputation + FESTIVAL_REWARD.reputation);
     expect(r.state.festivalsSeen).toHaveLength(1);
     expect(r.events.some((e) => e.type === 'talk' && e.text.includes('元宵節'))).toBe(true);
     // 同一年再進港不會重複

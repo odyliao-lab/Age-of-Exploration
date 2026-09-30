@@ -25,7 +25,8 @@ export function NoteEditor() {
           value={text}
           onChange={(e) => setText(e.currentTarget.value)}
           onKeyDown={(e) => {
-            if (e.key === 'Enter') save(text);
+            // 輸入法選字時按的 Enter 不算送出
+            if (e.key === 'Enter' && !e.nativeEvent.isComposing) save(text);
           }}
           aria-label="註記內容"
         />
