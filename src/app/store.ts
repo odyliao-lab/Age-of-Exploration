@@ -484,7 +484,7 @@ export const useGame = create<GameStore>((set, get) => {
       const world = baseWorld;
       if (!world) return;
       await deleteSave(scenarioId);
-      const { state } = newGame(world, scenarioId);
+      const { state } = newGame(scenarioWorld(world, scenarioId), scenarioId);
       get().loadGame(state);
       void persist(state);
     },

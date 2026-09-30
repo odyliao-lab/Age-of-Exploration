@@ -197,6 +197,8 @@ describe('Monsoon Merchant content', () => {
     let s = newGame(world, 'monsoon-merchant', 2025).state;
     expect(s.dockedAt).toBe('aden');
     expect(s.shipTypeId).toBe('sewn-dhow');
+    expect(s.appearance.hat).toBe('turban');
+    expect(world.scenarios.get('monsoon-merchant')!.first_voyage_lesson).toContain('西南季風');
     const remaining = new Set(
       world.content.quests.filter((q) => q.scenario === 'monsoon-merchant').map((q) => q.id),
     );
