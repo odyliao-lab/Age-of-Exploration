@@ -1503,7 +1503,7 @@ export function sunSightBlocked(state: GameState): string | null {
   if (!state.helm) return '要在海上才能量太陽';
   if (!isNoon(state.day)) return '要等正午（11～13 點）太陽最高的時候';
   const sun = sunOf(state);
-  if (noonSunAltitude(sun.lat, sun.decl) < 3) return '冬天的北極圈附近，太陽整天都不會升起（永夜）';
+  if (noonSunAltitude(sun.lat, sun.decl) < 0) return '這裡現在是永夜，太陽整天都不會升起';
   if (insideMist(state.mists, state.ship.position)) return '霧太濃，看不到太陽';
   if (state.sunDay === Math.floor(state.day)) return '今天已經量過太陽了';
   return null;
@@ -1866,7 +1866,9 @@ export function marketQuotes(world: World, state: GameState, portId: string): Qu
   const ports = scenarioPorts(world, state);
   const goods = new Set(ports.flatMap((p) => p.goods));
   return Object.keys(GOODS_PRICE)
-    .filter((g) => world.codex.has(g) && (goods.has(g) || port.goods.includes(g)))
+    .filter(
+      (g) => world.codex.has(g) && (goods.has(g) || port.goods.includes(g) || !!state.cargo[g]),
+    )
     .map((g) => quote(ports, port, g, state.market, state.day, standing(state)));
 }
 

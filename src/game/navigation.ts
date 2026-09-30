@@ -100,9 +100,9 @@ export function isNight(day: number, sun?: SunInfo): boolean {
   return sunAltitude(day, sun) < STARS_VISIBLE_BELOW;
 }
 
-/** 第幾個夜晚（每晚只能觀星一次） */
+/** 第幾個夜晚（每晚只能觀星一次）：以正午為界，傍晚到隔天清晨算同一晚 */
 export function nightIndex(day: number): number {
-  return Math.floor((day * 24 + DAY_START_HOUR - 19) / 24);
+  return Math.floor((day * 24 + DAY_START_HOUR - 12) / 24);
 }
 
 /** 畫面用的黑暗程度 0（白天）到 1（深夜），黃昏與黎明漸變；給了太陽的位置時依緯度與季節計算 */
