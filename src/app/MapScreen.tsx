@@ -10,6 +10,7 @@ import {
   positionErrorKm,
   sailingStatus,
   visiblePortIds,
+  gameDate,
 } from '@/game/state';
 import { darkness } from '@/game/navigation';
 import { insideMist, insideStorm } from '@/game/encounters';
@@ -28,6 +29,7 @@ import { BuildingPanel } from './town/BuildingPanel';
 import { cultureOf } from '@/town/layout';
 import { setAmbience } from './sound';
 import { folkLines } from '@/town/folkTalk';
+import { festivalAt } from '@/town/festivals';
 import { QuestTracker } from './panels/QuestTracker';
 import { Toasts } from './panels/Toasts';
 import { DialogueModal, EventModal, QuizModal, RewardModal, StormModal } from './panels/Modals';
@@ -298,6 +300,7 @@ export function MapScreen() {
     !game.helm && !game.voyage && game.dockedAt ? world.ports.get(game.dockedAt) : null;
   const showTown = !!dockedPort && townView && !locating && !planning;
   const culture = dockedPort ? cultureOf(dockedPort.country) : 'minnan';
+  const festival = dockedPort ? festivalAt(dockedPort.id, gameDate(game).month) : null;
 
   // ---- 環境音：海上聽得到浪和風（隨風力變化），港口裡是輕浪和海鷗
   const ambMode = game.helm || game.voyage ? 'sea' : showTown ? 'town' : null;
@@ -336,9 +339,15 @@ export function MapScreen() {
               appearance={game.appearance}
               ship={shipColors}
               returnFrom={lastBuilding}
-              talk={folkLines(dockedPort!.id, culture, dockedPort!.gossip)}
+              talk={folkLines(dockedPort!.id, culture, dockedPort!.gossip, festival?.text)}
+              festival={festival?.decor ?? null}
               onEnter={(kind) => useGame.getState().enterBuilding(kind)}
             />
+            {festival && (
+              <div className="festival-badge">
+                🏮 {dockedPort!.name}正在過{festival.name}！點路人聽聽看。
+              </div>
+            )}
             <div className="town-hint">
               點地面走路，點路人聊天；走到門口進入建築，走到船邊可以補給、出港。
             </div>

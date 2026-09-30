@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { isDebug } from '../debug';
+import { drawFestival, type FestivalDecor } from '@/town/festivals';
 import { COLORS, SKIN_TONES, colorOf, type Appearance } from '@/game/cosmetics';
 import {
   drawGulls,
@@ -85,6 +86,8 @@ interface Props {
   returnFrom: BuildingKind | null;
   /** 點路人時說的話（第一句是當地語言的問候） */
   talk: string[];
+  /** 節慶的裝飾 */
+  festival: FestivalDecor | null;
 }
 
 /** 對話泡泡：最多幾個字換行 */
@@ -98,7 +101,15 @@ function wrapText(text: string, n: number): string[] {
 }
 
 /** 可以走動的港口城鎮：點地面走路，走進門口就進入建築 */
-export function TownView({ culture, appearance, ship, onEnter, returnFrom, talk }: Props) {
+export function TownView({
+  culture,
+  appearance,
+  ship,
+  onEnter,
+  returnFrom,
+  talk,
+  festival,
+}: Props) {
   const hostRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const onEnterRef = useRef(onEnter);
@@ -229,6 +240,7 @@ export function TownView({ culture, appearance, ship, onEnter, returnFrom, talk 
       drawWater(fctx, time);
       const s = shipRef.current;
       drawMooredShip(fctx, s.hull, s.sail, s.flag, time);
+      if (festival) drawFestival(fctx, festival, time);
       if (marker) {
         fctx.strokeStyle = 'rgba(181,72,43,0.9)';
         fctx.lineWidth = 1;
@@ -338,7 +350,7 @@ export function TownView({ culture, appearance, ship, onEnter, returnFrom, talk 
       ro.disconnect();
       canvas.removeEventListener('pointerdown', onPointer);
     };
-  }, [culture, returnFrom]);
+  }, [culture, returnFrom, festival]);
 
   return (
     <div className="town-view" ref={hostRef}>
