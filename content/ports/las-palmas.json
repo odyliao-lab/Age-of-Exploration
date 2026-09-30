@@ -1,0 +1,19 @@
+{
+  "id": "las-palmas",
+  "name": "拉斯帕爾馬斯（大加那利島）",
+  "name_en": "Las Palmas",
+  "historical_names": [],
+  "country": "西班牙（加那利群島）",
+  "country_en": "Spain (Canary Islands)",
+  "region": "iberian-atlantic",
+  "location": [-15.41, 28.13],
+  "kind": "port",
+  "goods": ["sugar"],
+  "climate": "副熱帶沙漠氣候",
+  "blurb": "加那利群島大加那利島上的港口，1478 年由卡斯提亞人建立。往西航行的船在這裡補充淡水、修理船隻，然後乘著東北信風出發。",
+  "sights": [],
+  "gossip": [
+    "從這裡往西，風一直從東北吹過來，可是往回走就難了。",
+    "島上的原住民關切人，已經被卡斯提亞人征服了。"
+  ]
+}

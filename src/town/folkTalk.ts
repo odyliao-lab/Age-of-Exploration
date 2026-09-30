@@ -55,6 +55,8 @@ const GREETINGS: Record<string, Greeting> = {
   malindi: SWAHILI,
   kilwa: SWAHILI,
   lisbon: PORTUGUESE,
+  palos: { phrase: '¡Buenos días!', lang: '西班牙語', meaning: '早安、日安' },
+  'las-palmas': { phrase: '¡Buenos días!', lang: '西班牙語', meaning: '早安、日安' },
   lagos: PORTUGUESE,
   funchal: PORTUGUESE,
   santiago: PORTUGUESE,
@@ -72,6 +74,13 @@ const CULTURE_LINES: Record<Culture, string[]> = {
     '這裡夏天乾燥炎熱，冬天才下雨，山坡上種滿了橄欖樹和葡萄。',
     '製圖師把每一艘船帶回來的消息畫進海圖，新的海岸線一年比一年更往南。',
     '海角上立著刻了國王徽章的石柱，那是我們的船到過那裡的記號。',
+  ],
+  taino: [
+    '我們用樹幹挖成獨木舟，大的可以坐幾十個人，在島和島之間划來划去。',
+    '晚上睡在「哈瑪卡」上——用棉線編的吊床，掛在兩根柱子之間，涼快又不怕地上的蟲。',
+    '我們種樹薯，把有毒的汁擠掉以後烤成薄薄的餅，可以放很久。',
+    '夏末秋初要小心「胡拉坎」，那是會把房子和獨木舟都捲走的大風。',
+    '村子中間的廣場可以玩球賽，也在那裡跳舞、祭祀祖先和精靈。',
   ],
   westafrica: [
     '我們用黃金砂換外國人的布、銅盆和鹽。黃金是從內陸的河邊淘出來的。',

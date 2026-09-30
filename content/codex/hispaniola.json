@@ -1,0 +1,12 @@
+{
+  "id": "hispaniola",
+  "category": "island",
+  "name": "伊斯帕尼奧拉島",
+  "name_en": "Hispaniola",
+  "location": [-71.0, 19.0],
+  "discover_radius_km": 220,
+  "domains": ["B", "E"],
+  "body": "加勒比海第二大島，今天分屬海地與多明尼加兩個國家。島上有高山與肥沃的谷地，泰諾人在這裡建立了好幾個酋長國。歐洲人在島上建立了美洲最早的殖民城市。",
+  "source": "維基百科「伊斯帕尼奧拉島」條目",
+  "reviewed": false
+}

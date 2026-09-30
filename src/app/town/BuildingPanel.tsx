@@ -56,6 +56,9 @@ const robed = (c: Culture, coat: string, skin: string): PersonLook | null => {
     return { skin: '#e8c4a0', coat, hat: '#2b2118', hair: '#3a2414', hatStyle: 'cap' };
   // 西非：寬大的長袍、不戴帽
   if (c === 'westafrica') return { skin: '#5a3a24', coat, hat: null, hair: '#1c1410', robe: true };
+  // 泰諾人：棉布短裙與羽飾
+  if (c === 'taino')
+    return { skin: '#a8714a', coat, hat: '#e0b94a', hair: '#1c1410', hatStyle: 'cap' };
   return null;
 };
 
@@ -103,7 +106,7 @@ const NPCS: Record<BuildingKind, (c: Culture) => Npc> = {
     name:
       c === 'nanyang'
         ? '茶棚老闆'
-        : islamic(c) || c === 'southasia' || c === 'westafrica'
+        : islamic(c) || c === 'southasia' || c === 'westafrica' || c === 'taino'
           ? '客棧老闆'
           : '酒館老闆娘',
     look: robed(c, '#b5482b', '#c68f63') ?? {
@@ -149,6 +152,13 @@ const TEMPLE: Record<
     action: '點蠟燭祈福',
     lesson:
       '里斯本西邊的貝倫是船隊出發的地方。水手們出海前在海邊的小教堂守夜祈禱，家人在岸邊送行——一趟往非洲南端的航行常常要一兩年，不一定回得來。',
+  },
+  taino: {
+    keeper: '貝希克（巫醫）',
+    greeting: '這些石頭和木頭刻的是「澤米」，祖先與大自然的精靈。遠來的客人，請安靜地走進來。',
+    action: '向澤米獻上樹薯餅',
+    lesson:
+      '泰諾人是加勒比海島嶼上的原住民，相信祖先與自然精靈「澤米」守護著村落、作物和天氣。他們的語言留下了許多今天還在用的字：獨木舟（canoa）、吊床（hamaca）、颶風（huracán）。',
   },
   westafrica: {
     keeper: '祭司',

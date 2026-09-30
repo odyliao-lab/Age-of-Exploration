@@ -1,0 +1,19 @@
+{
+  "id": "palos",
+  "name": "帕洛斯",
+  "name_en": "Palos de la Frontera",
+  "historical_names": [],
+  "country": "西班牙",
+  "country_en": "Spain",
+  "region": "iberian-atlantic",
+  "location": [-6.89, 37.23],
+  "kind": "hub",
+  "goods": ["wine"],
+  "climate": "地中海型氣候",
+  "blurb": "西班牙南部、廷托河口的小港，當地的水手熟悉大西洋與非洲沿岸的航路。1492 年 8 月，三艘船從這裡出發往西航行。",
+  "sights": [],
+  "gossip": [
+    "這裡的水手常跟著葡萄牙人跑非洲，對大西洋的風可熟了。",
+    "聽說有個熱那亞來的船長，說往西走就能到印度。大家都說他瘋了。"
+  ]
+}

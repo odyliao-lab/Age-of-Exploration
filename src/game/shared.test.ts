@@ -23,8 +23,9 @@ describe('scenariosFor', () => {
   it('suggests other scenarios that cover a learning domain', async () => {
     const { scenariosFor } = await import('./shared');
     const world = buildWorld(contentForTests());
-    // 只有「航向未知」涵蓋 C（地形與河流、生物）
-    expect(scenariosFor(world, 'C', 'treasure-fleet')).toEqual(['航向未知']);
+    // 東方寶船沒有涵蓋 C（地形與河流、生物），大西洋的劇本才有
+    expect(scenariosFor(world, 'C', 'treasure-fleet')).toContain('航向未知');
+    expect(scenariosFor(world, 'C', 'treasure-fleet')).not.toContain('季風商人');
     expect(scenariosFor(world, 'D', 'treasure-fleet')).toEqual(
       expect.arrayContaining(['季風商人', '航向未知']),
     );

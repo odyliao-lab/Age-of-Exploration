@@ -1,0 +1,16 @@
+{
+  "id": "marien",
+  "name": "馬里恩（伊斯帕尼奧拉島）",
+  "name_en": "Marién (Hispaniola)",
+  "historical_names": [],
+  "country": "海地",
+  "country_en": "Haiti",
+  "region": "caribbean",
+  "location": [-72.2, 19.76],
+  "kind": "port",
+  "goods": ["gold-dust", "cassava"],
+  "climate": "熱帶莽原氣候",
+  "blurb": "伊斯帕尼奧拉島北岸的泰諾人酋長國，由酋長瓜卡納加利統治。1492 年聖誕夜，一艘歐洲大船在附近觸礁沉沒，酋長的族人幫忙把貨物搬上岸。",
+  "sights": [],
+  "gossip": ["河裡淘得到一點點金砂，我們把它打成薄片當裝飾。", "山上雨多，平原上種滿了樹薯和玉米。"]
+}

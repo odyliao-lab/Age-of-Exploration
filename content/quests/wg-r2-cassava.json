@@ -1,0 +1,51 @@
+{
+  "id": "wg-r2-cassava",
+  "title": "樹薯餅",
+  "scenario": "westward-gamble",
+  "chapter": 2,
+  "tier": 2,
+  "kind": "region",
+  "giver_port": "marien",
+  "objectives": [
+    {
+      "domain": "F",
+      "text": "知道樹薯是泰諾人的主食。"
+    },
+    {
+      "domain": "C",
+      "text": "知道有些作物要處理後才能吃。"
+    }
+  ],
+  "prerequisites": ["wg-03-hispaniola"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "馬里恩的泰諾婦人",
+      "lines": [
+        "這是「卡薩貝」，用樹薯烤成的餅，放好幾個月都不會壞。你們的船員航行時可以帶著吃。",
+        "瓜納哈尼的朋友想要一些，幫忙帶 6 擔過去吧。"
+      ]
+    },
+    {
+      "type": "deliver",
+      "good": "cassava",
+      "qty": 6,
+      "target": "guanahani",
+      "text": "在馬里恩或巴拉科阿的市集買樹薯"
+    },
+    {
+      "type": "quiz",
+      "question": "生的樹薯有毒，泰諾人怎麼讓它變得可以吃？",
+      "choices": ["磨碎後把汁液擠掉，再烤熟", "直接生吃", "泡在海水裡一年", "埋在沙子裡"],
+      "answer": 0,
+      "explanation": "苦樹薯含有會產生氰化物的成分。泰諾人把樹薯磨碎、用編織的長筒把汁液擠乾，再烤成薄餅「卡薩貝」。這種處理方法今天在南美洲與非洲還在使用。"
+    }
+  ],
+  "reward": {
+    "xp": 160,
+    "gold": 220,
+    "reputation": 12,
+    "unlock_ports": [],
+    "codex": []
+  }
+}

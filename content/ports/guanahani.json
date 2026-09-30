@@ -1,0 +1,19 @@
+{
+  "id": "guanahani",
+  "name": "瓜納哈尼島",
+  "name_en": "Guanahani (San Salvador)",
+  "historical_names": ["聖薩爾瓦多島"],
+  "country": "巴哈馬",
+  "country_en": "Bahamas",
+  "region": "caribbean",
+  "location": [-74.48, 24.06],
+  "kind": "port",
+  "goods": ["cotton-cloth"],
+  "climate": "熱帶莽原氣候",
+  "blurb": "巴哈馬群島中的一座小島，住著盧卡亞人（泰諾人的一支）。1492 年 10 月 12 日，從歐洲往西航行的船隊在這裡第一次看到陸地。",
+  "sights": [],
+  "gossip": [
+    "我們用棉花織布、做吊床，也拿棉線和客人交換東西。",
+    "島的周圍是一圈珊瑚礁，船要找到缺口才能進來。"
+  ]
+}

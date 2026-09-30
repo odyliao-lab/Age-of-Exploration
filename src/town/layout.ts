@@ -144,7 +144,15 @@ export function destinationFor(
 
 /** 文化圈：決定建築顏色、屋頂、樹與招牌文字 */
 export type Culture =
-  'minnan' | 'nanyang' | 'ryukyu' | 'southasia' | 'arabia' | 'swahili' | 'iberia' | 'westafrica';
+  | 'minnan'
+  | 'nanyang'
+  | 'ryukyu'
+  | 'southasia'
+  | 'arabia'
+  | 'swahili'
+  | 'iberia'
+  | 'westafrica'
+  | 'taino';
 
 export function cultureOf(country: string): Culture {
   // 琉球王國在今日本沖繩
@@ -157,8 +165,10 @@ export function cultureOf(country: string): Culture {
     return 'swahili';
   if (['伊朗', '阿曼', '葉門', '沙烏地', '茅利塔尼亞'].some((c) => country.includes(c)))
     return 'arabia';
-  // 葡萄牙與它在大西洋島嶼上的殖民港口：白牆紅瓦、教堂鐘樓
-  if (['葡萄牙', '維德角', '聖多美'].some((c) => country.includes(c))) return 'iberia';
+  // 伊比利半島（葡萄牙、西班牙）與大西洋島嶼上的殖民港口：白牆紅瓦、教堂鐘樓
+  if (['葡萄牙', '西班牙', '維德角', '聖多美'].some((c) => country.includes(c))) return 'iberia';
+  // 加勒比海的泰諾人村落：圓形茅草屋、獨木舟
+  if (['巴哈馬', '古巴', '海地', '多明尼加'].some((c) => country.includes(c))) return 'taino';
   // 西非與中非的王國：土牆、茅草屋頂
   if (['迦納', '剛果', '安哥拉', '塞內加爾', '甘比亞'].some((c) => country.includes(c)))
     return 'westafrica';
@@ -227,6 +237,15 @@ export const BUILDING_NAMES: Record<Culture, Record<BuildingKind, string>> = {
     tavern: '酒館',
     market: '市集',
     shipyard: '造船廠',
+    dock: '碼頭',
+  },
+  taino: {
+    office: '酋長的大屋',
+    academy: '長老之家',
+    temple: '祭祀之屋',
+    tavern: '歇腳處',
+    market: '交換的廣場',
+    shipyard: '獨木舟工坊',
     dock: '碼頭',
   },
   westafrica: {

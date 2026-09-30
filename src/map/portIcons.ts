@@ -6,7 +6,15 @@
 import type { Graphics } from 'pixi.js';
 
 export type PortCulture =
-  'minnan' | 'ryukyu' | 'nanyang' | 'southasia' | 'arabia' | 'swahili' | 'iberia' | 'westafrica';
+  | 'minnan'
+  | 'ryukyu'
+  | 'nanyang'
+  | 'southasia'
+  | 'arabia'
+  | 'swahili'
+  | 'iberia'
+  | 'westafrica'
+  | 'taino';
 
 const INK = 0x3a2414;
 
@@ -92,7 +100,8 @@ export function drawPortIcon(g: Graphics, culture: PortCulture, hub: boolean) {
       g.rect(-2, -21.5, 4, 1).fill({ color: INK });
       break;
     case 'westafrica':
-      // 圓形土屋與尖尖的茅草屋頂
+    case 'taino':
+      // 圓形土屋（泰諾人的「波伊歐」）與尖尖的茅草屋頂
       for (const x of [-12, -3, 6]) {
         g.rect(x, -5, 7, 5).fill({ color: 0xb9794a }).stroke({ width: 1, color: INK });
         g.poly([x - 1.5, -5, x + 3.5, -11, x + 8.5, -5], true)

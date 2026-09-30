@@ -72,6 +72,13 @@ const TOWNSFOLK: Record<Culture, PersonLook[]> = {
     { skin: '#d9a57c', coat: '#5a4a7a', hat: null, hair: '#1c1410', robe: true },
     { skin: '#e8c4a0', coat: '#8a6a3a', hat: '#2b2118', hair: '#3a2414', hatStyle: 'cap' },
   ],
+  taino: [
+    { skin: '#a8714a', coat: '#c9a86a', hat: null, hair: '#1c1410' },
+    { skin: '#9e6a44', coat: '#e0c080', hat: null, hair: '#1c1410', robe: true },
+    { skin: '#a8714a', coat: '#b5482b', hat: '#e0b94a', hair: '#1c1410', hatStyle: 'cap' },
+    { skin: '#94603f', coat: '#d9c9a0', hat: null, hair: '#1c1410' },
+    { skin: '#a8714a', coat: '#3f7a4a', hat: null, hair: '#1c1410', robe: true },
+  ],
   westafrica: [
     { skin: '#5a3a24', coat: '#c9402c', hat: null, hair: '#1c1410', robe: true },
     { skin: '#4e321f', coat: '#e0b94a', hat: null, hair: '#1c1410' },

@@ -1,0 +1,12 @@
+{
+  "id": "sargasso-sea",
+  "category": "phenomenon",
+  "name": "藻海（馬尾藻海）",
+  "name_en": "Sargasso Sea",
+  "location": [-45.0, 28.0],
+  "discover_radius_km": 700,
+  "domains": ["C", "D"],
+  "body": "北大西洋中央一大片被洋流環繞的平靜海域，海面漂浮著大量金黃色的馬尾藻。它是世界上唯一沒有海岸的「海」。1492 年往西航行的水手看到海草，以為陸地就在附近，其實離陸地還有好幾千公里。",
+  "source": "維基百科「藻海」條目",
+  "reviewed": false
+}

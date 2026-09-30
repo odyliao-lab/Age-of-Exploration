@@ -62,6 +62,24 @@ export const PALETTES: Record<Culture, Palette> = {
     palm: false,
     church: true,
   },
+  taino: {
+    ground: '#dcc494',
+    groundDot: '#c7ad7a',
+    road: '#d2bd90',
+    roadLine: '#b59f72',
+    wall: '#b08a5a',
+    wallShade: '#8a6a40',
+    roof: '#c2a15e',
+    roofLine: '#957637',
+    ridge: '#6f5226',
+    temple: '#b8944f',
+    office: '#c2a15e',
+    leaf: '#3f8a4a',
+    leafDark: '#2c6a36',
+    trunk: '#8a6a3a',
+    palm: true,
+    thatchAll: true,
+  },
   westafrica: {
     ground: '#c99a64',
     groundDot: '#b3844f',
@@ -563,7 +581,7 @@ export function drawLocalBoat(ctx: Ctx, culture: Culture, x: number, y0: number,
     px(ctx, x + 16, y + 1, 10, 10, '#e0c080');
     return;
   }
-  if (culture === 'westafrica') {
+  if (culture === 'westafrica' || culture === 'taino') {
     // 獨木舟：一整根樹幹挖成的細長小船，幾個人一起划槳
     px(ctx, x + 2, y + 6, 36, 5, '#6b4426');
     px(ctx, x + 38, y + 7, 3, 3, '#6b4426');

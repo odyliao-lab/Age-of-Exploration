@@ -43,6 +43,7 @@ export const GOODS_PRICE: Record<string, number> = {
   ivory: 70,
   'gum-arabic': 24,
   malagueta: 28,
+  cassava: 10,
 };
 
 const PRODUCER_FACTOR = 0.55;

@@ -1,0 +1,59 @@
+{
+  "id": "wg-01-trade-winds",
+  "title": "信風之海",
+  "scenario": "westward-gamble",
+  "chapter": 1,
+  "tier": 1,
+  "kind": "main",
+  "giver_port": "las-palmas",
+  "objectives": [
+    {
+      "domain": "D",
+      "text": "能說明東北信風如何幫助船往西航行。"
+    },
+    {
+      "domain": "C",
+      "text": "知道藻海是大西洋中央漂滿海草的海域。"
+    }
+  ],
+  "prerequisites": ["wg-00-palos"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "熱那亞來的船長",
+      "lines": [
+        "船修好了，水也裝滿了。現在沿著北緯 28 度往西，讓東北信風推著我們走。",
+        "水手們要是看到海上漂著海草，一定會以為陸地到了。別高興得太早。"
+      ]
+    },
+    {
+      "type": "discover",
+      "target": "sargasso-sea"
+    },
+    {
+      "type": "navigate",
+      "target": "guanahani",
+      "hint_level": 2,
+      "text": "線索：一直往西，大洋另一邊的一群低矮小島之中，有一座被珊瑚礁圍起來的小島。"
+    },
+    {
+      "type": "quiz",
+      "question": "為什麼從加那利群島往西航行，一路幾乎都是順風？",
+      "choices": [
+        "北緯 15°～30° 終年吹東北信風，風從東北往西南吹",
+        "因為大西洋沒有風，只靠划槳",
+        "因為地球自轉把船往西推",
+        "因為西邊的海比較低"
+      ],
+      "answer": 0,
+      "explanation": "赤道附近熱空氣上升，副熱帶高壓帶的空氣就往赤道流，受到地球自轉影響偏成東北風，叫做東北信風。往西航行的帆船一路順風，這條航線後來被稱為「信風航道」。"
+    }
+  ],
+  "reward": {
+    "xp": 150,
+    "gold": 200,
+    "reputation": 12,
+    "unlock_ports": ["guanahani"],
+    "codex": []
+  }
+}

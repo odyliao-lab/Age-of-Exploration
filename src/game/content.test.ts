@@ -265,3 +265,26 @@ describe('Into the Unknown content', () => {
     expect(s.discovered).toEqual(expect.arrayContaining(['equator', 'cape-of-good-hope']));
   });
 });
+
+describe('Westward Gamble content', () => {
+  it('plays every quest from start to finish', () => {
+    let s = newGame(world, 'westward-gamble', 1492).state;
+    expect(s.dockedAt).toBe('palos');
+    const remaining = new Set(
+      world.content.quests.filter((q) => q.scenario === 'westward-gamble').map((q) => q.id),
+    );
+    for (let round = 0; round < 30 && remaining.size; round++) {
+      const ready = [...remaining].filter((id) =>
+        world.quests.get(id)!.prerequisites.every((p) => s.quests[p]?.status === 'completed'),
+      );
+      expect(ready.length, `卡住的任務：${[...remaining].join(', ')}`).toBeGreaterThan(0);
+      for (const id of ready) {
+        s = playQuest(s, id);
+        remaining.delete(id);
+      }
+    }
+    expect(remaining.size).toBe(0);
+    expect(s.visitedPorts).toEqual(expect.arrayContaining(['palos', 'guanahani', 'marien']));
+    expect(s.discovered).toEqual(expect.arrayContaining(['sargasso-sea', 'columbian-exchange']));
+  });
+});
