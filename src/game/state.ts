@@ -1611,16 +1611,13 @@ export function fetchWater(
   const desert = desertCoastAt(state.ship.position);
   const cap = myShip(state).supplyDays;
   const sup = state.condition.supplies;
-  let next: GameState = { ...state, waterDay: state.day };
-  if (!desert) {
-    next = {
-      ...next,
-      condition: {
-        ...state.condition,
-        supplies: { ...sup, water: Math.min(cap, sup.water + WATER_FETCH_DAYS) },
-      },
-    };
-  }
+  const water = desert ? sup.water : Math.min(cap, sup.water + WATER_FETCH_DAYS);
+  const gained = Math.round(water - sup.water);
+  let next: GameState = {
+    ...state,
+    waterDay: state.day,
+    condition: { ...state.condition, supplies: { ...sup, water } },
+  };
   let lesson: string | null = null;
   const key = desert ? 'water-desert' : 'water';
   if (!state.hinted.includes(key)) {
@@ -1634,7 +1631,9 @@ export function fetchWater(
     found: !desert,
     text: desert
       ? '小艇在岸邊找了一整天，只看到黃沙和乾河床，一滴淡水也沒有。'
-      : `小艇找到一條流進海裡的小河，把水桶全裝滿了。（淡水 +${WATER_FETCH_DAYS} 天）`,
+      : water >= cap
+        ? `小艇找到一條流進海裡的小河，把水桶全裝滿了。（淡水 +${gained} 天）`
+        : `小艇找到一條流進海裡的小河，運回好幾桶淡水。（淡水 +${gained} 天）`,
     lesson,
   };
 }
