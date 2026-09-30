@@ -275,6 +275,8 @@ export interface GameState {
   nav: NavFix;
   /** 上次觀星是第幾個夜晚（每晚一次） */
   starNight: number;
+  /** 上次觀星的時刻（永夜時以正午為界的「晚上」不可靠，至少隔半天） */
+  starDay: number;
   /** 上次正午量太陽的遊戲日 */
   sunDay: number;
   /** 上次看岸形定位是第幾天（每天一次） */
@@ -416,6 +418,7 @@ export function newGame(world: World, scenarioId: string, seed = newSeed()): Ste
     market: {},
     nav: { day: 0, errorKm: 2 },
     starNight: -1,
+    starDay: -99,
     sunDay: -1,
     coastDay: -1,
     fishDay: -1,
@@ -992,6 +995,8 @@ function seaLife(
     } else if (
       !hinted.includes('water-low') &&
       state.helm &&
+      // 找陸地比較費工：每四分之一天才檢查一次
+      Math.floor(day * 4) !== Math.floor(state.day * 4) &&
       state.condition.supplies.water < myShip(state).supplyDays * 0.3 &&
       !desertCoastAt(state.ship.position) &&
       !fetchWaterBlocked(world, state)
@@ -1401,11 +1406,17 @@ export function greetMerchant(
 // ---------------------------------------------------------------- 看岸形辨位
 
 /** 附近有沒有陸地：在船的四周 10、20、35 公里取樣 */
-function coastNearby(world: World, p: LonLat): boolean {
-  for (const km of [10, 20, 35]) {
-    for (let b = 0; b < 360; b += 30) if (landAt(world, destinationPoint(p, b, km))) return true;
+/** 在幾圈不同距離、每隔幾度的方位上找陸地（看岸形、上岸取水共用） */
+function landInRings(world: World, p: LonLat, radiiKm: number[], stepDeg: number): boolean {
+  for (const km of radiiKm) {
+    for (let b = 0; b < 360; b += stepDeg)
+      if (landAt(world, destinationPoint(p, b, km))) return true;
   }
   return false;
+}
+
+function coastNearby(world: World, p: LonLat): boolean {
+  return landInRings(world, p, [10, 20, 35], 30);
 }
 
 /** 為什麼現在不能看岸形（可以時回傳 null） */
@@ -1502,8 +1513,6 @@ export function sunSightBlocked(state: GameState): string | null {
   if (!isNoon(state.day)) return '要等正午（11～13 點）太陽最高的時候';
   const sun = sunOf(state);
   if (noonSunAltitude(sun.lat, sun.decl) < 0) return '這裡現在是永夜，太陽整天都不會升起';
-  // 看得到北極星、晚上也夠黑的地方，還是用觀星定位
-  if (canSightPolaris(sun.lat) && !isWhiteNight(sun)) return '這裡晚上看得到北極星，用觀星定位吧';
   if (insideMist(state.mists, state.ship.position)) return '霧太濃，看不到太陽';
   if (state.sunDay === Math.floor(state.day)) return '今天已經量過太陽了';
   return null;
@@ -1528,7 +1537,11 @@ export function sightSun(
   let next: GameState = {
     ...state,
     sunDay: Math.floor(state.day),
-    nav: { day: state.day, errorKm: Math.min(now, SUN_FIX_KM) },
+    // 看得到北極星的地方，觀星比較準；量太陽只當作輔助
+    nav: {
+      day: state.day,
+      errorKm: Math.min(now, canSightPolaris(lat) && !isWhiteNight(sunOf(state)) ? 60 : SUN_FIX_KM),
+    },
     stats: { ...state.stats, sunSights: state.stats.sunSights + 1 },
     captain: xp.captain,
     skillPoints: xp.skillPoints,
@@ -1561,7 +1574,8 @@ export function starSightBlocked(state: GameState): string | null {
   }
   if (insideMist(state.mists, state.ship.position)) return '霧太濃，看不到星星';
   if (!canSightPolaris(state.ship.position[1])) return '北極星太低，貼在海平面上量不準';
-  if (state.starNight === nightIndex(state.day)) return '今晚已經觀星定位過了';
+  if (state.starNight === nightIndex(state.day) || state.day - state.starDay < 0.5)
+    return '今晚已經觀星定位過了';
   return null;
 }
 
@@ -1574,7 +1588,7 @@ export function sightStars(
   if (starSightBlocked(state)) return null;
   const result = judgeSighting(state.ship.position[1], measuredZhi);
   const events: GameEvent[] = [];
-  let next: GameState = { ...state, starNight: nightIndex(state.day) };
+  let next: GameState = { ...state, starNight: nightIndex(state.day), starDay: state.day };
   if (result.quality !== 'miss') {
     const now = positionErrorKm(world, state);
     next = { ...next, nav: { day: state.day, errorKm: Math.min(now, result.errorKm) } };
@@ -1649,10 +1663,8 @@ export function desertCoastAt([lon, lat]: LonLat): boolean {
 
 /** 這個距離內有沒有陸地 */
 function landWithin(world: World, pos: LonLat, km: number): boolean {
-  for (const d of [km / 2, km]) {
-    for (let b = 0; b < 360; b += 45) if (landAt(world, destinationPoint(pos, b, d))) return true;
-  }
-  return false;
+  // 近的圈要密一點，小島和窄窄的岬角才不會漏掉
+  return landInRings(world, pos, [3, 8, 14, km], 22.5);
 }
 
 /** 為什麼現在不能上岸取水；可以時回傳 null */
@@ -2061,8 +2073,15 @@ export function reportFinds(
  * 看誰先回報給學者。贏了有額外獎勵；輸了沒有懲罰，只會被他笑一下。
  */
 /** 這個劇本的對手船長 */
+/** 找不到劇本時（例如匯入了別的版本的存檔）的預設對手 */
+const DEFAULT_RIVAL: Scenario['rival'] = {
+  name: '陸天行',
+  from: '廣州',
+  look: '一位穿著綢緞長袍的年輕船長',
+};
+
 export function rivalOf(world: World, state: GameState): Scenario['rival'] {
-  return world.scenarios.get(state.scenarioId)!.rival;
+  return world.scenarios.get(state.scenarioId)?.rival ?? DEFAULT_RIVAL;
 }
 
 /** 完成這個任務時的劇本結局（沒有則為 null） */
@@ -3141,15 +3160,16 @@ export function dismissCrew(state: GameState, id: string): GameState {
 }
 
 /** 這個劇本航行範圍內的港口（劇本有設定 Tier 的海域） */
-const scenarioPortCache = new WeakMap<World, Map<string, Port[]>>();
+const scenarioPortCache = new WeakMap<World, Map<string, readonly Port[]>>();
 
-export function scenarioPorts(world: World, state: GameState): Port[] {
+/** 這個劇本範圍內的港口（共用的快取陣列，不要就地修改） */
+export function scenarioPorts(world: World, state: GameState): readonly Port[] {
   let cache = scenarioPortCache.get(world);
   if (!cache) scenarioPortCache.set(world, (cache = new Map()));
   const hit = cache.get(state.scenarioId);
   if (hit) return hit;
   const tiers = world.scenarios.get(state.scenarioId)?.region_tiers ?? {};
-  const ports = world.content.ports.filter((p) => tiers[p.region] !== undefined);
+  const ports = Object.freeze(world.content.ports.filter((p) => tiers[p.region] !== undefined));
   cache.set(state.scenarioId, ports);
   return ports;
 }

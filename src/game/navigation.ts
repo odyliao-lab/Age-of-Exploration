@@ -101,15 +101,16 @@ export function isWhiteNight(sun: SunInfo): boolean {
  * 沒給時用一般的晚上 7 點到清晨 5 點。
  */
 export function isNight(day: number, sun?: SunInfo): boolean {
-  if (!sun || solarWeight(sun) === 0) {
+  if (!sun) {
     const h = hourOfDay(day);
     return h >= 19 || h < 5;
   }
-  return darkness(day, sun) >= NIGHT_DARKNESS;
+  // 固定作息在 19:00 與 05:00 剛好是 2/3 的黑暗程度，和高緯度的太陽模型接得起來
+  return darkness(day, sun) >= NIGHT_DARKNESS - 1e-9;
 }
 
-/** 黑暗程度到這裡算天黑（太陽約在地平線下 8°，看得到星星） */
-const NIGHT_DARKNESS = (2 - STARS_VISIBLE_BELOW) / 14;
+/** 黑暗程度到這裡算天黑（太陽約在地平線下 7°～8°，看得到亮星） */
+const NIGHT_DARKNESS = 2 / 3;
 
 /** 第幾個夜晚（每晚只能觀星一次）：以正午為界，傍晚到隔天清晨算同一晚 */
 export function nightIndex(day: number): number {

@@ -47,6 +47,7 @@ export const EMPTY_STATS: AchievementStats = {
 
 /** 判斷成就所需的狀態（state.ts 的 GameState 符合這個介面） */
 export interface AchievementInput {
+  scenarioId: string;
   stats: AchievementStats;
   visitedPorts: string[];
   discovered: string[];
@@ -222,7 +223,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     name: '刺桐之光',
     description: '從阿拉伯海一路航行到中國的泉州（刺桐）',
     category: '探索',
-    check: (s) => s.visitedPorts.includes('aden') && s.visitedPorts.includes('quanzhou'),
+    check: (s) => s.scenarioId === 'monsoon-merchant' && s.visitedPorts.includes('quanzhou'),
   },
   {
     id: 'arctic',

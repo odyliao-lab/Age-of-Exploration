@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useMemo, useRef } from 'react';
 import { compass16 } from '@/geo/geo';
 import { knots, normDeg, type SailSetting } from '@/game/sailing';
 import {
@@ -99,7 +99,10 @@ export function HelmPanel() {
   const night = isNight(game.day, sunOf(game));
   const coastBlocked = coastSightBlocked(world, game);
   const canFish = !fishBlocked(game);
-  const canFetchWater = !fetchWaterBlocked(world, game);
+  // 找附近有沒有陸地要檢查幾十個點：只在位置或冷卻狀態改變時重算
+  const waterKey = `${game.day - game.waterDay < 3}|${game.ship.position[0].toFixed(2)}|${game.ship.position[1].toFixed(2)}`;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const canFetchWater = useMemo(() => !fetchWaterBlocked(world, game), [world, waterKey]);
   const canSightSun = !sunSightBlocked(game);
   const kn = knots(st.motion.speed);
   const sailClass =
