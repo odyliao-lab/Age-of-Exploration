@@ -1521,12 +1521,9 @@ export function goFishing(
   };
   let lesson: string | null = null;
   const key = `fish-${c.ground}`;
-  if (!state.hinted.includes(key) && (c.ground !== 'ocean' || !state.hinted.includes('fishing'))) {
+  if (!state.hinted.includes(key)) {
     lesson = GROUND_LESSON[c.ground];
-    next = {
-      ...next,
-      hinted: [...next.hinted, key, ...(next.hinted.includes('fishing') ? [] : ['fishing'])],
-    };
+    next = { ...next, hinted: [...next.hinted, key] };
   }
   return { state: next, catch: c, lesson };
 }

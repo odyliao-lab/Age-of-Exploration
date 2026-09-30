@@ -63,6 +63,8 @@ export interface AchievementInput {
   rival: { wins: number };
   /** 參加過的節慶（港口:年:節慶名） */
   festivalsSeen: string[];
+  /** 看過的教學提示（撒網的漁場記在 fish-*） */
+  hinted: string[];
 }
 
 export interface AchievementDef {
@@ -366,6 +368,14 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     category: '探索',
     title: '節慶旅人',
     check: (s) => new Set(s.festivalsSeen.map((k) => k.split(':')[0])).size >= 3,
+  },
+  {
+    id: 'fishing-grounds',
+    name: '四方漁場',
+    description: '在 4 種不同的漁場撒網（大陸棚、河口、珊瑚礁、湧升流、近岸、遠洋）',
+    category: '探索',
+    title: '討海人',
+    check: (s) => s.hinted.filter((h) => h.startsWith('fish-')).length >= 4,
   },
   {
     id: 'contracts-5',
