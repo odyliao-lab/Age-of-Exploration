@@ -14,6 +14,7 @@ import {
   gameDate,
   landAt,
   myShip,
+  sunOf,
 } from '@/game/state';
 import { currentAt, windAt } from '@/game/environment';
 import { darkness } from '@/game/navigation';
@@ -276,7 +277,7 @@ export function MapScreen() {
     );
     m.setPositionError(g.helm ? g.ship.position : null, g.helm ? positionErrorKm(world, g) : 0);
     m.setSky(
-      g.helm ? darkness(g.day) : 0,
+      g.helm ? darkness(g.day, sunOf(g)) : 0,
       !!g.helm && !!insideStorm(g.storms, g.ship.position),
       !!g.helm && !!insideMist(g.mists, g.ship.position),
     );
@@ -433,7 +434,7 @@ export function MapScreen() {
                 world.rename,
               )}
               festival={festival?.decor ?? null}
-              darkness={darkness(game.day)}
+              darkness={darkness(game.day, sunOf(game))}
               onEnter={(kind) => useGame.getState().enterBuilding(kind)}
             />
             {festival && (

@@ -19,6 +19,7 @@ import {
   fetchWaterBlocked,
   sunSightBlocked,
   rivalOf,
+  sunOf,
 } from '@/game/state';
 import { isNight, timeLabel } from '@/game/navigation';
 import { useGame } from '../store';
@@ -95,7 +96,7 @@ export function HelmPanel() {
       ? `${ns} ${Math.abs(lat).toFixed(1)}°`
       : `${ns}約 ${Math.max(0, Math.abs(lat) - latSpread).toFixed(1)}°～${(Math.abs(lat) + latSpread).toFixed(1)}°`;
   const starBlocked = starSightBlocked(game);
-  const night = isNight(game.day);
+  const night = isNight(game.day, sunOf(game));
   const coastBlocked = coastSightBlocked(world, game);
   const canFish = !fishBlocked(game);
   const canFetchWater = !fetchWaterBlocked(world, game);
@@ -195,7 +196,7 @@ export function HelmPanel() {
           )}
           {night && !starBlocked && (
             <button type="button" onClick={() => openStargazing(true)}>
-              ✨ 觀星定位（牽星術）
+              ✨ 觀星定位
             </button>
           )}
           {port && (
@@ -248,7 +249,7 @@ export function HelmPanel() {
             </span>
           </div>
           <div className="helm-nav">
-            <span>🕰️ {timeLabel(game.day)}</span>
+            <span>🕰️ {timeLabel(game.day, sunOf(game))}</span>
             <span title="航位推算：沒有定位時，誤差每天累積">
               📍 {latText}
               {errKm > 8 && <span className="meta">（誤差 ±{errKm} 公里）</span>}

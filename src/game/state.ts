@@ -144,6 +144,8 @@ import {
 import {
   canSightPolaris,
   isNight,
+  isWhiteNight,
+  type SunInfo,
   isNoon,
   judgeSighting,
   noonSunAltitude,
@@ -908,7 +910,7 @@ function seaLife(
       events.push({
         type: 'talk',
         speaker: crewSpeaker(world, state),
-        text: stormOmen(storms[0], pos, isNight(day)),
+        text: stormOmen(storms[0], pos, isNight(day, sunOf(state, usedDays))),
       });
     }
   }
@@ -957,7 +959,7 @@ function seaLife(
       position: pos,
       wind: gustyWind(env.wind, pos, day),
       current: env.current,
-      night: isNight(day),
+      night: isNight(day, sunOf(state, usedDays)),
       region,
       lastRegionId,
       openRumors: openRumors(world, state),
@@ -1411,7 +1413,7 @@ function coastNearby(world: World, p: LonLat): boolean {
 /** 為什麼現在不能看岸形（可以時回傳 null） */
 export function coastSightBlocked(world: World, state: GameState): string | null {
   if (!state.helm) return '要在海上才能看岸形';
-  if (isNight(state.day)) return '天黑了看不清海岸，改用牽星術吧';
+  if (isNight(state.day, sunOf(state))) return '天黑了看不清海岸，改用觀星定位吧';
   if (insideMist(state.mists, state.ship.position)) return '霧太濃，看不到海岸';
   if (state.coastDay === Math.floor(state.day)) return '今天已經看過岸形了';
   if (!coastNearby(world, state.ship.position)) return '附近看不到海岸';
@@ -1490,10 +1492,18 @@ export interface StarSighting {
   events: GameEvent[];
 }
 
+/** 船所在位置的太陽：緯度與今天太陽直射的緯度（決定日出日落、白夜與永夜） */
+export function sunOf(state: GameState, extraDays = 0): SunInfo {
+  const d = gameDate(state, extraDays);
+  return { lat: state.ship.position[1], decl: solarDeclination(d.month, d.day) };
+}
+
 /** 為什麼現在不能量正午太陽（可以時回傳 null） */
 export function sunSightBlocked(state: GameState): string | null {
   if (!state.helm) return '要在海上才能量太陽';
   if (!isNoon(state.day)) return '要等正午（11～13 點）太陽最高的時候';
+  const sun = sunOf(state);
+  if (noonSunAltitude(sun.lat, sun.decl) < 3) return '冬天的北極圈附近，太陽整天都不會升起（永夜）';
   if (insideMist(state.mists, state.ship.position)) return '霧太濃，看不到太陽';
   if (state.sunDay === Math.floor(state.day)) return '今天已經量過太陽了';
   return null;
@@ -1540,7 +1550,12 @@ export function sightSun(
 /** 為什麼現在不能觀星（可以時回傳 null） */
 export function starSightBlocked(state: GameState): string | null {
   if (!state.helm) return '要在海上才能觀星定位';
-  if (!isNight(state.day)) return '白天看不到星星，等天黑再觀星';
+  if (!isNight(state.day, sunOf(state))) {
+    const sun = sunOf(state);
+    return isWhiteNight(sun)
+      ? '夏天的高緯度地區，半夜天空還是亮的（白夜），看不到星星'
+      : '白天看不到星星，等天黑再觀星';
+  }
   if (insideMist(state.mists, state.ship.position)) return '霧太濃，看不到星星';
   if (!canSightPolaris(state.ship.position[1])) return '北極星太低，貼在海平面上量不準';
   if (state.starNight === nightIndex(state.day)) return '今晚已經觀星定位過了';
