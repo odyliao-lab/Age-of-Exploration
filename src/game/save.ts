@@ -82,6 +82,7 @@ export function deserialize(data: SerializedSave): GameState {
     routes: data.routes ?? {},
     trail: data.trail ?? [],
     rival: { ...EMPTY_RIVAL, ...data.rival },
+    upgrades: data.upgrades ?? [],
   };
 }
 

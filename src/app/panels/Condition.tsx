@@ -1,9 +1,9 @@
-import { LOW_MORALE, LOW_SUPPLY_DAYS, shipType } from '@/game/ship';
-import type { GameState } from '@/game/state';
+import { LOW_MORALE, LOW_SUPPLY_DAYS } from '@/game/ship';
+import { myShip, type GameState } from '@/game/state';
 
 /** 船況一覽：淡水、糧食、士氣、船體 */
 export function ConditionBars({ game, compact = false }: { game: GameState; compact?: boolean }) {
-  const cap = shipType(game.shipTypeId).supplyDays;
+  const cap = myShip(game).supplyDays;
   const c = game.condition;
   const items = [
     {

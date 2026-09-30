@@ -29,6 +29,20 @@ describe('crew talk', () => {
     expect(crewTalk({ ...base, region, lastRegionId: 'east-china-sea' })).toBeNull();
   });
 
+  it('tags sightings of sea life so the chart can draw them', () => {
+    const seen = new Set<string>();
+    const region = world.regions.get('east-china-sea')!;
+    for (let r = 0; r < 1; r += 0.02) {
+      const t = crewTalk({ ...base, region, lastRegionId: region.id, chatReady: true, roll: r })!;
+      if (t.text.includes('海豚')) expect(t.sight).toBe('dolphins');
+      if (t.text.includes('鯨魚')) expect(t.sight).toBe('whale');
+      if (t.text.includes('季風')) expect(t.sight).toBeUndefined();
+      if (t.sight) seen.add(t.sight);
+    }
+    expect(seen).toContain('dolphins');
+    expect(seen).toContain('whale');
+  });
+
   it('hints the direction of a rumored place without naming it', () => {
     const taiwan = world.codex.get('taiwan')!;
     const t = crewTalk({ ...base, position: [119.6, 23.6], openRumors: [taiwan] })!;

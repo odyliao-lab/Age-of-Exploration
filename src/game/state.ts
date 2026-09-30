@@ -35,7 +35,15 @@ import {
   type ReviewItem,
 } from './learning';
 import type { LearningDomain } from '@/data/schema';
-import { SKILLS, shipDef, skillPointsEarned, type Profession } from './progression';
+import {
+  SKILLS,
+  UPGRADES,
+  shipDef,
+  shipWithUpgrades,
+  skillPointsEarned,
+  type Profession,
+  type ShipDef,
+} from './progression';
 import { dateOf, type GameDate } from './calendar';
 import {
   currentAt,
@@ -98,7 +106,7 @@ import {
 import type { Rig } from './progression';
 import { isLand } from '@/geo/landmask';
 import type { World } from './world';
-import { crewTalk } from './crewTalk';
+import { crewTalk, type SeaSight } from './crewTalk';
 import {
   HAIL_KM,
   MAX_FLEETS,
@@ -207,6 +215,8 @@ export interface GameState {
   /** 劇本開始日期（YYYY-MM-DD），搭配 day 換算月份與季節 */
   startDate: string;
   shipTypeId: string;
+  /** 造船廠的改裝（裝在目前這艘船上） */
+  upgrades: string[];
   condition: ShipCondition;
   /** 最後停泊的港口：沉船時被救回這裡 */
   lastPortId: string;
@@ -298,7 +308,7 @@ export type GameEvent =
   | { type: 'levelUp'; level: number }
   | { type: 'portUnlocked'; portId: string }
   | { type: 'warning'; text: string }
-  | { type: 'talk'; speaker: string; text: string }
+  | { type: 'talk'; speaker: string; text: string; sight?: SeaSight }
   | { type: 'encounter'; encounter: Encounter }
   | { type: 'stormResolved'; choice: StormChoice; hullLoss: number; days: number }
   | { type: 'eventResolved'; effect: EventEffect }
@@ -350,6 +360,7 @@ export function newGame(world: World, scenarioId: string, seed = newSeed()): Ste
     quizLog: [],
     startDate: scenario.start_date,
     shipTypeId: scenario.starting_ship,
+    upgrades: [],
     condition: fullCondition(shipType(scenario.starting_ship)),
     lastPortId: home.id,
     encounter: null,
@@ -398,7 +409,13 @@ export function mods(world: World, state: GameState): Modifiers {
       .map((id) => world.crew.get(id)?.profession)
       .filter((p): p is Profession => !!p),
     shipTypeId: state.shipTypeId,
+    upgrades: state.upgrades,
   });
+}
+
+/** 目前這艘船（含改裝）的數值 */
+export function myShip(state: Pick<GameState, 'shipTypeId' | 'upgrades'>): ShipDef {
+  return shipWithUpgrades(state.shipTypeId, state.upgrades);
 }
 
 /** 不含風與洋流的基礎航速（船型、航海術、技能、船員、船況） */
@@ -872,7 +889,7 @@ function seaLife(
       chatReady: day >= talkDay,
     });
     if (talk) {
-      events.push({ type: 'talk', speaker: talk.speaker, text: talk.text });
+      events.push({ type: 'talk', speaker: talk.speaker, text: talk.text, sight: talk.sight });
       if (talk.region) lastRegionId = talk.region;
       if (talk.hintFor) hinted = [...hinted, talk.hintFor];
       if (talk.chat) talkDay = day + 1.2 + rand() * 1.2;
@@ -1125,7 +1142,7 @@ export function greetMerchant(
   const fleets = state.fleets.map((x) => (x.id === fleetId ? { ...x, greeted: true } : x));
   if (choice === 'supplies') {
     if (state.gold < MERCHANT_SUPPLY_COST) return null;
-    const cap = shipType(state.shipTypeId).supplyDays;
+    const cap = myShip(state).supplyDays;
     const add = (v: number) => Math.min(cap, v + 5);
     return {
       state: {
@@ -1451,7 +1468,7 @@ export function pray(state: GameState): GameState {
 // ---------------------------------------------------------------- 貿易
 
 export function cargoCapacity(state: GameState): number {
-  return shipDef(state.shipTypeId).cargo;
+  return myShip(state).cargo;
 }
 
 export { cargoUsed };
@@ -2101,7 +2118,7 @@ function shipwreck(world: World, state: GameState, cause: StormRisk, month: numb
       encounter: null,
       dockedAt: port.id,
       ship: { position: port.location, heading: state.ship.heading },
-      condition: afterShipwreck(shipType(state.shipTypeId)),
+      condition: afterShipwreck(myShip(state)),
       shipwrecks: state.shipwrecks + 1,
       // 貨物隨船沉沒
       cargo: {},
@@ -2117,7 +2134,7 @@ export function portResupply(world: World, state: GameState): GameState {
   if (!state.dockedAt) return state;
   const { condition, cost } = resupply(
     state.condition,
-    shipType(state.shipTypeId),
+    myShip(state),
     state.gold,
     mods(world, state).price,
   );
@@ -2508,7 +2525,7 @@ export function learnSkill(state: GameState, id: string): GameState {
 }
 
 export function crewSlots(state: GameState): number {
-  return shipDef(state.shipTypeId).crewSlots;
+  return myShip(state).crewSlots;
 }
 
 /** 目前停泊港口的酒館裡可以招募的船員 */
@@ -2568,6 +2585,8 @@ export function buyShip(world: World, state: GameState, id: string): GameState {
   return {
     ...state,
     shipTypeId: id,
+    // 改裝留在舊船上
+    upgrades: [],
     gold: state.gold - offer.cost,
     condition: {
       ...state.condition,
@@ -2578,6 +2597,24 @@ export function buyShip(world: World, state: GameState, id: string): GameState {
       },
     },
   };
+}
+
+/** 造船廠可以做的改裝：主港與一般港口都可以 */
+export function upgradeOffers(world: World, state: GameState) {
+  if (!state.dockedAt) return [];
+  const price = mods(world, state).price;
+  return UPGRADES.map((u) => {
+    const cost = Math.round(u.price * price);
+    const done = state.upgrades.includes(u.id);
+    const reason = done ? '已經改裝' : state.gold < cost ? '金幣不足' : null;
+    return { upgrade: u, cost, done, reason };
+  });
+}
+
+export function buyUpgrade(world: World, state: GameState, id: string): GameState {
+  const offer = upgradeOffers(world, state).find((o) => o.upgrade.id === id);
+  if (!offer || offer.reason) return state;
+  return { ...state, upgrades: [...state.upgrades, id], gold: state.gold - offer.cost };
 }
 
 export function setTitle(state: GameState, achievementId: string | null): GameState {

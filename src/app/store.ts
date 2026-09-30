@@ -19,6 +19,7 @@ import {
   ensureDaily,
   trackDaily,
   buyShip,
+  buyUpgrade,
   departPort,
   chartedArea,
   coastSighting,
@@ -76,6 +77,7 @@ import { play } from './sound';
 import type { World } from '@/game/world';
 import type { Appearance } from '@/game/cosmetics';
 import type { SailSetting } from '@/game/sailing';
+import type { SeaSight } from '@/game/crewTalk';
 import type { SightingResult } from '@/game/navigation';
 import type { CoastChoice } from '@/game/state';
 import type { BuildingKind } from '@/town/layout';
@@ -185,6 +187,8 @@ interface GameStore {
   stargazing: boolean;
   /** 正在看岸形（遊戲暫停）：這次的三個選項 */
   coastSight: CoastChoice[] | null;
+  /** 船員剛看到的海洋生物（海圖上畫在船邊） */
+  seaSight: { kind: SeaSight; key: number } | null;
   /** 剛發現的地點（海圖上放光圈） */
   celebration: { at: LonLat; key: number } | null;
 
@@ -249,6 +253,8 @@ interface GameStore {
   hire: (crewId: string) => void;
   dismiss: (crewId: string) => void;
   buy: (shipId: string) => void;
+  /** 造船廠改裝 */
+  upgradeShip: (id: string) => void;
   chooseTitle: (achievementId: string | null) => void;
   customize: (patch: Partial<Omit<Appearance, 'paints'>>) => void;
   buyPaint: (kind: 'hull' | 'sail', id: string) => void;
@@ -336,6 +342,10 @@ export const useGame = create<GameStore>((set, get) => {
     let selectedPortId = get().selectedPortId;
     for (const e of result.events)
       handleEvent(world, e, toasts, modals, (id) => (selectedPortId = id));
+    // 船員看到海豚、鯨魚等：海圖上畫在船邊
+    for (const e of result.events) {
+      if (e.type === 'talk' && e.sight) set({ seaSight: { kind: e.sight, key: Date.now() } });
+    }
     // 完成史實航程的終點（麻林）或想像航程（好望角）：航海誌總結
     for (const e of result.events) {
       if (e.type === 'questCompleted' && ENDINGS[e.questId]) {
@@ -399,6 +409,7 @@ export const useGame = create<GameStore>((set, get) => {
     stargazing: false,
     coastSight: null,
     celebration: null,
+    seaSight: null,
 
     init: (world) => {
       set({ world });
@@ -914,6 +925,15 @@ export const useGame = create<GameStore>((set, get) => {
       if (next === game) return;
       commit(next);
       toast({ text: '新船下水！', kind: 'success' });
+    },
+
+    upgradeShip: (id) => {
+      const { world, game } = get();
+      if (!world || !game) return;
+      const next = buyUpgrade(world, game, id);
+      if (next === game) return;
+      commit(next);
+      toast({ text: '改裝完成！', kind: 'success' });
     },
 
     customize: (patch) => {

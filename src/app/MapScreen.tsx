@@ -10,6 +10,7 @@ import {
   positionErrorKm,
   sailingStatus,
   visiblePortIds,
+  gameDate,
 } from '@/game/state';
 import { darkness } from '@/game/navigation';
 import { insideMist, insideStorm } from '@/game/encounters';
@@ -28,6 +29,7 @@ import { BuildingPanel } from './town/BuildingPanel';
 import { cultureOf } from '@/town/layout';
 import { setAmbience } from './sound';
 import { folkLines } from '@/town/folkTalk';
+import { festivalAt } from '@/town/festivals';
 import { QuestTracker } from './panels/QuestTracker';
 import { Toasts } from './panels/Toasts';
 import { DialogueModal, EventModal, QuizModal, RewardModal, StormModal } from './panels/Modals';
@@ -151,6 +153,7 @@ export function MapScreen() {
         kind: p.kind,
         home: id === scenario.home_port,
         target: !!target && target.hintLevel <= 1,
+        culture: cultureOf(p.country),
       };
     });
     // 只在港口相關狀態改變時重建
@@ -262,6 +265,12 @@ export function MapScreen() {
     if (ready) mapRef.current?.setMarks(mapMarks);
   }, [mapMarks, ready]);
 
+  // ---- 船員看到海豚、鯨魚等景象時，畫在船邊
+  const seaSight = useGame((s) => s.seaSight);
+  useEffect(() => {
+    if (ready && seaSight) mapRef.current?.showSight(seaSight.kind);
+  }, [ready, seaSight]);
+
   // ---- 調查發現新地方時，海圖上放金色光圈
   const celebration = useGame((s) => s.celebration);
   useEffect(() => {
@@ -292,6 +301,7 @@ export function MapScreen() {
     !game.helm && !game.voyage && game.dockedAt ? world.ports.get(game.dockedAt) : null;
   const showTown = !!dockedPort && townView && !locating && !planning;
   const culture = dockedPort ? cultureOf(dockedPort.country) : 'minnan';
+  const festival = dockedPort ? festivalAt(dockedPort.id, gameDate(game).month) : null;
 
   // ---- 環境音：海上聽得到浪和風（隨風力變化），港口裡是輕浪和海鷗
   const ambMode = game.helm || game.voyage ? 'sea' : showTown ? 'town' : null;
@@ -330,9 +340,15 @@ export function MapScreen() {
               appearance={game.appearance}
               ship={shipColors}
               returnFrom={lastBuilding}
-              talk={folkLines(dockedPort!.id, culture, dockedPort!.gossip)}
+              talk={folkLines(dockedPort!.id, culture, dockedPort!.gossip, festival?.text)}
+              festival={festival?.decor ?? null}
               onEnter={(kind) => useGame.getState().enterBuilding(kind)}
             />
+            {festival && (
+              <div className="festival-badge">
+                🏮 {dockedPort!.name}正在過{festival.name}！點路人聽聽看。
+              </div>
+            )}
             <div className="town-hint">
               點地面走路，點路人聊天；走到門口進入建築，走到船邊可以補給、出港。
             </div>

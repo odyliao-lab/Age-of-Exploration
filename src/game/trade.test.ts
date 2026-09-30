@@ -5,6 +5,10 @@ import {
   checkAchievements,
   marketQuotes,
   newGame,
+  buyUpgrade,
+  buyShip,
+  mods,
+  myShip,
   pirateCargoShare,
   greetingQuestion,
   resolveEvent,
@@ -131,5 +135,26 @@ describe('greeting pirates in their own language', () => {
     expect(q.prompt).toContain('馬來語');
     expect(q.choices[q.answer]).toBe('Apa khabar?');
     expect(new Set(q.choices).size).toBe(3);
+  });
+});
+
+describe('ship refits', () => {
+  it('improve the current ship and stay with it when you buy a new one', () => {
+    const s0: GameState = { ...newGame(world, 'treasure-fleet', 1).state, gold: 2000 };
+    const cargo0 = cargoCapacity(s0);
+    const speed0 = mods(world, s0).speed;
+    let s = buyUpgrade(world, s0, 'hold');
+    s = buyUpgrade(world, s, 'sails');
+    s = buyUpgrade(world, s, 'tanks');
+    expect(s.gold).toBeLessThan(s0.gold);
+    expect(cargoCapacity(s)).toBe(Math.round(cargo0 * 1.5));
+    expect(mods(world, s).speed).toBeCloseTo(speed0 * 1.06);
+    expect(myShip(s).supplyDays).toBe(myShip(s0).supplyDays + 15);
+    // 同一種改裝不能買兩次
+    expect(buyUpgrade(world, s, 'hold')).toBe(s);
+    const leveled = { ...s, captain: { ...s.captain, level: 5 } };
+    const bought = buyShip(world, leveled, 'fuchuan');
+    expect(bought.shipTypeId).toBe('fuchuan');
+    expect(bought.upgrades).toEqual([]);
   });
 });

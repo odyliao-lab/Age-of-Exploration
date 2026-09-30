@@ -92,10 +92,16 @@ const CULTURE_LINES: Record<Culture, string[]> = {
 };
 
 /** 某港口路人會說的話：先是當地語言的問候，再加上生活閒聊與港口的小知識 */
-export function folkLines(portId: string, culture: Culture, gossip: string[]): string[] {
+export function folkLines(
+  portId: string,
+  culture: Culture,
+  gossip: string[],
+  festival?: string,
+): string[] {
   const g = GREETINGS[portId];
   const lines: string[] = [];
   if (g) lines.push(`${g.phrase}（${g.lang}：${g.meaning}）`);
+  if (festival) lines.push(festival);
   lines.push(...CULTURE_LINES[culture], ...gossip.slice(0, 2));
   return lines;
 }
