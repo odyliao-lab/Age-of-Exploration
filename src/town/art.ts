@@ -390,6 +390,10 @@ export interface PersonLook {
   coat: string;
   hat: string | null;
   hair: string;
+  /** 帽子樣式：寬邊斗笠（預設）、纏頭巾、無邊小帽 */
+  hatStyle?: 'brim' | 'turban' | 'cap';
+  /** 長袍：衣服蓋到腳踝 */
+  robe?: boolean;
 }
 
 export type Facing = 'down' | 'up' | 'left' | 'right';
@@ -411,9 +415,9 @@ export function drawPerson(
   const a = step % 2 === 0;
   px(ctx, X + 5, Y + 11, 2, a ? 4 : 3, '#3a2a1c');
   px(ctx, X + 9, Y + 11, 2, a ? 3 : 4, '#3a2a1c');
-  // 身體
-  px(ctx, X + 4, Y + 6, 8, 6, look.coat);
-  px(ctx, X + 4, Y + 11, 8, 1, 'rgba(0,0,0,0.25)');
+  // 身體（長袍蓋到腳踝）
+  px(ctx, X + 4, Y + 6, 8, look.robe ? 8 : 6, look.coat);
+  px(ctx, X + 4, Y + (look.robe ? 13 : 11), 8, 1, 'rgba(0,0,0,0.25)');
   // 手
   const arm = a ? 0 : 1;
   px(ctx, X + 3, Y + 7 + arm, 1, 4, look.skin);
@@ -429,8 +433,18 @@ export function drawPerson(
     px(ctx, X + (facing === 'left' ? 6 : 9), Y + 4, 1, 1, '#2b2118');
   }
   if (look.hat) {
-    px(ctx, X + 3, Y + 1, 10, 2, look.hat);
-    px(ctx, X + 5, Y - 1, 6, 2, look.hat);
+    if (look.hatStyle === 'turban') {
+      // 纏頭巾：圓鼓鼓地包住頭頂
+      px(ctx, X + 4, Y - 1, 8, 3, look.hat);
+      px(ctx, X + 5, Y - 2, 6, 1, look.hat);
+      px(ctx, X + 5, Y, 6, 1, 'rgba(0,0,0,0.12)');
+    } else if (look.hatStyle === 'cap') {
+      // 無邊小帽（宋谷帽、庫菲帽）
+      px(ctx, X + 5, Y - 1, 6, 2, look.hat);
+    } else {
+      px(ctx, X + 3, Y + 1, 10, 2, look.hat);
+      px(ctx, X + 5, Y - 1, 6, 2, look.hat);
+    }
   }
 }
 
