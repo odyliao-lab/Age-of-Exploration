@@ -15,7 +15,7 @@ export interface ShipLook {
   sail: number;
   flag: number;
   /** 船型樣式（預設中式帆船） */
-  rig?: 'junk' | 'lateen';
+  rig?: 'junk' | 'lateen' | 'square';
 }
 
 export interface SailTrim {
@@ -32,6 +32,13 @@ const MASTS = [
   { y: 1, len: 21 },
   { y: 11, len: 12 },
 ];
+/** 橫帆船（克拉克帆船）的桅：前桅、主桅掛橫帆，後桅掛三角帆 */
+const SQUARE_MASTS = [
+  { y: -10, len: 13 },
+  { y: 1, len: 17 },
+];
+const SQUARE_MIZZEN = { y: 12, len: 11 };
+
 /** 三角帆船的桅：主桅在前、後桅較小 */
 const LATEEN_MASTS = [
   { y: -5, len: 24 },
@@ -66,6 +73,22 @@ export class ShipSprite {
   private drawHull() {
     const g = this.hull;
     g.clear();
+    if (this.look.rig === 'square') {
+      // 克拉克帆船：圓胖的船身，船頭船尾有高起的船樓
+      g.poly(
+        [0, -22, 5, -17, 8, -8, 8.5, 6, 7.5, 16, 5, 21, -5, 21, -7.5, 16, -8.5, 6, -8, -8, -5, -17],
+        true,
+      )
+        .fill({ color: this.look.hull })
+        .stroke({ width: 1.3, color: INK });
+      g.poly([-4, -18, 4, -18, 6, -12, -6, -12], true)
+        .fill({ color: 0x8a5a33, alpha: 0.9 })
+        .stroke({ width: 0.8, color: INK });
+      g.poly([-6.5, 12, 6.5, 12, 5, 20, -5, 20], true)
+        .fill({ color: 0x8a5a33, alpha: 0.9 })
+        .stroke({ width: 0.8, color: INK });
+      return;
+    }
     if (this.look.rig === 'lateen') {
       // 尖首尖尾、船身細長；船板用椰子纖維縫合，不用鐵釘
       g.poly(
@@ -111,8 +134,70 @@ export class ShipSprite {
     const swing = Math.min(80, Math.max(12, angleOffWind / 2)) * leeward;
     const rad = (swing * Math.PI) / 180;
     if (this.look.rig === 'lateen') this.drawLateen(g, rad, leeward, sail);
+    else if (this.look.rig === 'square') this.drawSquare(g, windRel, leeward, sail, rad);
     else this.drawLug(g, rad, leeward, sail);
     this.drawFlag(time, windRel);
+  }
+
+  /**
+   * 橫帆：帆桁橫掛在桅上，俯視是一條橫過船身、鼓起的帆面。
+   * 橫帆只能轉動有限的角度（大約 45°），所以很難接近逆風。
+   */
+  private drawSquare(
+    g: Graphics,
+    windRel: number,
+    leeward: number,
+    sail: SailSetting,
+    rad: number,
+  ) {
+    // 帆桁與船身垂直的偏轉角：順風時橫著，側風時轉到最多 45°
+    const brace = (Math.min(45, Math.abs(windRel) / 2) * leeward * Math.PI) / 180;
+    for (const m of SQUARE_MASTS) {
+      g.circle(0, m.y, 1.2).fill({ color: INK });
+      const half = m.len / 2;
+      const cx = Math.cos(brace) * half;
+      const cy = Math.sin(brace) * half;
+      if (sail === 0) {
+        // 收帆：帆捲在帆桁上
+        g.moveTo(-cx, m.y - cy)
+          .lineTo(cx, m.y + cy)
+          .stroke({ width: 2, color: this.look.sail });
+        g.moveTo(-cx, m.y - cy)
+          .lineTo(cx, m.y + cy)
+          .stroke({ width: 0.6, color: INK });
+        continue;
+      }
+      // 帆往下風鼓起（往船尾方向）
+      const belly = sail === 2 ? 4 : 2.5;
+      const bx = -Math.sin(brace) * belly;
+      const by = Math.cos(brace) * belly;
+      g.moveTo(-cx, m.y - cy)
+        .quadraticCurveTo(bx * 2, m.y + by * 2, cx, m.y + cy)
+        .lineTo(-cx, m.y - cy)
+        .fill({ color: this.look.sail, alpha: 0.95 })
+        .stroke({ width: 0.9, color: INK });
+      g.moveTo(-cx * 1.08, m.y - cy * 1.08)
+        .lineTo(cx * 1.08, m.y + cy * 1.08)
+        .stroke({ width: 1.1, color: INK });
+    }
+    // 後桅的三角帆，幫助轉向
+    const mz = SQUARE_MIZZEN;
+    g.circle(0, mz.y, 1).fill({ color: INK });
+    if (sail !== 0) {
+      const len = mz.len;
+      const fx = -Math.sin(rad) * len * 0.3;
+      const fy = mz.y - Math.cos(rad) * len * 0.3;
+      const ax = Math.sin(rad) * len * 0.7;
+      const ay = mz.y + Math.cos(rad) * len * 0.7;
+      const nx = Math.cos(rad) * 2.5 * leeward;
+      const ny = -Math.sin(rad) * 2.5 * leeward;
+      g.moveTo(fx, fy)
+        .lineTo(ax, ay)
+        .lineTo((fx + ax) / 2 + nx * 1.5, (fy + ay) / 2 + ny * 1.5)
+        .lineTo(fx, fy)
+        .fill({ color: this.look.sail, alpha: 0.95 })
+        .stroke({ width: 0.8, color: INK });
+    }
   }
 
   /** 長桁三角帆：長桁斜掛在桅上，前端壓低、後端高舉；俯視是一片細長的三角形 */

@@ -36,7 +36,7 @@ export interface ShipStyle {
   hull: number;
   sail: number;
   flag: number;
-  rig?: 'junk' | 'lateen';
+  rig?: 'junk' | 'lateen' | 'square';
 }
 
 /** 歷史航線（參考用的虛線與名稱） */

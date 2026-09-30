@@ -778,17 +778,20 @@ function seaLife(
 
   // 新船隊出現
   const regionId = regionAt(world, pos);
+  const treasureEra = treasureFleetSeas(state, regionId, usedDays);
   if (fleets.length < MAX_FLEETS) {
     const kind =
       rand() < perStep(pirateChancePerDay(pos, !!regionId))
         ? 'pirate'
         : rand() < perStep(regionId ? MERCHANT_CHANCE_PER_DAY : 0)
           ? 'merchant'
-          : rand() < perStep(regionId && ENVOYS[regionId] ? ENVOY_CHANCE_PER_DAY : 0)
+          : rand() < perStep(treasureEra && ENVOYS[regionId] ? ENVOY_CHANCE_PER_DAY : 0)
             ? 'envoy'
             : rand() <
                 perStep(
-                  regionId && !fleets.some((x) => x.kind === 'armada') ? ARMADA_CHANCE_PER_DAY : 0,
+                  treasureEra && !fleets.some((x) => x.kind === 'armada')
+                    ? ARMADA_CHANCE_PER_DAY
+                    : 0,
                 )
               ? 'armada'
               : null;
@@ -1112,6 +1115,24 @@ export function greetEnvoy(
 }
 
 export const ARMADA_REWARD = { xp: 20, reputation: 5 };
+
+/** 鄭和最後一次下西洋回國的那一年 */
+export const TREASURE_FLEET_LAST_YEAR = 1433;
+/** 大西洋的海域：寶船艦隊與朝貢使節船不會出現 */
+const ATLANTIC_REGIONS = ['iberian-atlantic', 'west-africa', 'gulf-of-guinea'];
+
+/** 鄭和的寶船艦隊與前往明朝的朝貢使節船，只出現在下西洋的年代（1405–1433）與亞洲的海上 */
+export function treasureFleetSeas(
+  state: GameState,
+  regionId: string | null,
+  extraDays = 0,
+): regionId is string {
+  return (
+    !!regionId &&
+    !ATLANTIC_REGIONS.includes(regionId) &&
+    gameDate(state, extraDays).year <= TREASURE_FLEET_LAST_YEAR
+  );
+}
 
 /** 附近可以致意的寶船艦隊（船隊很大，遠一點也喊得到） */
 export function armadaInReach(state: GameState): SeaFleet | null {
@@ -2917,6 +2938,12 @@ export function hireCrew(world: World, state: GameState, id: string): GameState 
 /** 解散船員：他會回到家鄉港口，之後可以再招募 */
 export function dismissCrew(state: GameState, id: string): GameState {
   return { ...state, crew: state.crew.filter((c) => c !== id) };
+}
+
+/** 這個劇本航行範圍內的港口（劇本有設定 Tier 的海域） */
+export function scenarioPorts(world: World, state: GameState): Port[] {
+  const tiers = world.scenarios.get(state.scenarioId)?.region_tiers ?? {};
+  return world.content.ports.filter((p) => tiers[p.region] !== undefined);
 }
 
 /** 主港：各地的大港，加上這個劇本的家鄉港口（造船廠可以買船、買塗裝） */

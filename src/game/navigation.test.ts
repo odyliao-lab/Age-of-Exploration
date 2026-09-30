@@ -395,3 +395,16 @@ describe('海霧', () => {
     expect(misty.fleet?.mode).toBe('roam');
   });
 });
+
+describe('treasure fleet era', () => {
+  it('only sails Asian waters during the Ming voyages', async () => {
+    const { treasureFleetSeas } = await import('./state');
+    const tf = newGame(world, 'treasure-fleet', 1).state;
+    const iu = newGame(world, 'into-the-unknown', 1).state;
+    expect(treasureFleetSeas(tf, 'arabian-sea')).toBe(true);
+    expect(treasureFleetSeas(tf, 'west-africa')).toBe(false);
+    expect(treasureFleetSeas(tf, null)).toBe(false);
+    // 1487 年，鄭和下西洋已經結束半個多世紀
+    expect(treasureFleetSeas(iu, 'arabian-sea')).toBe(false);
+  });
+});

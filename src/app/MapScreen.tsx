@@ -206,7 +206,7 @@ export function MapScreen() {
       hull: hex(colorOf(HULL_PAINTS, look.hull)),
       sail: hex(colorOf(SAIL_PAINTS, look.sail)),
       flag: hex(colorOf(COLORS, look.flagColor)),
-      rig: shipRig === 'lateen' ? 'lateen' : 'junk',
+      rig: shipRig === 'lug' ? 'junk' : shipRig,
     });
   }, [ready, look.hull, look.sail, look.flagColor, shipRig]);
 
