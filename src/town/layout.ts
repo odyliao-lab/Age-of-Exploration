@@ -162,7 +162,7 @@ export const BUILDING_NAMES: Record<Culture, Record<BuildingKind, string>> = {
     office: '王宮',
     academy: '學者之家',
     temple: '神廟',
-    tavern: '茶館',
+    tavern: '客棧',
     market: '市集',
     shipyard: '造船廠',
     dock: '碼頭',

@@ -2919,10 +2919,22 @@ export function dismissCrew(state: GameState, id: string): GameState {
   return { ...state, crew: state.crew.filter((c) => c !== id) };
 }
 
+/** 主港：各地的大港，加上這個劇本的家鄉港口（造船廠可以買船、買塗裝） */
+export function isMainPort(world: World, state: GameState, portId: string | null): boolean {
+  if (!portId) return false;
+  return (
+    world.ports.get(portId)?.kind === 'hub' ||
+    world.scenarios.get(state.scenarioId)?.home_port === portId
+  );
+}
+
+export function mainPortNames(world: World, state: GameState): string[] {
+  return world.content.ports.filter((p) => isMainPort(world, state, p.id)).map((p) => p.name);
+}
+
 /** 主港的造船廠可以買新船；舊船折價一半 */
 export function shipyardOffers(world: World, state: GameState) {
-  const port = state.dockedAt ? world.ports.get(state.dockedAt) : null;
-  if (port?.kind !== 'hub') return [];
+  if (!isMainPort(world, state, state.dockedAt)) return [];
   const scenario = world.scenarios.get(state.scenarioId)!;
   const tradeIn = Math.floor(shipDef(state.shipTypeId).price / 2);
   return scenario.ships
@@ -3296,10 +3308,10 @@ export function buyPaint(
   kind: 'hull' | 'sail',
   id: string,
 ): GameState {
-  const port = state.dockedAt ? world.ports.get(state.dockedAt) : null;
   const list = kind === 'hull' ? HULL_PAINTS : SAIL_PAINTS;
   const o = list.find((x) => x.id === id);
-  if (port?.kind !== 'hub' || !o || o.achievement || state.gold < PAINT_PRICE) return state;
+  if (!isMainPort(world, state, state.dockedAt) || !o || o.achievement || state.gold < PAINT_PRICE)
+    return state;
   if (paintOwned(kind, o, state.appearance, state.achievements)) return state;
   const appearance = {
     ...state.appearance,

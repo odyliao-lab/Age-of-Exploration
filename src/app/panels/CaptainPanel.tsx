@@ -3,7 +3,7 @@ import { ACHIEVEMENTS } from '@/game/achievements';
 import { ATTRIBUTE_INFO, ATTRIBUTE_KEYS, xpToNext } from '@/game/captain';
 import { SKILL_PATHS, SKILLS, type SkillPath } from '@/game/progression';
 import { exportSaveJson, importSaveJson } from '@/game/save';
-import { chartedArea, skillStatus } from '@/game/state';
+import { chartedArea, isMainPort, mainPortNames, skillStatus } from '@/game/state';
 import { useGame } from '../store';
 import { getSoundSettings, setSoundSettings } from '../sound';
 import { getLargeText, setLargeText } from '../display';
@@ -357,7 +357,7 @@ function LooksTab() {
   const buyPaint = useGame((s) => s.buyPaint);
   const look = game.appearance;
   const ach = game.achievements;
-  const atHub = !!game.dockedAt && world.ports.get(game.dockedAt)?.kind === 'hub';
+  const atHub = isMainPort(world, game, game.dockedAt);
   const lockText = (o: StyleOption) => (o.achievement ? achievementHint(o.achievement, ach) : '');
 
   const choices = (
@@ -477,7 +477,7 @@ function LooksTab() {
       <p className="meta">
         {atHub
           ? `新塗裝每種 ${PAINT_PRICE} 金，買過就能隨時換回。`
-          : '新塗裝要停靠主港（泉州、麻六甲）時才能在造船廠購買。'}
+          : `新塗裝要停靠主港（${mainPortNames(world, game).join('、')}）時才能在造船廠購買。`}
       </p>
     </>
   );

@@ -816,7 +816,7 @@ export const useGame = create<GameStore>((set, get) => {
       const next = pray(g);
       if (next === g) return;
       commit(next);
-      toast({ text: '上香祈求航海平安，船員士氣回升了。', kind: 'success' });
+      toast({ text: '祈求航海平安，船員士氣回升了。', kind: 'success' });
     },
 
     buyGood: (good, qty) => {
