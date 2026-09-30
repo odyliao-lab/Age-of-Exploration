@@ -41,7 +41,11 @@ export interface Talk {
   region?: string;
   /** 一般閒聊（呼叫端要重設冷卻） */
   chat?: boolean;
+  /** 說的是看得見的自然景象：海圖上會在船邊畫出來 */
+  sight?: SeaSight;
 }
+
+export type SeaSight = 'flyingfish' | 'dolphins' | 'whale' | 'waterspout' | 'albatross' | 'birds';
 
 const pick = <T>(xs: T[], roll: number): T =>
   xs[Math.min(xs.length - 1, Math.floor(roll * xs.length))];
@@ -74,6 +78,11 @@ export function crewTalk(ctx: TalkContext): Talk | null {
 
   if (!ctx.chatReady) return null;
   const lines: string[] = [];
+  const sights = new Map<string, SeaSight>();
+  const nature = (text: string, sight: SeaSight) => {
+    lines.push(text);
+    sights.set(text, sight);
+  };
   const w = ctx.wind;
   if (w.strength >= 0.6)
     lines.push(`這${w.name}真夠力！順著它走，一天能跑三、四百里；逆著它就只能走之字形了。`);
@@ -92,21 +101,23 @@ export function crewTalk(ctx: TalkContext): Talk | null {
   // 海上的自然奇觀：依海域與日夜
   const rid = ctx.region?.id;
   if (Math.abs(lat) < 25) {
-    lines.push(
+    nature(
       '看！海面上有魚飛起來了！飛魚張開大大的胸鰭，能在海面上滑翔好幾十公尺，是為了躲開水裡追牠的大魚。',
+      'flyingfish',
     );
-    lines.push('船頭有一群海豚跟著我們跑！牠們喜歡在船頭推起的浪裡衝浪。');
+    nature('船頭有一群海豚跟著我們跑！牠們喜歡在船頭推起的浪裡衝浪。', 'dolphins');
   }
   if (ctx.night) {
     lines.push('你看船尾的浪花在發藍光！那是海裡的夜光藻，被海水攪動時就會發光。');
   }
   if (rid === 'south-china-sea' || rid === 'malacca-java') {
-    lines.push(
+    nature(
       '遠處有一根從雲裡垂到海面的水柱，那是海上的龍捲風把海水吸上去，古人叫它「龍吸水」。',
+      'waterspout',
     );
   }
   if (rid === 'east-china-sea' || rid === 'arabian-sea' || rid === 'east-africa') {
-    lines.push('右舷噴起一道水柱，是鯨魚在換氣！鯨魚跟人一樣是哺乳類，要浮上海面呼吸。');
+    nature('右舷噴起一道水柱，是鯨魚在換氣！鯨魚跟人一樣是哺乳類，要浮上海面呼吸。', 'whale');
   }
   if (rid === 'arabian-sea') {
     lines.push('風裡帶著細細的沙，陸地那邊就是大沙漠了。這一帶一年下不了幾場雨。');
@@ -115,9 +126,13 @@ export function crewTalk(ctx: TalkContext): Talk | null {
     lines.push('海水有點發黃，是大河帶來的泥沙。孟加拉灣北邊有好幾條大河出海。');
   }
   if (rid === 'southern-africa' || lat < -30) {
-    lines.push('好大的鳥！那是信天翁，翅膀張開比一個人還寬，在西風帶上幾乎不用拍翅膀就能飛很遠。');
+    nature(
+      '好大的鳥！那是信天翁，翅膀張開比一個人還寬，在西風帶上幾乎不用拍翅膀就能飛很遠。',
+      'albatross',
+    );
   }
   lines.push('老一輩的人說，看海的顏色也能知道水深：越藍越深，發綠發黃就要小心淺灘了。');
-  lines.push('海鳥往陸地飛回去的時候，就是快天黑了，也表示附近有島。');
-  return { speaker, text: pick(lines, ctx.roll), chat: true };
+  nature('海鳥往陸地飛回去的時候，就是快天黑了，也表示附近有島。', 'birds');
+  const text = pick(lines, ctx.roll);
+  return { speaker, text, chat: true, sight: sights.get(text) };
 }

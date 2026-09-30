@@ -262,6 +262,12 @@ export function MapScreen() {
     if (ready) mapRef.current?.setMarks(mapMarks);
   }, [mapMarks, ready]);
 
+  // ---- 船員看到海豚、鯨魚等景象時，畫在船邊
+  const seaSight = useGame((s) => s.seaSight);
+  useEffect(() => {
+    if (ready && seaSight) mapRef.current?.showSight(seaSight.kind);
+  }, [ready, seaSight]);
+
   // ---- 調查發現新地方時，海圖上放金色光圈
   const celebration = useGame((s) => s.celebration);
   useEffect(() => {

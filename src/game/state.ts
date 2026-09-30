@@ -98,7 +98,7 @@ import {
 import type { Rig } from './progression';
 import { isLand } from '@/geo/landmask';
 import type { World } from './world';
-import { crewTalk } from './crewTalk';
+import { crewTalk, type SeaSight } from './crewTalk';
 import {
   HAIL_KM,
   MAX_FLEETS,
@@ -298,7 +298,7 @@ export type GameEvent =
   | { type: 'levelUp'; level: number }
   | { type: 'portUnlocked'; portId: string }
   | { type: 'warning'; text: string }
-  | { type: 'talk'; speaker: string; text: string }
+  | { type: 'talk'; speaker: string; text: string; sight?: SeaSight }
   | { type: 'encounter'; encounter: Encounter }
   | { type: 'stormResolved'; choice: StormChoice; hullLoss: number; days: number }
   | { type: 'eventResolved'; effect: EventEffect }
@@ -872,7 +872,7 @@ function seaLife(
       chatReady: day >= talkDay,
     });
     if (talk) {
-      events.push({ type: 'talk', speaker: talk.speaker, text: talk.text });
+      events.push({ type: 'talk', speaker: talk.speaker, text: talk.text, sight: talk.sight });
       if (talk.region) lastRegionId = talk.region;
       if (talk.hintFor) hinted = [...hinted, talk.hintFor];
       if (talk.chat) talkDay = day + 1.2 + rand() * 1.2;

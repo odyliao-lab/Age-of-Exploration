@@ -14,6 +14,8 @@ import { getDetailedLand, getLandRings } from './land';
 import { SeaFx } from './seaFx';
 import { ShipSprite } from './shipSprite';
 import { NightSky } from './nightSky';
+import { SeaLife } from './seaLife';
+import type { SeaSight } from '@/game/crewTalk';
 import { SeaEntities, type FleetView, type MistView, type StormView } from './seaEntities';
 import { PlaceLabels, type PlaceLabel } from './placeLabels';
 import {
@@ -119,6 +121,7 @@ export class WorldMap {
   private fx = new SeaFx();
   private courseGfx = new Graphics();
   private entities = new SeaEntities();
+  private seaLife = new SeaLife();
   private sky = new NightSky();
   private sailing: SailingView | null = null;
   private shipWorld: Point | null = null;
@@ -176,6 +179,7 @@ export class WorldMap {
       this.fx.over,
       this.fog.container,
       this.entities.container,
+      this.seaLife.container,
       this.drawGraticule(),
       this.routeGfx,
       this.courseGfx,
@@ -277,6 +281,7 @@ export class WorldMap {
     this.shipSprite.drawRig(this.time);
     this.fx.update(dt);
     this.entities.update(dt);
+    this.seaLife.update(dt);
     this.sky.setSize(this.size.width, this.size.height);
     this.sky.setShipScreen(
       this.shipWorld && this.ship.visible
@@ -292,6 +297,11 @@ export class WorldMap {
   /** 海上看得見的其他船隊 */
   setFleets(list: FleetView[]) {
     this.entities.setFleets(list);
+  }
+
+  /** 船員看到的海洋生物與景象，畫在船邊 */
+  showSight(kind: SeaSight) {
+    if (this.shipWorld) this.seaLife.show(kind, this.shipWorld, this.shipHeading);
   }
 
   /** 發現新地方時的金色光圈 */
@@ -461,6 +471,7 @@ export class WorldMap {
     this.ship.scale.set(inv * (this.view.scale >= 4 && this.sailing ? 1.7 : 1));
     this.fx.setView(this.view, this.size);
     this.entities.setView(this.view);
+    this.seaLife.setScale(this.view.scale);
     this.places.setScale(this.view.scale);
     this.drawRoute();
     this.drawMarks();
