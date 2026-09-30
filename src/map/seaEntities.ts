@@ -10,7 +10,7 @@ import type { View } from './viewport';
 
 export interface FleetView {
   id: number;
-  kind: 'pirate' | 'merchant' | 'envoy' | 'armada';
+  kind: 'pirate' | 'merchant' | 'envoy' | 'armada' | 'rival';
   position: LonLat;
   heading: number;
   chasing: boolean;
@@ -36,6 +36,7 @@ const LOOKS = {
   merchant: { hull: 0x8a5a33, sail: 0xe8d9b5, flag: 0x2f7d6a },
   envoy: { hull: 0x6b2f1f, sail: 0xd9a93a, flag: 0xb5482b },
   armada: { hull: 0x5a2a18, sail: 0xb5482b, flag: 0xe0b94a },
+  rival: { hull: 0x2c3f6b, sail: 0xf4ecd8, flag: 0xe0b94a },
 };
 
 const FLEET_NAMES = {
@@ -43,6 +44,7 @@ const FLEET_NAMES = {
   merchant: '商船',
   envoy: '使節船',
   armada: '鄭和的寶船艦隊',
+  rival: '陸天行的船',
 };
 
 /** 寶船艦隊的隊形：旗艦在前，後面的船排成兩列（船頭朝上的座標） */

@@ -30,6 +30,8 @@ import {
   reportFinds,
   reportReward,
   rivalAtTavern,
+  rivalShipInReach,
+  hailRival,
   RIVAL_BONUS,
   rumorsAt,
   setHelm,
@@ -370,5 +372,31 @@ describe('festivals in port', () => {
       'quanzhou',
     );
     expect(again.state.festivalsSeen).toHaveLength(1);
+  });
+});
+
+describe('the rival at sea', () => {
+  it('can be hailed while racing, and reminds you of the deadline', () => {
+    let s = departPort(world, newGame(world, 'treasure-fleet', 1).state);
+    s = {
+      ...s,
+      rumors: ['taiwan'],
+      rival: { ...s.rival, target: 'taiwan', due: s.day + 9 },
+      fleets: [
+        {
+          id: 4,
+          kind: 'rival',
+          position: destinationPoint(s.ship.position, 90, 5),
+          heading: 0,
+          mode: 'roam',
+          spawnDay: 0,
+          greeted: false,
+        },
+      ],
+    };
+    expect(rivalShipInReach(s)?.id).toBe(4);
+    const r = hailRival(world, s, 4)!;
+    expect(r.text).toContain('9 天');
+    expect(rivalShipInReach(r.state)).toBeNull();
   });
 });

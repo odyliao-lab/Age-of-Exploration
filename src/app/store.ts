@@ -32,6 +32,7 @@ import {
   greetMerchant,
   greetEnvoy,
   greetArmada,
+  hailRival,
   rivalAtTavern,
   RIVAL_BONUS,
   RIVAL_NAME,
@@ -249,6 +250,8 @@ interface GameStore {
   greetEnvoy: (fleetId: number) => void;
   /** 向寶船艦隊致意 */
   greetArmada: (fleetId: number) => void;
+  /** 向對手船長喊話 */
+  hailRival: (fleetId: number) => void;
   /** 把船上的貨賣給商船 */
   sellToMerchant: (fleetId: number) => void;
   setTownView: (on: boolean) => void;
@@ -681,6 +684,14 @@ export const useGame = create<GameStore>((set, get) => {
       set((s) => ({
         modals: [...s.modals, { type: 'info', title: r.title, text: r.text, lesson: r.lesson }],
       }));
+    },
+    hailRival: (fleetId) => {
+      const { world, game } = get();
+      if (!world || !game) return;
+      const r = hailRival(world, game, fleetId);
+      if (!r) return;
+      commit(r.state);
+      set((s) => ({ modals: [...s.modals, { type: 'info', title: r.title, text: r.text }] }));
     },
     greetArmada: (fleetId) => {
       const { world, game } = get();

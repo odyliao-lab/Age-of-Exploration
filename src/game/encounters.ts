@@ -14,7 +14,7 @@ import type { Wind, StormRisk } from './environment';
 import { destinationPoint } from './events';
 import { motion, normDeg } from './sailing';
 
-export type FleetKind = 'pirate' | 'merchant' | 'envoy' | 'armada';
+export type FleetKind = 'pirate' | 'merchant' | 'envoy' | 'armada' | 'rival';
 
 export interface SeaFleet {
   id: number;

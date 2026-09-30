@@ -7,6 +7,7 @@ import {
   merchantInReach,
   envoyInReach,
   armadaInReach,
+  rivalShipInReach,
   merchantOffer,
   portInReach,
   positionErrorKm,
@@ -57,6 +58,7 @@ export function HelmPanel() {
     sellToMerchant,
     greetEnvoy,
     greetArmada,
+    hailRival,
   } = useGame.getState();
   const dial = useRef<SVGSVGElement>(null);
   const dragging = useRef(false);
@@ -74,6 +76,7 @@ export function HelmPanel() {
   const merchant = merchantInReach(game);
   const envoy = envoyInReach(game);
   const armada = armadaInReach(game);
+  const rivalShip = rivalShipInReach(game);
   const offer = merchant ? merchantOffer(world, game, merchant.id) : null;
   const errKm = Math.round(positionErrorKm(world, game));
   const lat = game.ship.position[1];
@@ -141,6 +144,11 @@ export function HelmPanel() {
                 </button>
               )}
             </>
+          )}
+          {rivalShip && (
+            <button type="button" onClick={() => hailRival(rivalShip.id)}>
+              📣 向陸天行喊話
+            </button>
           )}
           {armada && (
             <button type="button" className="primary" onClick={() => greetArmada(armada.id)}>

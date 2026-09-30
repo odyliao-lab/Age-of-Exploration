@@ -810,6 +810,25 @@ function seaLife(
     }
   }
 
+  // 比賽中的對手船長偶爾會出現在附近
+  if (
+    state.rival.target &&
+    fleets.length < MAX_FLEETS + 1 &&
+    !fleets.some((f) => f.kind === 'rival') &&
+    rand() < perStep(RIVAL_SIGHT_CHANCE_PER_DAY)
+  ) {
+    const f = spawnFleet('rival', nextEntityId, pos, day, rand, isLand);
+    if (f) {
+      nextEntityId++;
+      fleets = [...fleets, f];
+      events.push({
+        type: 'talk',
+        speaker: '瞭望員',
+        text: `${compass16(bearingDeg(pos, f.position))}方那艘藍色船身的船……是${RIVAL_NAME}！他也在找同一個地方！`,
+      });
+    }
+  }
+
   // 船隊移動
   let encounter: Encounter | null = null;
   const moved: SeaFleet[] = [];
@@ -1752,6 +1771,37 @@ export const EMPTY_RIVAL: RivalState = {
 };
 
 export const RIVAL_BONUS = { gold: 120, reputation: 5 };
+/** 比賽期間，對手的船每天出現在附近的機率 */
+const RIVAL_SIGHT_CHANCE_PER_DAY = 0.12;
+
+/** 附近可以喊話的對手船 */
+export function rivalShipInReach(state: GameState): SeaFleet | null {
+  if (!state.helm) return null;
+  return (
+    state.fleets.find(
+      (f) =>
+        f.kind === 'rival' &&
+        !f.greeted &&
+        distanceKm(f.position, state.ship.position) <= HAIL_KM * 2,
+    ) ?? null
+  );
+}
+
+/** 向對手喊話：他會炫耀一下，也提醒你比賽還剩幾天 */
+export function hailRival(world: World, state: GameState, fleetId: number): GreetResult | null {
+  const f = rivalShipInReach(state);
+  if (!f || f.id !== fleetId || !state.rival.target) return null;
+  const c = world.codex.get(state.rival.target);
+  const left = Math.max(0, Math.ceil(state.rival.due - state.day));
+  return {
+    state: {
+      ...state,
+      fleets: state.fleets.map((x) => (x.id === fleetId ? { ...x, greeted: true } : x)),
+    },
+    title: `${RIVAL_NAME}的船`,
+    text: `${RIVAL_NAME}站在船頭大喊：「還在找${c?.rumor?.from ?? '傳聞'}說的那個地方嗎？我看就在前面不遠了！」照他的速度，大約 ${left} 天內就會回報給學者。`,
+  };
+}
 /** 比完之後隔幾天才會再下戰帖 */
 const RIVAL_COOLDOWN_DAYS = 3;
 
