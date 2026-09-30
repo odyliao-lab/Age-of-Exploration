@@ -63,6 +63,8 @@ export const Port = z.object({
   sights: z.array(Id).default([]),
   climate: z.string().optional(),
   blurb: z.string().optional(),
+  /** 酒館裡聽得到的閒聊：當地的地理、歷史小知識 */
+  gossip: z.array(z.string()).default([]),
 });
 export type Port = z.infer<typeof Port>;
 
@@ -100,6 +102,21 @@ export const CodexEntry = z.object({
   source: z.string().min(1, '每張知識卡必須標註資料來源'),
   /** 傳說類必附科學對照（企畫書 10.3） */
   science_note: z.string().optional(),
+  /**
+   * 傳聞（企畫書 v2 4.5）：在港口聽到的地理線索。
+   * 有傳聞的知識卡不會自動發現，玩家要依線索推理位置、航行到附近後「調查」。
+   */
+  rumor: z
+    .object({
+      /** 在哪個港口聽到 */
+      port: Id,
+      /** 說話的人 */
+      from: z.string(),
+      text: z.string().min(20),
+      /** 離 location 多近可以調查 */
+      investigate_km: z.number().positive(),
+    })
+    .optional(),
   reviewed: z.boolean().default(false),
 });
 export type CodexEntry = z.infer<typeof CodexEntry>;

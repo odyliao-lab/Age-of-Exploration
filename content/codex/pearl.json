@@ -1,0 +1,10 @@
+{
+  "id": "pearl",
+  "category": "goods",
+  "name": "波斯灣珍珠",
+  "name_en": "Persian Gulf Pearls",
+  "domains": ["F", "C"],
+  "body": "波斯灣海水淺、溫暖，海底多珍珠貝。千百年來，灣內居民靠潛水採珠為生，採到的珍珠經由忽魯謨斯等港口賣到印度與中國。",
+  "source": "維基百科「珍珠」「巴林」條目",
+  "reviewed": false
+}

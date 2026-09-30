@@ -4,7 +4,7 @@
  * 每台裝置記住「上次同步時」本機與雲端的更新時間（SyncBase）。
  * 只有一邊變了就沿用那一邊；兩邊都變了（例如兩台裝置離線各玩一段）就是衝突，交給玩家選。
  */
-import { explorationPercent, type GameState } from './state';
+import { chartedArea, type GameState } from './state';
 
 export interface SyncBase {
   /** 上次同步時本機存檔的更新時間 */
@@ -60,6 +60,6 @@ export function saveSummary(state: GameState, updatedAt: number): SaveSummary {
     questsDone: Object.values(state.quests).filter((q) => q.status === 'completed').length,
     ports: state.visitedPorts.length,
     codex: state.discovered.length,
-    explored: explorationPercent(state),
+    explored: chartedArea(state),
   };
 }

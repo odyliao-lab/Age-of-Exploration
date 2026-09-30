@@ -18,6 +18,7 @@ const base = (): ContentBundle => ({
       name: '泉州',
       name_en: 'Quanzhou',
       historical_names: [],
+      gossip: [],
       country: '中國',
       country_en: 'China',
       region: 'east-china-sea',

@@ -11,5 +11,9 @@
   "goods": ["tin", "pepper", "cloves", "nutmeg"],
   "climate": "熱帶雨林氣候",
   "blurb": "扼守麻六甲海峽的港市，15 世紀因鄭和船隊的支持而崛起為東西方貿易的轉運中心。",
-  "sights": ["malacca-sultanate", "mangrove"]
+  "sights": ["malacca-sultanate", "mangrove"],
+  "gossip": [
+    "海峽兩頭的季風在不同季節吹，各國商人都在這裡等風，所以街上什麼語言都聽得到。",
+    "滿剌加的國王曾派使者到大明，大明皇帝也賜了詔書和石碑。"
+  ]
 }

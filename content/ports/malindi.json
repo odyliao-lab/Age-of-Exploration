@@ -1,0 +1,19 @@
+{
+  "id": "malindi",
+  "name": "麻林",
+  "name_en": "Malindi",
+  "historical_names": ["麻林國"],
+  "country": "肯亞",
+  "country_en": "Kenya",
+  "region": "east-africa",
+  "location": [40.12, -3.22],
+  "kind": "port",
+  "goods": ["ambergris"],
+  "climate": "熱帶莽原氣候",
+  "blurb": "赤道以南的斯瓦希里港口。1415 年麻林國遣使向明朝進貢長頸鹿，明朝人視為祥瑞的「麒麟」。後來的航海者也在這裡找到熟悉印度洋季風的領航員。",
+  "sights": ["giraffe"],
+  "gossip": [
+    "往內陸走，草原上有脖子長得不得了的動物，吃的是樹頂的葉子。",
+    "我們說的話叫斯瓦希里語，裡面混了很多阿拉伯話的字。"
+  ]
+}

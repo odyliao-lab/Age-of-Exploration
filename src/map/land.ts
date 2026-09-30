@@ -1,5 +1,5 @@
 /**
- * 把 Natural Earth 1:110m 陸地資料（world-atlas，公共領域）轉成
+ * 把 Natural Earth 1:110m 與 1:50m 陸地資料（world-atlas，公共領域）轉成
  * 世界座標中的多邊形環，供 Pixi 繪製。
  *
  * 透過 d3 geoPath 串流投影，d3 會在國際換日線處正確切開跨越 ±180° 的多邊形
@@ -49,11 +49,7 @@ class RingRecorder implements GeoContext {
   }
 }
 
-let cache: LandRing[] | null = null;
-
-export function getLandRings(): LandRing[] {
-  if (cache) return cache;
-  const topo = land110m as unknown as Topology<{ land: GeometryCollection }>;
+function ringsFromTopology(topo: Topology<{ land: GeometryCollection }>): LandRing[] {
   const geo = feature(topo, topo.objects.land);
   const recorder = new RingRecorder();
   geoPath(worldProjection, recorder)(geo);
@@ -64,9 +60,34 @@ export function getLandRings(): LandRing[] {
     Math.abs(signedArea(b)) > Math.abs(signedArea(a)) ? b : a,
   );
   const outerSign = Math.sign(signedArea(largest));
-  cache = rings.map((points) => ({
+  return rings.map((points) => ({
     points,
     outer: Math.sign(signedArea(points)) === outerSign,
   }));
+}
+
+let cache: LandRing[] | null = null;
+
+/** 1:110m 陸地（隨主程式載入）：航線規劃用的陸地遮罩與全世界縮圖 */
+export function getLandRings(): LandRing[] {
+  cache ??= ringsFromTopology(land110m as unknown as Topology<{ land: GeometryCollection }>);
   return cache;
+}
+
+let detailed: LandRing[] | null = null;
+let detailedPromise: Promise<LandRing[]> | null = null;
+
+/**
+ * 1:50m 陸地（約 5 倍細節，另外載入）：近距離航行時的海岸線繪製與碰撞判定。
+ */
+export function loadDetailedLand(): Promise<LandRing[]> {
+  detailedPromise ??= import('world-atlas/land-50m.json').then((m) => {
+    detailed = ringsFromTopology(m.default as unknown as Topology<{ land: GeometryCollection }>);
+    return detailed;
+  });
+  return detailedPromise;
+}
+
+export function getDetailedLand(): LandRing[] | null {
+  return detailed;
 }

@@ -1,0 +1,19 @@
+{
+  "id": "mogadishu",
+  "name": "木骨都束",
+  "name_en": "Mogadishu",
+  "historical_names": ["木骨都束國"],
+  "country": "索馬利亞",
+  "country_en": "Somalia",
+  "region": "east-africa",
+  "location": [45.34, 2.04],
+  "kind": "port",
+  "goods": ["ambergris"],
+  "climate": "熱帶沙漠氣候",
+  "blurb": "非洲東岸的古老港口城市。費信《星槎勝覽》記載這裡「壘石為城」、房屋用石頭砌成，雖然靠近赤道，卻因為沿岸的季風與寒冷洋流，雨水很少。",
+  "sights": [],
+  "gossip": [
+    "這裡的房子都是用珊瑚石和石灰砌的，好幾層樓高，又涼爽又堅固。",
+    "夏天吹西南風的時候，海邊的水特別冷，魚也特別多。"
+  ]
+}

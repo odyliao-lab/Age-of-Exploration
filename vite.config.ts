@@ -14,6 +14,8 @@ export default defineConfig({
   build: {
     target: 'es2022',
     sourcemap: true,
+    // 1:50m 海岸線資料（land-50m，約 550 kB、gzip 後更小）是純資料，進入遊戲才載入；其餘程式都在 500 kB 以下
+    chunkSizeWarningLimit: 600,
     rolldownOptions: {
       output: {
         // 把大型函式庫拆成獨立檔案，改版時玩家不必重新下載

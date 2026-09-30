@@ -7,14 +7,27 @@ import {
   activeNavigateTargets,
   pendingInteraction,
   portNameKnown,
+  positionErrorKm,
+  sailingStatus,
   visiblePortIds,
 } from '@/game/state';
+import { darkness } from '@/game/navigation';
+import { insideMist, insideStorm } from '@/game/encounters';
+import { bearingDeg } from '@/geo/geo';
 import { positionAt } from '@/game/voyage';
 import { isDebug } from './debug';
 import { onFogChange, useGame } from './store';
 import { PortPanel } from './panels/PortPanel';
 import { PlanningPanel } from './panels/PlanningPanel';
 import { SailBar } from './panels/SailBar';
+import { HelmPanel } from './panels/HelmPanel';
+import { StarSightModal } from './panels/StarSightModal';
+import { CoastSightModal } from './panels/CoastSightModal';
+import { TownView } from './town/TownView';
+import { BuildingPanel } from './town/BuildingPanel';
+import { cultureOf } from '@/town/layout';
+import { setAmbience } from './sound';
+import { folkLines } from '@/town/folkTalk';
 import { QuestTracker } from './panels/QuestTracker';
 import { Toasts } from './panels/Toasts';
 import { DialogueModal, EventModal, QuizModal, RewardModal, StormModal } from './panels/Modals';
@@ -27,6 +40,8 @@ import { LogbookPanel } from './panels/LogbookPanel';
 import { StatusBar } from './panels/StatusBar';
 
 const HOME_ZOOM = 5;
+/** 親手駕船時的鏡頭：約 4–6 度見方 */
+const SAIL_ZOOM = 30;
 
 export function MapScreen() {
   const world = useGame((s) => s.world)!;
@@ -37,6 +52,11 @@ export function MapScreen() {
   const modals = useGame((s) => s.modals);
   const panel = useGame((s) => s.panel);
   const mapMarks = useGame((s) => s.mapMarks);
+  const townView = useGame((s) => s.townView);
+  const building = useGame((s) => s.building);
+  const lastBuilding = useGame((s) => s.lastBuilding);
+  const stargazing = useGame((s) => s.stargazing);
+  const coastSight = useGame((s) => s.coastSight);
 
   const scenario = world.scenarios.get(game.scenarioId)!;
   const hostRef = useRef<HTMLDivElement>(null);
@@ -56,6 +76,10 @@ export function MapScreen() {
         if (s.planning) {
           const port = s.world!.ports.get(id)!;
           s.addWaypoint(port.location, id);
+        } else if (s.game?.helm) {
+          // 航行中點港口：船頭轉向那個港口
+          const port = s.world!.ports.get(id)!;
+          s.steer(bearingDeg(s.game.ship.position, port.location));
         } else {
           s.selectPort(id);
         }
@@ -65,9 +89,11 @@ export function MapScreen() {
         const pending = s.world && s.game ? pendingInteraction(s.world, s.game) : null;
         if (pending?.data.type === 'locate' && !s.modals.length) s.locate(p);
         else if (s.planning) s.addWaypoint(p);
+        else if (s.game?.helm) s.steer(bearingDeg(s.game.ship.position, p));
         else s.selectPort(null);
       },
       onPointerLonLat: setPointer,
+      onPlaceTap: (id) => useGame.getState().openPanel('codex', id),
       onUserPan: () => useGame.getState().setFollow(false),
     }).then((m) => {
       if (cancelled) {
@@ -155,7 +181,21 @@ export function MapScreen() {
   useEffect(() => {
     const m = mapRef.current;
     if (!ready || !m) return;
-    m.setShip(game.ship.position, game.ship.heading, follow && !!game.voyage);
+    m.setShip(game.ship.position, game.ship.heading, follow && (!!game.voyage || !!game.helm));
+    const st = sailingStatus(world, game);
+    m.setSailing(
+      st && game.helm
+        ? {
+            windToward: st.wind.toward,
+            windStrength: st.wind.strength,
+            windRel: st.windRel,
+            angleOffWind: st.angleOffWind,
+            sail: game.helm.anchored ? 0 : game.helm.sail,
+            moving: st.motion.speed > 1,
+            course: game.helm.course,
+          }
+        : null,
+    );
     if (planning) {
       m.setRoute({
         done: [],
@@ -175,11 +215,70 @@ export function MapScreen() {
     } else {
       m.setRoute(null);
     }
-  }, [game.ship, game.voyage, planning, follow, ready]);
+  }, [game.ship, game.voyage, game.helm, planning, follow, ready, world, game]);
+
+  // ---- 海上的船隊、風暴、日夜與位置誤差
+  useEffect(() => {
+    const m = mapRef.current;
+    if (!ready || !m) return;
+    const g = game;
+    m.setFleets(
+      g.helm
+        ? g.fleets.map((f) => ({
+            id: f.id,
+            kind: f.kind,
+            position: f.position,
+            heading: f.heading,
+            chasing: f.mode === 'chase',
+          }))
+        : [],
+    );
+    m.setStorms(
+      g.helm
+        ? g.storms.map((c) => ({ id: c.id, center: c.center, radiusKm: c.radiusKm, name: c.name }))
+        : [],
+    );
+    m.setMists(
+      g.helm ? g.mists.map((c) => ({ id: c.id, center: c.center, radiusKm: c.radiusKm })) : [],
+    );
+    m.setPositionError(g.helm ? g.ship.position : null, g.helm ? positionErrorKm(world, g) : 0);
+    m.setSky(
+      g.helm ? darkness(g.day) : 0,
+      !!g.helm && !!insideStorm(g.storms, g.ship.position),
+      !!g.helm && !!insideMist(g.mists, g.ship.position),
+    );
+  }, [ready, world, game]);
+
+  // ---- 出港時拉近鏡頭跟著船，入港時拉遠一些看港口周邊
+  const atSea = !!game.helm;
+  useEffect(() => {
+    const m = mapRef.current;
+    if (!ready || !m) return;
+    const pos = useGame.getState().game!.ship.position;
+    m.centerOn(pos, atSea ? SAIL_ZOOM : HOME_ZOOM * 2);
+  }, [atSea, ready]);
 
   useEffect(() => {
     if (ready) mapRef.current?.setMarks(mapMarks);
   }, [mapMarks, ready]);
+
+  // ---- 調查發現新地方時，海圖上放金色光圈
+  const celebration = useGame((s) => s.celebration);
+  useEffect(() => {
+    if (ready && celebration) mapRef.current?.celebrate(celebration.at);
+  }, [ready, celebration]);
+
+  // ---- 已發現地點的地名註記（親手畫出的海圖）
+  const discovered = game.discovered;
+  useEffect(() => {
+    if (!ready) return;
+    mapRef.current?.setPlaces(
+      discovered
+        .map((id) => world.codex.get(id))
+        .filter((c) => !!c?.location && c.category !== 'goods')
+        .map((c) => ({ id: c!.id, name: c!.name, location: c!.location!, category: c!.category })),
+    );
+  }, [ready, world, discovered]);
 
   const interaction = modals.length === 0 ? pendingInteraction(world, game) : null;
   const locating = interaction?.data.type === 'locate';
@@ -187,6 +286,27 @@ export function MapScreen() {
   useEffect(() => {
     mapRef.current?.setPlanning(!!planning || locating);
   }, [planning, locating]);
+
+  // 停泊時預設在城鎮裡走動；定位挑戰需要海圖時自動切回海圖
+  const dockedPort =
+    !game.helm && !game.voyage && game.dockedAt ? world.ports.get(game.dockedAt) : null;
+  const showTown = !!dockedPort && townView && !locating && !planning;
+  const culture = dockedPort ? cultureOf(dockedPort.country) : 'minnan';
+
+  // ---- 環境音：海上聽得到浪和風（隨風力變化），港口裡是輕浪和海鷗
+  const ambMode = game.helm || game.voyage ? 'sea' : showTown ? 'town' : null;
+  const ambWind = game.helm
+    ? Math.round((sailingStatus(world, game)?.wind.strength ?? 0) * 10) / 10
+    : 0.4;
+  useEffect(() => {
+    setAmbience(ambMode, ambWind);
+  }, [ambMode, ambWind]);
+  useEffect(() => () => setAmbience(null), []);
+  const shipColors = {
+    hull: colorOf(HULL_PAINTS, look.hull),
+    sail: colorOf(SAIL_PAINTS, look.sail),
+    flag: colorOf(COLORS, look.flagColor),
+  };
 
   return (
     <div className={locating ? 'map-screen locating' : 'map-screen'}>
@@ -202,9 +322,35 @@ export function MapScreen() {
       <div className="map-area">
         <div className="map-host" ref={hostRef} />
 
+        {showTown && (
+          <>
+            <TownView
+              key={dockedPort!.id}
+              culture={culture}
+              appearance={game.appearance}
+              ship={shipColors}
+              returnFrom={lastBuilding}
+              talk={folkLines(dockedPort!.id, culture, dockedPort!.gossip)}
+              onEnter={(kind) => useGame.getState().enterBuilding(kind)}
+            />
+            <div className="town-hint">
+              點地面走路，點路人聊天；走到門口進入建築，走到船邊可以補給、出港。
+            </div>
+          </>
+        )}
+        {dockedPort && !locating && !planning && (
+          <button
+            type="button"
+            className={showTown ? 'view-toggle in-town' : 'view-toggle on-chart'}
+            onClick={() => useGame.getState().setTownView(!townView)}
+          >
+            {showTown ? '🗺️ 看海圖' : `🏘️ 回到${dockedPort.name}城裡`}
+          </button>
+        )}
+
         <QuestTracker />
 
-        <div className="map-legend" aria-hidden="true">
+        <div className="map-legend" aria-hidden="true" hidden={atSea}>
           <span>
             <i className="dot home" />
             家鄉
@@ -221,21 +367,36 @@ export function MapScreen() {
             <i className="line dashed" />
             回歸線、極圈
           </span>
+          <span className="glyphs">
+            <i className="g-mountain" />山<i className="g-island" />島<i className="g-river">≈</i>
+            河口
+            <i className="g-culture" />
+            文化<i className="g-mark">＋</i>海峽、地標
+          </span>
         </div>
 
         <div className="map-coords" aria-live="off">
           {pointer ? formatLonLat(pointer) : '滑過或拖曳地圖可查看經緯度'}
         </div>
 
-        {planning ? <PlanningPanel /> : game.voyage ? <SailBar /> : null}
+        {planning ? (
+          <PlanningPanel />
+        ) : game.voyage ? (
+          <SailBar />
+        ) : game.helm ? (
+          <HelmPanel />
+        ) : null}
 
-        <WindCompass />
+        {!game.helm && !showTown && <WindCompass />}
         {interaction?.data.type === 'locate' && <LocateBanner step={interaction.data} />}
         <Toasts />
       </div>
 
       {/* 港口面板放在海圖區塊之外：手機版排在海圖下方，避免可捲動面板疊在 WebGL 畫布上造成空白 */}
-      {!planning && selectedPortId && <PortPanel portId={selectedPortId} />}
+      {!planning && !showTown && selectedPortId && <PortPanel portId={selectedPortId} />}
+      {showTown && building && <BuildingPanel kind={building} culture={culture} />}
+      {stargazing && game.helm && <StarSightModal />}
+      {coastSight && game.helm && <CoastSightModal />}
 
       {panel === 'codex' && <CodexPanel />}
       {panel === 'captain' && <CaptainPanel />}

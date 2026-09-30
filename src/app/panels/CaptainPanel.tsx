@@ -3,7 +3,7 @@ import { ACHIEVEMENTS } from '@/game/achievements';
 import { ATTRIBUTE_INFO, ATTRIBUTE_KEYS, xpToNext } from '@/game/captain';
 import { SKILL_PATHS, SKILLS, type SkillPath } from '@/game/progression';
 import { exportSaveJson, importSaveJson } from '@/game/save';
-import { explorationPercent, skillStatus } from '@/game/state';
+import { chartedArea, skillStatus } from '@/game/state';
 import { useGame } from '../store';
 import { getSoundSettings, setSoundSettings } from '../sound';
 import {
@@ -149,7 +149,7 @@ function CaptainTab() {
       <ul className="records">
         <li>航海天數：{Math.floor(game.day) + 1} 天</li>
         <li>完成航行：{game.stats.voyages} 次</li>
-        <li>世界探索率：{explorationPercent(game)}%</li>
+        <li>海圖面積：約 {chartedArea(game)} 萬平方公里</li>
         <li>
           造訪港口：{game.visitedPorts.length} / {world.content.ports.length}
         </li>

@@ -1,0 +1,19 @@
+{
+  "id": "maldives",
+  "name": "溜山",
+  "name_en": "Malé (Maldives)",
+  "historical_names": ["溜山國"],
+  "country": "馬爾地夫",
+  "country_en": "Maldives",
+  "region": "bengal-malabar",
+  "location": [73.51, 4.18],
+  "kind": "port",
+  "goods": ["cowrie"],
+  "climate": "熱帶季風氣候",
+  "blurb": "由上千座珊瑚島組成的群島，馬歡《瀛涯勝覽》稱為「溜山」。這裡盛產海貝，古代從印度到東非、甚至中國西南，都曾把這種海貝當作貨幣。",
+  "sights": [],
+  "gossip": [
+    "這些島都是珊瑚一點一點堆起來的，最高的地方也只比海面高一點點。",
+    "島和島之間有很多暗礁，不熟水路的船很容易擱淺。"
+  ]
+}

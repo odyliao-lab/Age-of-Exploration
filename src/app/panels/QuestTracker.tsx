@@ -1,4 +1,4 @@
-import { activeNavigateTargets, navigateHint } from '@/game/state';
+import { activeNavigateTargets, navigateHint, openRumors } from '@/game/state';
 import { useGame } from '../store';
 
 export function QuestTracker() {
@@ -6,11 +6,20 @@ export function QuestTracker() {
   const game = useGame((s) => s.game)!;
 
   const active = Object.entries(game.quests).filter(([, p]) => p.status === 'active');
-  if (active.length === 0) return null;
+  const rumors = openRumors(world, game);
+  if (active.length === 0 && rumors.length === 0) return null;
   const targets = activeNavigateTargets(world, game);
 
   return (
     <section className="quest-tracker" aria-label="進行中的任務">
+      {rumors.map((c) => (
+        <details key={c.id} className="quest-item rumor-item">
+          <summary>
+            <strong>傳聞</strong>・{c.rumor!.from}說的地方
+          </summary>
+          <div>{c.rumor!.text}</div>
+        </details>
+      ))}
       {active.map(([id, p]) => {
         const quest = world.quests.get(id);
         if (!quest) return null;

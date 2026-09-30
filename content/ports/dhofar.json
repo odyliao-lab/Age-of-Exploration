@@ -1,0 +1,19 @@
+{
+  "id": "dhofar",
+  "name": "祖法兒",
+  "name_en": "Dhofar (Salalah)",
+  "historical_names": ["祖法兒國"],
+  "country": "阿曼",
+  "country_en": "Oman",
+  "region": "arabian-sea",
+  "location": [54.09, 17.0],
+  "kind": "port",
+  "goods": ["frankincense"],
+  "climate": "熱帶沙漠氣候",
+  "blurb": "阿拉伯半島南岸的港口，背後的山區是世界最著名的乳香產地。夏季西南季風帶來霧和細雨，讓這一帶的山坡在沙漠中罕見地變綠。",
+  "sights": [],
+  "gossip": [
+    "每年夏天季風一來，山坡就被霧氣籠罩，整片變得綠油油的，跟四周的沙漠完全不一樣。",
+    "乳香樹長在又乾又熱的山谷裡，割開樹皮流出來的汁乾了，就是乳香。"
+  ]
+}

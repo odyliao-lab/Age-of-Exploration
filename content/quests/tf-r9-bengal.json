@@ -1,0 +1,54 @@
+{
+  "id": "tf-r9-bengal",
+  "title": "麒麟從哪裡來",
+  "scenario": "treasure-fleet",
+  "chapter": 2,
+  "tier": 2,
+  "kind": "region",
+  "giver_port": "samudera",
+  "objectives": [
+    {
+      "domain": "C",
+      "text": "能說出恆河在孟加拉灣出海，形成大三角洲。"
+    },
+    {
+      "domain": "E",
+      "text": "知道榜葛剌與明朝的往來。"
+    }
+  ],
+  "prerequisites": ["tf-06-samudera"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "蘇門答剌的商人",
+      "lines": [
+        "聽說北邊的榜葛剌要送一頭「麒麟」去大明，那是什麼樣的神獸呢？",
+        "榜葛剌在孟加拉灣的最北邊，好幾條大河在那裡出海。往西北去看看吧。"
+      ]
+    },
+    {
+      "type": "navigate",
+      "target": "chittagong",
+      "hint_level": 3,
+      "text": "線索：孟加拉灣最北端，大河三角洲的東側。"
+    },
+    {
+      "type": "discover",
+      "target": "ganges-delta"
+    },
+    {
+      "type": "quiz",
+      "question": "1414 年榜葛剌進貢給明朝的「麒麟」，其實是哪一種動物？",
+      "choices": ["長頸鹿", "大象", "犀牛", "獅子"],
+      "answer": 0,
+      "explanation": "這頭長頸鹿原產非洲，經由海上貿易來到榜葛剌，再被送到北京。明朝人覺得牠像傳說中的麒麟，還畫下了〈瑞應麒麟圖〉。"
+    }
+  ],
+  "reward": {
+    "xp": 160,
+    "gold": 240,
+    "reputation": 10,
+    "unlock_ports": [],
+    "codex": []
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "id": "tf-r10-frankincense",
+  "title": "乳香之路",
+  "scenario": "treasure-fleet",
+  "chapter": 3,
+  "tier": 2,
+  "kind": "region",
+  "giver_port": "hormuz",
+  "objectives": [
+    {
+      "domain": "F",
+      "text": "知道乳香是樹脂，產於阿拉伯半島南部。"
+    },
+    {
+      "domain": "D",
+      "text": "知道季風讓沙漠海岸出現綠意。"
+    }
+  ],
+  "prerequisites": ["tf-09-hormuz"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "忽魯謨斯的香料商",
+      "lines": [
+        "天方與各國寺院燒的香，很多都是乳香。",
+        "乳香產在阿拉伯半島南岸的祖法兒，去那裡看看乳香樹吧。"
+      ]
+    },
+    {
+      "type": "navigate",
+      "target": "dhofar",
+      "hint_level": 3,
+      "text": "線索：阿拉伯半島南岸，面向阿拉伯海的港口。"
+    },
+    {
+      "type": "quiz",
+      "question": "乳香是從哪裡來的？",
+      "choices": ["乳香樹的樹脂", "海裡的貝殼", "羊奶曬乾", "岩石磨成的粉"],
+      "answer": 0,
+      "explanation": "割開乳香樹的樹皮，流出的汁液凝固後就是乳香，燒起來有香味，古代經由商路賣到地中海、印度與中國。"
+    }
+  ],
+  "reward": {
+    "xp": 160,
+    "gold": 260,
+    "reputation": 10,
+    "unlock_ports": [],
+    "codex": []
+  }
+}

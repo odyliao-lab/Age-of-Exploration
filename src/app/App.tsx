@@ -58,10 +58,16 @@ function ScenarioMenu() {
       <section className="howto">
         <h2>怎麼玩</h2>
         <ol>
-          <li>在家鄉港口的任務板接下任務。</li>
-          <li>按「規劃航線」，在海面上點選航點，最後點選目的港口。航線不能穿越陸地。</li>
-          <li>出航後船會自動前進，途中瞭望員會回報發現的島嶼與地標。</li>
-          <li>抵達港口完成任務、回答問題，累積經驗、升級船長，並收集圖鑑。</li>
+          <li>
+            在港口城鎮裡走動：官府接差事、酒館聽傳聞、市集做買賣、書院看季風月曆、碼頭補給出港；點路人聽他用當地話打招呼。
+          </li>
+          <li>出海後親手掌舵：看風向調整航向與帆，頂風開不動就走之字形。</li>
+          <li>
+            依傳聞的地理線索推理位置，用牽星術、看岸形、測深確認自己在哪裡，靠近後「調查」發現新地方。
+          </li>
+          <li>
+            避開海盜、風暴與海霧，和商船交換消息、做買賣，把親眼見過的海岸一筆一筆畫成自己的海圖。
+          </li>
         </ol>
         <p className="meta">進度會自動存在這台裝置的瀏覽器裡；用 Google 登入後也會同步到雲端。</p>
       </section>
@@ -105,12 +111,24 @@ function ScenarioCard({ scenario: s }: { scenario: Scenario }) {
         學習領域：{s.domains.map((d) => LEARNING_DOMAIN_LABELS[d]).join('、')}
       </div>
       <ol className="chapters">
-        {s.chapters.map((c) => (
-          <li key={c.index}>
-            {c.title}
-            <span className="meta">（Tier {c.tier}）</span>
-          </li>
-        ))}
+        {s.chapters.map((c) => {
+          // 這一章的主線任務完成了幾個
+          const main = content.quests.filter(
+            (q) => q.scenario === s.id && q.chapter === c.index && q.kind === 'main',
+          );
+          const done = main.filter((q) => save?.completedQuests.includes(q.id)).length;
+          return (
+            <li key={c.index}>
+              {c.title}
+              <span className="meta">（Tier {c.tier}）</span>
+              {save && main.length > 0 && (
+                <span className={done === main.length ? 'chapter-done' : 'meta'}>
+                  {done === main.length ? ' ✔ 完成' : ` ${done}/${main.length}`}
+                </span>
+              )}
+            </li>
+          );
+        })}
       </ol>
       <div className="row">
         {save ? (

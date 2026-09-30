@@ -1,0 +1,17 @@
+{
+  "id": "chongming",
+  "category": "river",
+  "name": "長江口與崇明島",
+  "name_en": "Yangtze Estuary and Chongming Island",
+  "location": [122.1, 31.5],
+  "domains": ["C", "D"],
+  "body": "長江是中國最長的河流，每年帶著大量泥沙流進東海。泥沙在河口慢慢堆積，形成了崇明島這樣的沖積島，島嶼至今還在一點一點長大。河口外的海水因為泥沙而顏色發黃，和遠處的藍色海水分界明顯。鄭和船隊就是從長江口附近的太倉劉家港出發的。",
+  "source": "維基百科「長江」「崇明島」條目",
+  "rumor": {
+    "port": "taicang",
+    "from": "太倉的船工",
+    "text": "順著江往東出海，水是黃的。江口有一座全是沙土堆起來的大島，平得看不見一座山，老人說它每年都往海裡多長一點。",
+    "investigate_km": 45
+  },
+  "reviewed": false
+}

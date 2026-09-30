@@ -1,0 +1,10 @@
+{
+  "id": "myrrh",
+  "category": "goods",
+  "name": "沒藥",
+  "name_en": "Myrrh",
+  "domains": ["F"],
+  "body": "沒藥是沒藥樹的樹脂，產於阿拉伯半島南部與東非，可作香料與藥材。中醫也用沒藥入藥，名稱來自阿拉伯語的音譯。",
+  "source": "維基百科「沒藥」條目",
+  "reviewed": false
+}

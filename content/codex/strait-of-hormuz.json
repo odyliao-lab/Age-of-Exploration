@@ -1,0 +1,12 @@
+{
+  "id": "strait-of-hormuz",
+  "category": "landmark",
+  "name": "荷姆茲海峽",
+  "name_en": "Strait of Hormuz",
+  "location": [56.6, 26.5],
+  "discover_radius_km": 120,
+  "domains": ["B", "A"],
+  "body": "荷姆茲海峽連接波斯灣與阿曼灣，最窄處只有約 40 公里寬。自古是波斯灣進出印度洋的唯一海路，今天仍是世界最重要的石油運輸通道之一。",
+  "source": "維基百科「荷姆茲海峽」條目",
+  "reviewed": false
+}

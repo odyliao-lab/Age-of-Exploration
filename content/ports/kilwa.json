@@ -1,0 +1,19 @@
+{
+  "id": "kilwa",
+  "name": "基盧瓦",
+  "name_en": "Kilwa Kisiwani",
+  "historical_names": ["基爾瓦"],
+  "country": "坦尚尼亞",
+  "country_en": "Tanzania",
+  "region": "east-africa",
+  "location": [39.51, -8.96],
+  "kind": "port",
+  "goods": ["ambergris"],
+  "climate": "熱帶莽原氣候",
+  "blurb": "東非海岸南段的島嶼城邦，曾是斯瓦希里海岸最富裕的城市之一，控制著從南方運來的黃金貿易。島上的大清真寺與宮殿遺址已列入世界遺產。",
+  "sights": [],
+  "gossip": [
+    "再往南，季風就吹不到了，一年四季的風都跟這裡不一樣。",
+    "南邊來的商人帶著黃金，說是從很遠很遠的內陸運出來的。"
+  ]
+}

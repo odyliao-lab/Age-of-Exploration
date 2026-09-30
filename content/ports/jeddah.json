@@ -1,0 +1,19 @@
+{
+  "id": "jeddah",
+  "name": "秩達（天方的港口）",
+  "name_en": "Jeddah",
+  "historical_names": ["秩達"],
+  "country": "沙烏地阿拉伯",
+  "country_en": "Saudi Arabia",
+  "region": "arabian-sea",
+  "location": [39.17, 21.49],
+  "kind": "port",
+  "goods": ["dates"],
+  "climate": "熱帶沙漠氣候",
+  "blurb": "紅海東岸的港口，是前往伊斯蘭聖城麥加（明代稱「天方」）的門戶。鄭和第七次下西洋時，馬歡等人曾從古里搭船前往天方，並在《瀛涯勝覽》中記下麥加天房的樣子。",
+  "sights": ["kaaba"],
+  "gossip": [
+    "從世界各地來朝聖的人，都在這個港口上岸，再走陸路去聖城。",
+    "這裡夏天熱得連海風都是燙的，大家白天躲在屋裡，傍晚才出來走動。"
+  ]
+}

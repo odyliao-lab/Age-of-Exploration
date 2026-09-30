@@ -1,0 +1,49 @@
+{
+  "id": "tf-r11-siam",
+  "title": "大河灣裡的王國",
+  "scenario": "treasure-fleet",
+  "chapter": 1,
+  "tier": 1,
+  "kind": "region",
+  "giver_port": "champa",
+  "objectives": [
+    { "domain": "C", "text": "知道大河下游的沖積平原適合種稻。" },
+    { "domain": "B", "text": "能在地圖上找到暹羅灣與中南半島。" }
+  ],
+  "prerequisites": ["tf-01-champa"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "占城港的暹羅商人",
+      "lines": [
+        "我的家鄉暹羅在西邊一個大海灣的最深處，一條大河從那裡流進海裡。",
+        "那裡的米多得吃不完，還產蘇木，可以染出漂亮的紅色。有空來看看吧！"
+      ]
+    },
+    {
+      "type": "navigate",
+      "target": "siam",
+      "hint_level": 3,
+      "text": "線索：從占城往南繞過中南半島的南端，再往西北深入一個大海灣，一直走到海灣的最裡面，那裡有大河出海。"
+    },
+    {
+      "type": "quiz",
+      "question": "暹羅的湄南河下游平原，為什麼特別適合種稻？",
+      "choices": [
+        "河水每年氾濫，帶來肥沃的泥土，雨季又有充足的雨水",
+        "那裡終年下雪，雪水很多",
+        "那裡是乾燥的沙漠",
+        "那裡是高山，梯田最多"
+      ],
+      "answer": 0,
+      "explanation": "大河在下游流速變慢，泥沙堆積成平坦肥沃的沖積平原。湄南河每年雨季氾濫，把新的泥土帶到田裡，加上熱帶季風的雨水，讓暹羅成為重要的產米地。"
+    }
+  ],
+  "reward": {
+    "xp": 130,
+    "gold": 200,
+    "reputation": 8,
+    "unlock_ports": ["siam"],
+    "codex": []
+  }
+}

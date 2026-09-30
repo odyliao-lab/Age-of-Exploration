@@ -1,0 +1,8 @@
+{
+  "id": "southern-africa",
+  "name": "非洲東南海岸與好望角",
+  "name_en": "Southeast Africa & the Cape",
+  "description": "從莫三比克海峽往南到非洲最南端。這裡已經離開季風區，南邊是強勁的盛行西風帶，暖流與寒流在海角附近交會，風浪險惡。",
+  "center": [30, -28],
+  "bbox": [10, -40, 36, -12]
+}

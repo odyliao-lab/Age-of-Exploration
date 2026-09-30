@@ -1,0 +1,44 @@
+{
+  "id": "tf-a5-desert",
+  "title": "學者的考驗：沙漠與海",
+  "scenario": "treasure-fleet",
+  "chapter": 3,
+  "tier": 2,
+  "kind": "academy",
+  "giver_port": "hormuz",
+  "objectives": [
+    {
+      "domain": "D",
+      "text": "能說明阿拉伯半島乾燥的原因。"
+    }
+  ],
+  "prerequisites": ["tf-09-hormuz"],
+  "steps": [
+    {
+      "type": "quiz",
+      "question": "阿拉伯半島大部分是沙漠，主要原因是什麼？",
+      "choices": [
+        "位在副熱帶高壓帶，空氣下沉、不易降雨",
+        "因為海拔太高",
+        "因為離海太遠",
+        "因為終年下雪"
+      ],
+      "answer": 0,
+      "explanation": "北緯 20°～30° 附近是副熱帶高壓帶，空氣下沉變得乾燥，很難形成雲雨，世界上許多大沙漠都在這個緯度帶。"
+    },
+    {
+      "type": "quiz",
+      "question": "波斯灣的忽魯謨斯島幾乎不下雨，島上居民的淡水主要從哪裡來？",
+      "choices": ["從對岸大陸運來", "從海水直接飲用", "從冰川融化", "從湖泊引來"],
+      "answer": 0,
+      "explanation": "馬歡記載忽魯謨斯「寸草不生」，淡水要從外地運來。乾燥地區的城市常要靠運水、蓄水池或地下水道取得淡水。"
+    }
+  ],
+  "reward": {
+    "xp": 120,
+    "gold": 150,
+    "reputation": 8,
+    "unlock_ports": [],
+    "codex": []
+  }
+}

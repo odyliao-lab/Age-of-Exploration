@@ -1,0 +1,19 @@
+{
+  "id": "hormuz",
+  "name": "忽魯謨斯",
+  "name_en": "Hormuz",
+  "historical_names": ["忽魯謨斯國"],
+  "country": "伊朗",
+  "country_en": "Iran",
+  "region": "arabian-sea",
+  "location": [56.46, 27.07],
+  "kind": "hub",
+  "goods": ["pearl"],
+  "climate": "熱帶沙漠氣候",
+  "blurb": "扼守波斯灣入口的小島港口，印度、阿拉伯、波斯與東非的商人都在這裡交易。馬歡《瀛涯勝覽》記載各地的海船與陸路商旅都到此趕集買賣；島上幾乎不下雨，淡水要從對岸運來。",
+  "sights": [],
+  "gossip": [
+    "這座島上幾乎不長草木，連喝的水都要從大陸那邊運過來。",
+    "海灣裡面的人潛到海底撈珍珠貝，一口氣能憋好久。"
+  ]
+}

@@ -1,0 +1,44 @@
+{
+  "id": "tf-a4-indian-monsoon",
+  "title": "學者的考驗：印度洋的季風",
+  "scenario": "treasure-fleet",
+  "chapter": 2,
+  "tier": 2,
+  "kind": "academy",
+  "giver_port": "galle",
+  "objectives": [
+    {
+      "domain": "D",
+      "text": "能說明北印度洋冬夏季風與洋流方向相反。"
+    }
+  ],
+  "prerequisites": ["tf-07-ceylon"],
+  "steps": [
+    {
+      "type": "quiz",
+      "question": "北印度洋冬季吹的是什麼季風？",
+      "choices": ["東北季風", "西南季風", "西風", "東南信風"],
+      "answer": 0,
+      "explanation": "冬天亞洲大陸比海洋冷，高氣壓把風從大陸吹向海洋，北印度洋就吹東北季風。"
+    },
+    {
+      "type": "quiz",
+      "question": "為什麼北印度洋的表層洋流，冬天和夏天的方向會相反？",
+      "choices": [
+        "因為季風的方向隨季節反轉，表層海水跟著風流動",
+        "因為月亮每半年換一次位置",
+        "因為河水在夏天特別多",
+        "因為冬天海水會結冰"
+      ],
+      "answer": 0,
+      "explanation": "北印度洋的洋流主要由季風推動：冬季東北季風使洋流往西，夏季西南季風使洋流往東，這是世界上少見的季節性反轉洋流。"
+    }
+  ],
+  "reward": {
+    "xp": 120,
+    "gold": 150,
+    "reputation": 8,
+    "unlock_ports": [],
+    "codex": []
+  }
+}

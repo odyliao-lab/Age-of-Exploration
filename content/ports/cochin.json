@@ -1,0 +1,19 @@
+{
+  "id": "cochin",
+  "name": "柯枝",
+  "name_en": "Cochin (Kochi)",
+  "historical_names": ["柯枝國"],
+  "country": "印度",
+  "country_en": "India",
+  "region": "bengal-malabar",
+  "location": [76.26, 9.96],
+  "kind": "port",
+  "goods": ["pepper"],
+  "climate": "熱帶季風氣候",
+  "blurb": "古里南方的港口，河口與一連串潟湖相通。港邊至今仍可見大型的懸臂漁網，當地稱為「中國漁網」，一般認為源自古代與中國的往來。",
+  "sights": [],
+  "gossip": [
+    "這裡的河道和潟湖連成一片，划小船就能把胡椒從山裡一路運到港口。",
+    "西邊的海岸沒有什麼好港灣，這條河口是少數能避風的地方。"
+  ]
+}

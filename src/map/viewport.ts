@@ -15,7 +15,8 @@ export interface Size {
   height: number;
 }
 
-export const MAX_SCALE = 12;
+/** 最大縮放：近距離航行時約 3° 見方填滿平板畫面 */
+export const MAX_SCALE = 64;
 
 /** 最小縮放：整個世界剛好塞滿畫面的長邊 */
 export function minScale(size: Size): number {

@@ -105,7 +105,7 @@ function shuffle<T>(items: T[], rand: () => number): { items: T[]; order: number
   return { items: order.map((i) => items[i]), order };
 }
 
-function mcq(
+export function mcq(
   prompt: string,
   correct: string,
   wrong: string[],

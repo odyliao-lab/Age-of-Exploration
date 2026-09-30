@@ -1,0 +1,59 @@
+{
+  "id": "tf-09-hormuz",
+  "title": "波斯灣的門口",
+  "scenario": "treasure-fleet",
+  "chapter": 3,
+  "tier": 2,
+  "kind": "main",
+  "giver_port": "calicut",
+  "objectives": [
+    {
+      "domain": "A",
+      "text": "能找到阿拉伯海與波斯灣的位置。"
+    },
+    {
+      "domain": "B",
+      "text": "能說明荷姆茲海峽是波斯灣進出大洋的通道。"
+    }
+  ],
+  "prerequisites": ["tf-08-calicut"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "古里的阿拉伯商人",
+      "lines": [
+        "你們的船隊要去忽魯謨斯？那裡是全世界的市集！",
+        "從古里往西北橫渡阿拉伯海，到了波斯灣的入口，有一座小島，那就是忽魯謨斯。"
+      ]
+    },
+    {
+      "type": "navigate",
+      "target": "hormuz",
+      "hint_level": 3,
+      "text": "線索：阿拉伯海的西北方，波斯灣入口處的小島港口。"
+    },
+    {
+      "type": "discover",
+      "target": "strait-of-hormuz"
+    },
+    {
+      "type": "quiz",
+      "question": "忽魯謨斯能成為各國商人聚集的大市集，最主要的地理原因是什麼？",
+      "choices": [
+        "它扼守波斯灣進出印度洋的海峽",
+        "它是島上水源最豐富的地方",
+        "它位在赤道上",
+        "它有世界最高的山可以瞭望"
+      ],
+      "answer": 0,
+      "explanation": "忽魯謨斯守在荷姆茲海峽，往來波斯灣內外的船都要經過這裡，於是成為印度洋西側最重要的轉口港。"
+    }
+  ],
+  "reward": {
+    "xp": 230,
+    "gold": 350,
+    "reputation": 20,
+    "unlock_ports": ["hormuz"],
+    "codex": []
+  }
+}

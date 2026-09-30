@@ -1,0 +1,8 @@
+{
+  "id": "bengal-malabar",
+  "name": "孟加拉灣與印度西岸",
+  "name_en": "Bay of Bengal & Malabar Coast",
+  "description": "印度半島東西兩側的海域：東邊是恆河注入的孟加拉灣，西邊是盛產胡椒的馬拉巴爾海岸；冬夏季風方向相反，決定了船隻往來的季節。",
+  "center": [82, 12],
+  "bbox": [68, -2, 95, 24]
+}

@@ -1,0 +1,12 @@
+{
+  "id": "bab-el-mandeb",
+  "category": "landmark",
+  "name": "曼德海峽",
+  "name_en": "Bab-el-Mandeb",
+  "location": [43.4, 12.6],
+  "discover_radius_km": 100,
+  "domains": ["B", "A"],
+  "body": "曼德海峽位於阿拉伯半島與非洲之角之間，連接紅海與亞丁灣，阿拉伯語的意思是「淚之門」，形容這裡水流湍急、航行危險。",
+  "source": "維基百科「曼德海峽」條目",
+  "reviewed": false
+}

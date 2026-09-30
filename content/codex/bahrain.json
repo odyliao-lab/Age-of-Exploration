@@ -1,0 +1,17 @@
+{
+  "id": "bahrain",
+  "category": "island",
+  "name": "巴林島",
+  "name_en": "Bahrain",
+  "location": [50.75, 26.35],
+  "domains": ["F", "B"],
+  "body": "巴林島位於波斯灣中部，周圍的淺海是著名的珍珠場，採珠業延續了數千年。島上還有湧出淡水的泉眼，在乾燥的波斯灣是難得的綠洲。",
+  "source": "維基百科「巴林」條目",
+  "rumor": {
+    "port": "hormuz",
+    "from": "忽魯謨斯的採珠人",
+    "text": "往海灣裡面走，差不多到海灣中間，有一座平平的島。那一帶的海底全是珍珠貝，島上還有冒出淡水的泉，在海灣裡可難得了。",
+    "investigate_km": 35
+  },
+  "reviewed": false
+}

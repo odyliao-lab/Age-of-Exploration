@@ -1,0 +1,19 @@
+{
+  "id": "galle",
+  "name": "錫蘭山（加勒）",
+  "name_en": "Galle (Ceylon)",
+  "historical_names": ["錫蘭山", "師子國"],
+  "country": "斯里蘭卡",
+  "country_en": "Sri Lanka",
+  "region": "bengal-malabar",
+  "location": [80.22, 6.03],
+  "kind": "hub",
+  "goods": ["cinnamon", "gemstones"],
+  "climate": "熱帶季風氣候",
+  "blurb": "錫蘭島（今斯里蘭卡）西南岸的港口。1911 年在這裡發現鄭和於 1409 年所立的石碑，碑文以漢文、泰米爾文與波斯文三種文字寫成。",
+  "sights": ["galle-stele"],
+  "gossip": [
+    "錫蘭島的河床裡淘得出紅寶石和藍寶石，所以有人叫它「寶石島」。",
+    "島上的肉桂是剝下樹皮曬乾捲成的，香氣傳得老遠。"
+  ]
+}

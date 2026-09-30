@@ -11,5 +11,9 @@
   "goods": ["agarwood", "champa-rice", "sappanwood"],
   "climate": "熱帶季風氣候",
   "blurb": "中南半島東岸的占城王國舊港，鄭和船隊每次下西洋離開中國後的第一個停靠點。以沉香與稻米聞名。",
-  "sights": ["cham-towers"]
+  "sights": ["cham-towers"],
+  "gossip": [
+    "占城稻成熟得快又耐旱，宋朝時就傳到福建種了。",
+    "占城人用紅磚砌成高塔祭拜神明，遠遠就看得到。"
+  ]
 }

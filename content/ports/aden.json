@@ -1,0 +1,19 @@
+{
+  "id": "aden",
+  "name": "阿丹",
+  "name_en": "Aden",
+  "historical_names": ["阿丹國"],
+  "country": "葉門",
+  "country_en": "Yemen",
+  "region": "arabian-sea",
+  "location": [45.0, 12.8],
+  "kind": "port",
+  "goods": ["myrrh"],
+  "climate": "熱帶沙漠氣候",
+  "blurb": "位在紅海出口附近的天然良港，港口座落在一座死火山的火山口旁。從印度洋進出紅海的船，大多要在這裡停靠。",
+  "sights": [],
+  "gossip": [
+    "這座城蓋在一座老火山的邊上，四周都是黑色的岩石。",
+    "往西過了那道窄窄的海峽，就是紅海了；對岸就是非洲。"
+  ]
+}

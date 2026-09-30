@@ -1,0 +1,12 @@
+{
+  "id": "cape-of-good-hope",
+  "category": "landmark",
+  "name": "好望角",
+  "name_en": "Cape of Good Hope",
+  "location": [18.47, -34.4],
+  "discover_radius_km": 150,
+  "domains": ["B", "D"],
+  "body": "好望角位於非洲西南端，附近海域是溫暖的厄加勒斯洋流與寒冷的本格拉洋流交會處，又位在盛行西風帶，風浪極大。1488 年葡萄牙航海家迪亞士首次繞過這裡，打開了歐洲經海路前往印度的航線。",
+  "source": "維基百科「好望角」條目",
+  "reviewed": false
+}

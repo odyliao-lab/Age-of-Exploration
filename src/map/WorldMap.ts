@@ -4,20 +4,18 @@
  * 只負責畫面：海洋、陸地、迷霧、經緯線、航線、港口與船隻，以及平移縮放。
  * 遊戲狀態由 React 端管理，透過 setter 更新畫面、透過回呼回報玩家操作。
  *
- * 圖層順序（下到上）：陸地 → 迷霧 → 經緯線 → 航線 → 港口 → 船
+ * 圖層順序（下到上）：波紋 → 陸地 → 水痕與風 → 迷霧 → 經緯線 → 航線 → 港口 → 船
  */
-import {
-  Application,
-  Container,
-  Graphics,
-  Sprite,
-  Text,
-  Texture,
-  type FederatedPointerEvent,
-} from 'pixi.js';
+import { Application, Container, Graphics, Text, type FederatedPointerEvent } from 'pixi.js';
 import type { LonLat } from '@/data/schema';
-import { FOG_COLS, FOG_ROWS } from '@/game/fog';
-import { getLandRings } from './land';
+import type { SailSetting } from '@/game/sailing';
+import { FogLayer } from './fogLayer';
+import { getDetailedLand, getLandRings } from './land';
+import { SeaFx } from './seaFx';
+import { ShipSprite } from './shipSprite';
+import { NightSky } from './nightSky';
+import { SeaEntities, type FleetView, type MistView, type StormView } from './seaEntities';
+import { PlaceLabels, type PlaceLabel } from './placeLabels';
 import {
   DEG_PX,
   WORLD_HEIGHT,
@@ -59,6 +57,8 @@ export interface RouteView {
 
 export interface WorldMapOptions {
   onPortTap: (id: string) => void;
+  /** 點海圖上的地名註記（打開圖鑑） */
+  onPlaceTap?: (id: string) => void;
   onMapTap: (lonLat: LonLat) => void;
   onPointerLonLat: (lonLat: LonLat | null) => void;
   /** 玩家手動拖曳地圖（用來停止自動跟隨船隻） */
@@ -67,8 +67,8 @@ export interface WorldMapOptions {
 
 const COLORS = {
   sea: 0xa9c6cf,
-  land: 0xefe2c0,
-  coast: 0x6b5a45,
+  land: 0xe6d09c,
+  coast: 0x5a4632,
   graticule: 0x5b7f8c,
   equator: 0xb5482b,
   marker: 0x2b2118,
@@ -82,8 +82,18 @@ const COLORS = {
   sail: 0xfbf6ea,
 };
 
-/** 迷霧顏色（羊皮紙）與不透明度 */
-const FOG_RGBA = [233, 220, 188, 236] as const;
+/** 親手駕船時，畫面需要的風與帆資訊 */
+export interface SailingView {
+  windToward: number;
+  windStrength: number;
+  /** 風吹向相對於船頭的角度 */
+  windRel: number;
+  angleOffWind: number;
+  sail: SailSetting;
+  moving: boolean;
+  /** 玩家設定的航向 */
+  course: number;
+}
 
 const TAP_TOLERANCE = 6;
 const LABEL_MIN_SCALE = 1.5;
@@ -101,21 +111,24 @@ export class WorldMap {
   private portLayer = new Container();
   private routeGfx = new Graphics();
   private marksGfx = new Graphics();
+  private places = new PlaceLabels((id) => this.opts.onPlaceTap?.(id));
   private marks: { lonLat: LonLat; kind: 'guess' | 'answer' }[] = [];
   private ship = new Container();
-  private shipStyle: ShipStyle = { hull: COLORS.hull, sail: COLORS.sail, flag: 0xb5482b };
-  /** 原始迷霧格網（每格一像素） */
-  private fogCanvas: HTMLCanvasElement;
-  private fogCtx: CanvasRenderingContext2D;
-  /** 放大兩倍並模糊後的顯示用畫布，讓迷霧邊緣柔和 */
-  private fogDisplay: HTMLCanvasElement;
-  private fogDisplayCtx: CanvasRenderingContext2D;
-  private fogFlushPending = false;
+  private shipSprite = new ShipSprite({ hull: COLORS.hull, sail: COLORS.sail, flag: 0xb5482b });
+  private fog = new FogLayer();
+  private fx = new SeaFx();
+  private courseGfx = new Graphics();
+  private entities = new SeaEntities();
+  private sky = new NightSky();
+  private sailing: SailingView | null = null;
+  private shipWorld: Point | null = null;
+  private shipHeading = 0;
+  /** 鏡頭跟著船（平滑移動） */
+  private follow = false;
+  private time = 0;
   private destroyed = false;
   /** 容器大小改變（例如手機版港口面板開關）時重新調整畫布 */
   private resizeObserver: ResizeObserver | null = null;
-  private fogImage: ImageData;
-  private fogTexture: Texture;
   private markers: MarkerView[] = [];
   private view: View = { x: 0, y: 0, scale: 1 };
   private selectedId: string | null = null;
@@ -131,17 +144,6 @@ export class WorldMap {
     this.app = app;
     this.host = host;
     this.opts = opts;
-    this.fogCanvas = document.createElement('canvas');
-    this.fogCanvas.width = FOG_COLS;
-    this.fogCanvas.height = FOG_ROWS;
-    this.fogCtx = this.fogCanvas.getContext('2d')!;
-    this.fogImage = this.fogCtx.createImageData(FOG_COLS, FOG_ROWS);
-    this.fogDisplay = document.createElement('canvas');
-    this.fogDisplay.width = FOG_COLS * 2;
-    this.fogDisplay.height = FOG_ROWS * 2;
-    this.fogDisplayCtx = this.fogDisplay.getContext('2d')!;
-    this.fogTexture = Texture.from(this.fogDisplay);
-    this.fogTexture.source.scaleMode = 'linear';
   }
 
   static async create(host: HTMLElement, opts: WorldMapOptions): Promise<WorldMap> {
@@ -165,21 +167,25 @@ export class WorldMap {
   }
 
   private build() {
-    const fog = new Sprite(this.fogTexture);
-    fog.width = WORLD_WIDTH;
-    fog.height = WORLD_HEIGHT;
-    this.drawShip();
+    this.ship.addChild(this.shipSprite.root);
     this.ship.visible = false;
     this.app.stage.addChild(this.world);
     this.world.addChild(
+      this.fx.under,
       this.drawLand(),
-      fog,
+      this.fx.over,
+      this.fog.container,
+      this.entities.container,
       this.drawGraticule(),
       this.routeGfx,
+      this.courseGfx,
       this.marksGfx,
+      this.places.container,
       this.portLayer,
       this.ship,
     );
+    this.app.stage.addChild(this.sky.container);
+    this.app.ticker.add((t) => this.frame(Math.min(0.1, t.deltaMS / 1000)));
 
     const stage = this.app.stage;
     stage.eventMode = 'static';
@@ -204,7 +210,12 @@ export class WorldMap {
 
   private drawLand(): Graphics {
     const g = new Graphics();
-    const rings = getLandRings();
+    // 近距離航行需要細緻的海岸線：遊戲載入時已預先讀取 1:50m 資料
+    const rings = getDetailedLand() ?? getLandRings();
+    // 沿岸淺海的淡色帶，像古地圖沿海岸暈染的顏色
+    for (const r of rings) {
+      g.poly(r.points, true).stroke({ width: 0.9, color: 0xc9dde0, alpha: 0.9 });
+    }
     for (const r of rings) {
       if (r.outer) g.poly(r.points, true).fill({ color: COLORS.land });
       else g.poly(r.points, true).cut();
@@ -241,25 +252,120 @@ export class WorldMap {
     return g;
   }
 
-  /** 簡化的中式帆船：船身、兩面帆、船尾旗 */
-  private drawShip() {
-    const st = this.shipStyle;
-    this.ship.removeChildren().forEach((c) => c.destroy());
-    const g = new Graphics();
-    g.poly([0, -13, 6, -4, 6, 10, 0, 13, -6, 10, -6, -4], true)
-      .fill({ color: st.hull })
-      .stroke({ width: 1.5, color: 0x2b2118 });
-    g.rect(-5, -7, 10, 5).fill({ color: st.sail }).stroke({ width: 1, color: 0x2b2118 });
-    g.rect(-5, 1, 10, 5).fill({ color: st.sail }).stroke({ width: 1, color: 0x2b2118 });
-    g.moveTo(0, 9).lineTo(0, 17).stroke({ width: 1, color: 0x2b2118 });
-    g.rect(0, 13, 7, 5).fill({ color: st.flag }).stroke({ width: 0.8, color: 0x2b2118 });
-    this.ship.addChild(g);
-  }
-
   /** 套用玩家選的船身、帆與旗色 */
   setShipStyle(style: ShipStyle) {
-    this.shipStyle = style;
-    if (!this.destroyed) this.drawShip();
+    if (!this.destroyed) this.shipSprite.setLook(style);
+  }
+
+  /** 每一幀：鏡頭跟隨、船隨浪搖晃、帆與旗、海面效果 */
+  private frame(dt: number) {
+    if (this.destroyed) return;
+    this.time += dt;
+    if (this.follow && this.shipWorld) {
+      const s = this.size;
+      const target = centerOn(this.shipWorld, this.view.scale, s);
+      const k = Math.min(1, dt * 4);
+      const dx = target.x - this.view.x;
+      const dy = target.y - this.view.y;
+      if (Math.abs(dx) > 0.5 || Math.abs(dy) > 0.5) {
+        this.applyView({ ...this.view, x: this.view.x + dx * k, y: this.view.y + dy * k });
+      }
+    }
+    const sway = this.sailing?.moving ? 1 : 0.4;
+    this.ship.rotation =
+      (this.shipHeading * Math.PI) / 180 + Math.sin(this.time * 1.9) * 0.035 * sway;
+    this.shipSprite.drawRig(this.time);
+    this.fx.update(dt);
+    this.entities.update(dt);
+    this.sky.setSize(this.size.width, this.size.height);
+    this.sky.setShipScreen(
+      this.shipWorld && this.ship.visible
+        ? {
+            x: this.shipWorld.x * this.view.scale + this.view.x,
+            y: this.shipWorld.y * this.view.scale + this.view.y,
+          }
+        : null,
+    );
+    this.sky.update(dt);
+  }
+
+  /** 海上看得見的其他船隊 */
+  setFleets(list: FleetView[]) {
+    this.entities.setFleets(list);
+  }
+
+  /** 發現新地方時的金色光圈 */
+  celebrate(at: LonLat) {
+    this.entities.celebrate(at);
+  }
+
+  /** 看得見的海霧 */
+  setMists(list: MistView[]) {
+    this.entities.setMists(list);
+  }
+
+  /** 看得見的風暴雲團 */
+  setStorms(list: StormView[]) {
+    this.entities.setStorms(list);
+  }
+
+  /** 位置誤差圈（公里）；null 表示不顯示 */
+  setPositionError(center: LonLat | null, km: number) {
+    this.entities.setError(center, km);
+  }
+
+  /** 日夜：0 白天到 1 深夜；rain 為船在風暴雲團裡，mist 為船在霧裡 */
+  setSky(darkness: number, rain: boolean, mist = false) {
+    this.sky.setDarkness(darkness);
+    this.sky.setRain(rain);
+    this.sky.setMist(mist);
+  }
+
+  /** 親手駕船的風與帆狀態；null 表示停在港口或自動航行 */
+  setSailing(v: SailingView | null) {
+    const changed = !!v !== !!this.sailing;
+    this.sailing = v;
+    if (changed) this.applyView(this.view);
+    if (v) {
+      this.fx.setWind(v.windToward, v.windStrength);
+      this.shipSprite.setTrim({ windRel: v.windRel, angleOffWind: v.angleOffWind, sail: v.sail });
+    } else {
+      this.fx.clearWake();
+      this.shipSprite.setTrim({ windRel: 0, angleOffWind: 180, sail: 0 });
+    }
+    this.drawCourse();
+  }
+
+  /** 船頭前方的虛線：玩家設定的航向 */
+  private drawCourse() {
+    const g = this.courseGfx;
+    g.clear();
+    const v = this.sailing;
+    if (!v || !this.shipWorld) return;
+    const inv = 1 / this.view.scale;
+    const rad = (v.course * Math.PI) / 180;
+    const dx = Math.sin(rad);
+    const dy = -Math.cos(rad);
+    const start = 26 * inv;
+    const end = 110 * inv;
+    const dash = 7 * inv;
+    for (let d = start; d < end; d += dash * 2) {
+      g.moveTo(this.shipWorld.x + dx * d, this.shipWorld.y + dy * d).lineTo(
+        this.shipWorld.x + dx * Math.min(end, d + dash),
+        this.shipWorld.y + dy * Math.min(end, d + dash),
+      );
+    }
+    g.stroke({ width: 2.2 * inv, color: COLORS.route, alpha: 0.8 });
+    const tip = { x: this.shipWorld.x + dx * end, y: this.shipWorld.y + dy * end };
+    const side = 6 * inv;
+    g.poly([
+      tip.x + dx * side * 1.6,
+      tip.y + dy * side * 1.6,
+      tip.x - dy * side,
+      tip.y + dx * side,
+      tip.x + dy * side,
+      tip.y - dx * side,
+    ]).fill({ color: COLORS.route, alpha: 0.85 });
   }
 
   private drawMarker(m: MarkerView) {
@@ -351,9 +457,14 @@ export class WorldMap {
       m.root.scale.set(inv);
       m.label.visible = showLabels || m.data.id === this.selectedId || m.data.target;
     }
-    this.ship.scale.set(inv * 1.2);
+    // 拉近航行時船畫大一點，看得到帆的角度
+    this.ship.scale.set(inv * (this.view.scale >= 4 && this.sailing ? 1.7 : 1));
+    this.fx.setView(this.view, this.size);
+    this.entities.setView(this.view);
+    this.places.setScale(this.view.scale);
     this.drawRoute();
     this.drawMarks();
+    this.drawCourse();
   }
 
   // ---- 對外 API ----
@@ -421,6 +532,12 @@ export class WorldMap {
     this.drawRoute();
   }
 
+  /** 已發現地點的地名註記 */
+  setPlaces(list: PlaceLabel[]) {
+    this.places.set(list);
+    this.places.setScale(this.view.scale);
+  }
+
   setMarks(marks: { lonLat: LonLat; kind: 'guess' | 'answer' }[]) {
     this.marks = marks;
     this.drawMarks();
@@ -430,58 +547,21 @@ export class WorldMap {
     const p = lonLatToWorld(position);
     this.ship.visible = true;
     this.ship.position.set(p.x, p.y);
-    this.ship.rotation = (heading * Math.PI) / 180;
-    if (follow) {
-      const s = this.size;
-      const sx = p.x * this.view.scale + this.view.x;
-      const sy = p.y * this.view.scale + this.view.y;
-      // 船接近畫面邊緣時才移動鏡頭，避免持續晃動
-      const margin = Math.min(s.width, s.height) * 0.25;
-      if (sx < margin || sy < margin || sx > s.width - margin || sy > s.height - margin) {
-        this.centerOn(position);
-      }
-    }
+    this.shipWorld = p;
+    this.shipHeading = heading;
+    this.follow = follow;
+    this.fx.trackShip(position, !!this.sailing?.moving);
+    this.drawCourse();
   }
 
   /** 整張迷霧重畫（載入存檔時） */
   setFog(fog: Uint8Array) {
-    const d = this.fogImage.data;
-    for (let i = 0; i < fog.length; i++) this.writeFogPixel(d, i, fog[i] === 1);
-    this.flushFog();
+    this.fog.setFog(fog);
   }
 
   /** 局部揭開迷霧 */
   revealFog(indices: number[]) {
-    if (!indices.length) return;
-    const d = this.fogImage.data;
-    for (const i of indices) this.writeFogPixel(d, i, true);
-    this.flushFog();
-  }
-
-  private writeFogPixel(d: Uint8ClampedArray, i: number, revealed: boolean) {
-    const o = i * 4;
-    d[o] = FOG_RGBA[0];
-    d[o + 1] = FOG_RGBA[1];
-    d[o + 2] = FOG_RGBA[2];
-    d[o + 3] = revealed ? 0 : FOG_RGBA[3];
-  }
-
-  /** 合併同一段時間內的多次更新，最多每 120 毫秒重畫一次 */
-  private flushFog() {
-    if (this.fogFlushPending) return;
-    this.fogFlushPending = true;
-    setTimeout(() => {
-      this.fogFlushPending = false;
-      if (this.destroyed) return;
-      this.fogCtx.putImageData(this.fogImage, 0, 0);
-      const ctx = this.fogDisplayCtx;
-      ctx.clearRect(0, 0, this.fogDisplay.width, this.fogDisplay.height);
-      ctx.filter = 'blur(3px)';
-      ctx.imageSmoothingEnabled = true;
-      ctx.drawImage(this.fogCanvas, 0, 0, this.fogDisplay.width, this.fogDisplay.height);
-      ctx.filter = 'none';
-      this.fogTexture.source.update();
-    }, 120);
+    this.fog.reveal(indices);
   }
 
   setPlanning(on: boolean) {
@@ -490,6 +570,7 @@ export class WorldMap {
 
   destroy() {
     this.destroyed = true;
+    this.fog.destroy();
     this.resizeObserver?.disconnect();
     this.app.canvas.removeEventListener('wheel', this.onWheel);
     this.app.destroy({ removeView: true }, { children: true, texture: true });

@@ -1,0 +1,19 @@
+{
+  "id": "calicut",
+  "name": "古里",
+  "name_en": "Calicut (Kozhikode)",
+  "historical_names": ["古里國"],
+  "country": "印度",
+  "country_en": "India",
+  "region": "bengal-malabar",
+  "location": [75.78, 11.25],
+  "kind": "port",
+  "goods": ["pepper", "cotton-cloth"],
+  "climate": "熱帶季風氣候",
+  "blurb": "印度西南岸馬拉巴爾海岸的大港，《明史》稱為「西洋大國」，是阿拉伯、波斯與中國商人交易胡椒、香料與棉布的中心。相傳鄭和在第七次下西洋的歸途中，逝於古里附近。",
+  "sights": [],
+  "gossip": [
+    "夏天西南季風帶來大雨，港口會有幾個月很少船進出；等季風轉向，商船又一艘艘回來了。",
+    "這裡的商人算帳不用紙筆，靠手指和腳趾就能算得又快又準。"
+  ]
+}

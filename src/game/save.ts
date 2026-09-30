@@ -10,7 +10,7 @@ import { fullCondition, shipType } from './ship';
 import { skillPointsEarned } from './progression';
 import { EMPTY_STATS } from './achievements';
 import { defaultAppearance } from './cosmetics';
-import { SAVE_VERSION, type GameState } from './state';
+import { EMPTY_RIVAL, SAVE_VERSION, type GameState } from './state';
 
 export interface SerializedSave extends Omit<GameState, 'fog'> {
   fog: string;
@@ -63,6 +63,25 @@ export function deserialize(data: SerializedSave): GameState {
     log: data.log ?? [],
     // 第 6 版新增：外觀
     appearance: { ...defaultAppearance(), ...data.appearance },
+    // 第 7 版新增：親手駕船
+    helm: data.helm ?? null,
+    rumors: data.rumors ?? [],
+    reported: data.reported ?? [],
+    cargo: data.cargo ?? {},
+    market: data.market ?? {},
+    nav: data.nav ?? { day: data.day ?? 0, errorKm: 2 },
+    starNight: data.starNight ?? -1,
+    coastDay: data.coastDay ?? -1,
+    fleets: data.fleets ?? [],
+    storms: data.storms ?? [],
+    mists: data.mists ?? [],
+    nextEntityId: data.nextEntityId ?? 1,
+    talkDay: data.talkDay ?? 0,
+    lastRegionId: data.lastRegionId ?? null,
+    hinted: data.hinted ?? [],
+    routes: data.routes ?? {},
+    trail: data.trail ?? [],
+    rival: { ...EMPTY_RIVAL, ...data.rival },
   };
 }
 
@@ -91,10 +110,18 @@ export async function loadSave(scenarioId: string): Promise<GameState | null> {
   }
 }
 
-export async function listSaves(): Promise<Pick<SaveRecord, 'scenarioId' | 'updatedAt'>[]> {
+export async function listSaves(): Promise<
+  (Pick<SaveRecord, 'scenarioId' | 'updatedAt'> & { completedQuests: string[] })[]
+> {
   try {
     const all = (await getDb()?.saves.toArray()) ?? [];
-    return all.map(({ scenarioId, updatedAt }) => ({ scenarioId, updatedAt }));
+    return all.map(({ scenarioId, updatedAt, data }) => ({
+      scenarioId,
+      updatedAt,
+      completedQuests: Object.entries(data.quests ?? {})
+        .filter(([, q]) => q.status === 'completed')
+        .map(([id]) => id),
+    }));
   } catch {
     return [];
   }

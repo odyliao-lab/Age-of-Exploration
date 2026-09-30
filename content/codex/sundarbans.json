@@ -1,0 +1,17 @@
+{
+  "id": "sundarbans",
+  "category": "wildlife",
+  "name": "孫德爾本斯紅樹林",
+  "name_en": "Sundarbans",
+  "location": [89.3, 21.6],
+  "domains": ["C", "F"],
+  "body": "孫德爾本斯位於恆河三角洲的海岸，是世界上面積最大的紅樹林之一，潮水每天漲退，森林泡在半鹹半淡的水裡。這裡是孟加拉虎的棲地，牠們很會游泳，能在河道之間穿梭。",
+  "source": "維基百科「孫德爾本斯」「孟加拉虎」條目",
+  "rumor": {
+    "port": "chittagong",
+    "from": "榜葛剌的船夫",
+    "text": "往西走，大河出海的地方有一大片長在水裡的森林，漲潮時樹根都泡在海裡。聽說裡面的老虎會游泳，船夫晚上都不敢靠岸。",
+    "investigate_km": 40
+  },
+  "reviewed": false
+}

@@ -1,0 +1,49 @@
+{
+  "id": "tf-r13-brava",
+  "title": "赤道邊的乾海岸",
+  "scenario": "treasure-fleet",
+  "chapter": 4,
+  "tier": 3,
+  "kind": "region",
+  "giver_port": "mogadishu",
+  "objectives": [
+    { "domain": "D", "text": "知道赤道附近不一定都是多雨的熱帶雨林。" },
+    { "domain": "A", "text": "能判斷一個地方離赤道遠近。" }
+  ],
+  "prerequisites": ["tf-11-mogadishu"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "木骨都束的石匠",
+      "lines": [
+        "你們從東方來的人都以為赤道附近一定是大森林吧？看看我們這裡，到處是沙丘和矮樹叢。",
+        "往西南沿著海岸走，還有一個港口叫卜剌哇，離赤道更近。去那裡看看就知道了。"
+      ]
+    },
+    {
+      "type": "navigate",
+      "target": "brava",
+      "hint_level": 3,
+      "text": "線索：從木骨都束沿著海岸往西南走，差不多到北緯 1° 的地方。"
+    },
+    {
+      "type": "quiz",
+      "question": "卜剌哇就在赤道附近，為什麼這一帶海岸卻很乾燥？",
+      "choices": [
+        "季風大多順著海岸吹，很少把海上的濕氣送上岸，沿岸湧上來的冷海水也不容易形成雨",
+        "因為這裡是終年積雪的高山",
+        "因為赤道附近一年到頭都是冬天",
+        "因為這裡離海太遠"
+      ],
+      "answer": 0,
+      "explanation": "並不是赤道附近都是熱帶雨林。東非之角的季風大多與海岸平行，濕氣不容易深入陸地；夏季西南季風還會把表層海水推離海岸，讓底下的冷水湧上來，海面空氣變得穩定、不容易下雨。所以索馬利亞沿岸雖然靠近赤道，卻很乾燥。"
+    }
+  ],
+  "reward": {
+    "xp": 170,
+    "gold": 240,
+    "reputation": 8,
+    "unlock_ports": ["brava"],
+    "codex": []
+  }
+}

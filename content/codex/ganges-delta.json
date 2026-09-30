@@ -1,0 +1,12 @@
+{
+  "id": "ganges-delta",
+  "category": "river",
+  "name": "恆河三角洲",
+  "name_en": "Ganges Delta",
+  "location": [90.0, 21.8],
+  "discover_radius_km": 150,
+  "domains": ["C", "B"],
+  "body": "恆河與布拉馬普特拉河在孟加拉灣出海，沖積出世界上最大的三角洲之一。這裡土壤肥沃、人口稠密，但每到夏季季風雨季，也常有大規模的洪水。",
+  "source": "維基百科「恆河三角洲」條目",
+  "reviewed": false
+}

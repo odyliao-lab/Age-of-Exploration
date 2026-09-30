@@ -274,6 +274,7 @@ describe('sailing with weather', () => {
     expect(s.gold).toBe(1);
     s = portRepair(world, { ...s, gold: 40 });
     expect(s.condition.hull).toBe(70);
-    expect(portResupply(world, { ...s, dockedAt: null })).toEqual({ ...s, dockedAt: null });
+    const undocked = { ...s, dockedAt: null };
+    expect(portResupply(world, undocked)).toBe(undocked);
   });
 });

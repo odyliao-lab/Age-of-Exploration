@@ -1,0 +1,49 @@
+{
+  "id": "tf-r12-quilon",
+  "title": "雨水澆出來的胡椒",
+  "scenario": "treasure-fleet",
+  "chapter": 2,
+  "tier": 2,
+  "kind": "region",
+  "giver_port": "calicut",
+  "objectives": [
+    { "domain": "D", "text": "能說明季風遇到山脈時，迎風坡為什麼會下大雨。" },
+    { "domain": "F", "text": "知道印度西南岸是胡椒的產地。" }
+  ],
+  "prerequisites": ["tf-08-calicut"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "古里的胡椒商",
+      "lines": [
+        "胡椒要很多很多雨水才長得好。我們這一整條海岸，夏天的雨下得像倒水一樣。",
+        "往南走到小葛蘭，那裡的胡椒也很有名。你去看看那邊的山和雨，就懂了。"
+      ]
+    },
+    {
+      "type": "navigate",
+      "target": "quilon",
+      "hint_level": 3,
+      "text": "線索：沿著印度西岸一路往南，快到印度半島最南端之前的那個港口。"
+    },
+    {
+      "type": "quiz",
+      "question": "印度西南岸（馬拉巴爾海岸）夏天為什麼雨下得特別多？",
+      "choices": [
+        "西南季風從海上帶來濕氣，被海岸旁的山脈擋住往上爬，在迎風坡下大雨",
+        "因為夏天吹的是乾燥的東北季風",
+        "因為這裡靠近北極，冷空氣很多",
+        "因為海水被太陽曬乾後都落在這裡"
+      ],
+      "answer": 0,
+      "explanation": "夏季西南季風吹過印度洋，帶著大量水氣。到了印度西岸，被西高止山脈擋住，空氣沿山坡上升、冷卻，水氣凝結成雨，所以迎風的西岸雨量很多；翻過山後的背風坡就乾燥得多。這種雨叫做「地形雨」。"
+    }
+  ],
+  "reward": {
+    "xp": 150,
+    "gold": 220,
+    "reputation": 8,
+    "unlock_ports": ["quilon"],
+    "codex": []
+  }
+}

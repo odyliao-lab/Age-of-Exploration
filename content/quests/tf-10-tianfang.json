@@ -1,0 +1,60 @@
+{
+  "id": "tf-10-tianfang",
+  "title": "前往天方",
+  "scenario": "treasure-fleet",
+  "chapter": 3,
+  "tier": 2,
+  "kind": "main",
+  "giver_port": "hormuz",
+  "objectives": [
+    {
+      "domain": "B",
+      "text": "能說出紅海位在非洲與阿拉伯半島之間。"
+    },
+    {
+      "domain": "E",
+      "text": "知道麥加是伊斯蘭教的聖城。"
+    }
+  ],
+  "prerequisites": ["tf-09-hormuz"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "船隊的通事馬歡",
+      "lines": [
+        "我們要派人去天方，看看傳說中的天房。",
+        "出了波斯灣，沿著阿拉伯半島南岸往西，先到紅海門口的阿丹，再往北進入紅海。"
+      ]
+    },
+    {
+      "type": "navigate",
+      "target": "aden",
+      "hint_level": 3,
+      "text": "線索：阿拉伯半島西南端，紅海出口附近的港口。"
+    },
+    {
+      "type": "discover",
+      "target": "bab-el-mandeb"
+    },
+    {
+      "type": "navigate",
+      "target": "jeddah",
+      "hint_level": 4,
+      "text": "線索：紅海東岸的中段，是前往聖城的朝聖者上岸的港口。"
+    },
+    {
+      "type": "quiz",
+      "question": "紅海位在哪兩塊大陸之間？",
+      "choices": ["非洲與亞洲", "歐洲與非洲", "亞洲與歐洲", "非洲與南美洲"],
+      "answer": 0,
+      "explanation": "紅海一邊是非洲，一邊是亞洲的阿拉伯半島，北端經蘇伊士地峽與地中海世界相鄰，南端經曼德海峽通往印度洋。"
+    }
+  ],
+  "reward": {
+    "xp": 260,
+    "gold": 400,
+    "reputation": 25,
+    "unlock_ports": ["aden"],
+    "codex": []
+  }
+}

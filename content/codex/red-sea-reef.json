@@ -1,0 +1,17 @@
+{
+  "id": "red-sea-reef",
+  "category": "phenomenon",
+  "name": "紅海的珊瑚礁",
+  "name_en": "Red Sea Coral Reefs",
+  "location": [38.9, 21.6],
+  "domains": ["C", "D"],
+  "body": "紅海兩岸是沙漠，幾乎沒有河流注入，蒸發又旺盛，是世界上最鹹的海域之一。清澈溫暖的海水讓珊瑚礁沿著海岸生長，但也讓船隻要小心藏在水面下的礁石。",
+  "source": "維基百科「紅海」條目",
+  "rumor": {
+    "port": "jeddah",
+    "from": "秩達的領港人",
+    "text": "出了港口往南，沿岸的海水清得見底，底下是五顏六色的石頭花園。好看是好看，可大船一不小心就會擱在上面，一定要白天慢慢開。",
+    "investigate_km": 35
+  },
+  "reviewed": false
+}

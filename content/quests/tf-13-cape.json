@@ -1,0 +1,63 @@
+{
+  "id": "tf-13-cape",
+  "title": "海的盡頭（假想航程）",
+  "scenario": "treasure-fleet",
+  "chapter": 5,
+  "tier": 4,
+  "kind": "main",
+  "giver_port": "malindi",
+  "objectives": [
+    {
+      "domain": "B",
+      "text": "能找到莫三比克海峽與非洲南端。"
+    },
+    {
+      "domain": "D",
+      "text": "能說明非洲南端為什麼風浪險惡。"
+    }
+  ],
+  "prerequisites": ["tf-12-qilin"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "老舵工",
+      "lines": [
+        "船長，如果我們一直往南開，會到哪裡呢？",
+        "（這是一段假想的航程：歷史上鄭和的寶船沒有到過非洲南端。我們就用學到的地理知識，想像一下吧！）"
+      ]
+    },
+    {
+      "type": "navigate",
+      "target": "kilwa",
+      "hint_level": 3,
+      "text": "線索：東非海岸再往南，一座控制黃金貿易的島嶼城邦。"
+    },
+    {
+      "type": "discover",
+      "target": "mozambique-channel"
+    },
+    {
+      "type": "discover",
+      "target": "cape-of-good-hope"
+    },
+    {
+      "type": "quiz",
+      "question": "非洲最南端附近的海域風浪特別大，下列哪一個是原因？",
+      "choices": [
+        "位在盛行西風帶，又有暖流與寒流交會",
+        "那裡是赤道無風帶",
+        "那裡終年結冰",
+        "那裡的海水特別淺"
+      ],
+      "answer": 0,
+      "explanation": "南緯 35° 附近吹著強勁的盛行西風，溫暖的厄加勒斯洋流與寒冷的本格拉洋流又在這裡交會，形成巨浪與多變的天氣。"
+    }
+  ],
+  "reward": {
+    "xp": 400,
+    "gold": 600,
+    "reputation": 40,
+    "unlock_ports": ["kilwa"],
+    "codex": []
+  }
+}

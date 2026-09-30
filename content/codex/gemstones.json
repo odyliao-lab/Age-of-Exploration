@@ -1,0 +1,10 @@
+{
+  "id": "gemstones",
+  "category": "goods",
+  "name": "錫蘭寶石",
+  "name_en": "Ceylon Gemstones",
+  "domains": ["F", "C"],
+  "body": "斯里蘭卡的河床沖積層蘊藏豐富的寶石，特別是藍寶石與紅寶石，古代就有「寶石島」之稱。馬歡《瀛涯勝覽》也記載錫蘭出產各色寶石。",
+  "source": "維基百科「斯里蘭卡」條目；馬歡《瀛涯勝覽》「錫蘭國」條",
+  "reviewed": false
+}

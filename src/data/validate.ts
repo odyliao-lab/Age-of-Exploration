@@ -61,11 +61,17 @@ export function crossValidate(bundle: ContentBundle): ContentIssue[] {
       issues.push({ file: f, message: '傳說類知識卡必須附 science_note（企畫書 10.3）' });
     if (c.discover_radius_km && !c.location)
       issues.push({ file: f, message: '有 discover_radius_km 就必須有 location' });
+    if (c.rumor && !c.location)
+      issues.push({ file: f, message: '有傳聞就必須有 location（調查的地點）' });
+    if (c.rumor && !portIds.has(c.rumor.port))
+      issues.push({ file: f, message: `傳聞的港口不存在：${c.rumor.port}` });
   }
 
   // 可以在遊戲中被發現的知識卡：航經地標、港口特產、任務獎勵
   const discoverable = new Set<string>([
-    ...bundle.codex.filter((c) => (c.location && c.discover_radius_km) || c.line).map((c) => c.id),
+    ...bundle.codex
+      .filter((c) => (c.location && (c.discover_radius_km || c.rumor)) || c.line)
+      .map((c) => c.id),
     ...bundle.ports.flatMap((p) => [...p.goods, ...p.sights]),
     ...bundle.quests.flatMap((q) => q.reward.codex),
   ]);

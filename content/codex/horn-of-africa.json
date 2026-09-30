@@ -1,0 +1,12 @@
+{
+  "id": "horn-of-africa",
+  "category": "landmark",
+  "name": "非洲之角",
+  "name_en": "Horn of Africa",
+  "location": [51.4, 11.8],
+  "discover_radius_km": 140,
+  "domains": ["B", "A"],
+  "body": "非洲大陸東端像犀牛角一樣伸入阿拉伯海的半島，最東端是瓜達富伊角。這裡是船隻從亞丁灣轉往東非海岸時的重要轉折點。",
+  "source": "維基百科「非洲之角」條目",
+  "reviewed": false
+}

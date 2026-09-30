@@ -1,0 +1,8 @@
+{
+  "id": "arabian-sea",
+  "name": "阿拉伯海、波斯灣與紅海",
+  "name_en": "Arabian Sea, Persian Gulf & Red Sea",
+  "description": "阿拉伯半島三面環海：東北是波斯灣，西南是紅海，南方是阿拉伯海。這裡氣候乾燥炎熱，自古是連接印度洋與地中海世界的商路。",
+  "center": [52, 18],
+  "bbox": [32, 10, 68, 32]
+}

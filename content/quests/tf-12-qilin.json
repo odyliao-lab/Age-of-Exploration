@@ -1,0 +1,57 @@
+{
+  "id": "tf-12-qilin",
+  "title": "麒麟之國",
+  "scenario": "treasure-fleet",
+  "chapter": 4,
+  "tier": 3,
+  "kind": "main",
+  "giver_port": "mogadishu",
+  "objectives": [
+    {
+      "domain": "A",
+      "text": "能在地圖上找到赤道以南的東非海岸。"
+    },
+    {
+      "domain": "D",
+      "text": "能說明船隊回程要等待哪一種季風。"
+    }
+  ],
+  "prerequisites": ["tf-11-mogadishu"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "木骨都束的商人",
+      "lines": [
+        "你問麒麟？那種長脖子的動物，南邊的麻林國有。",
+        "沿著海岸往南，越過赤道，就是麻林。聽說他們也想派使者去大明呢。"
+      ]
+    },
+    {
+      "type": "locate",
+      "prompt": "在海圖上點出麻林（今肯亞馬林迪）：東非海岸、赤道以南約 3°，約東經 40°。",
+      "target": [40.12, -3.22],
+      "tolerance_km": 200,
+      "explanation": "麻林位在今日肯亞的海岸，就在赤道南邊不遠。"
+    },
+    {
+      "type": "navigate",
+      "target": "malindi",
+      "hint_level": 4,
+      "text": "線索：沿東非海岸越過赤道往南，曾把長頸鹿送到大明的國度。"
+    },
+    {
+      "type": "quiz",
+      "question": "船隊要從東非回到印度與中國，應該等哪一種季風？",
+      "choices": ["夏季的西南季風", "冬季的東北季風", "終年不變的西風", "沒有風的時候"],
+      "answer": 0,
+      "explanation": "西南季風從西南吹向東北，正好把船從東非推向阿拉伯海與印度。鄭和船隊總是冬季乘東北季風西行、夏季乘西南季風東返。"
+    }
+  ],
+  "reward": {
+    "xp": 320,
+    "gold": 500,
+    "reputation": 30,
+    "unlock_ports": ["malindi"],
+    "codex": ["giraffe"]
+  }
+}
