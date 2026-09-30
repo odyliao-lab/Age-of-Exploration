@@ -18,13 +18,14 @@ export function Toasts() {
 function ToastItem({ toast }: { toast: Toast }) {
   const dismiss = useGame((s) => s.dismissToast);
   const openPanel = useGame((s) => s.openPanel);
+  const rename = useGame((s) => s.world?.rename ?? ((t: string) => t));
   useEffect(() => {
     const id = setTimeout(() => dismiss(toast.id), toastMs(toast.text));
     return () => clearTimeout(id);
   }, [toast.id, toast.text, dismiss]);
   return (
     <div className={`toast ${toast.kind}`}>
-      <span>{toast.text}</span>
+      <span>{rename(toast.text)}</span>
       {toast.codexId && (
         <button type="button" className="link" onClick={() => openPanel('codex', toast.codexId)}>
           查看

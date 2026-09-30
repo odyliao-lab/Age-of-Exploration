@@ -27,3 +27,12 @@ describe('scenarioWorld', () => {
     expect(scenarioWorld(renamed, sid)).toBe(w);
   });
 });
+
+describe('makeRenamer', () => {
+  it('長的名字先換，其他文字不動', async () => {
+    const { makeRenamer } = await import('./world');
+    const r = makeRenamer({ 錫蘭山: '錫蘭', 古里: '卡利卡特', 阿丹: '亞丁' });
+    expect(r('從古里到錫蘭山，再回阿丹。')).toBe('從卡利卡特到錫蘭，再回亞丁。');
+    expect(r('沒有地名')).toBe('沒有地名');
+  });
+});

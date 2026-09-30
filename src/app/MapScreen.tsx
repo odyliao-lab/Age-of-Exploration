@@ -399,7 +399,9 @@ export function MapScreen() {
               appearance={game.appearance}
               ship={shipColors}
               returnFrom={lastBuilding}
-              talk={folkLines(dockedPort!.id, culture, dockedPort!.gossip, festival?.text)}
+              talk={folkLines(dockedPort!.id, culture, dockedPort!.gossip, festival?.text).map(
+                world.rename,
+              )}
               festival={festival?.decor ?? null}
               darkness={darkness(game.day)}
               onEnter={(kind) => useGame.getState().enterBuilding(kind)}
