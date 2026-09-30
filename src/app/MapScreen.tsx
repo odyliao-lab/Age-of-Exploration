@@ -374,6 +374,7 @@ export function MapScreen() {
     hull: colorOf(HULL_PAINTS, look.hull),
     sail: colorOf(SAIL_PAINTS, look.sail),
     flag: colorOf(COLORS, look.flagColor),
+    lateen: shipRig !== 'lug',
   };
 
   return (

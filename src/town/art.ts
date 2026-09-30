@@ -448,10 +448,40 @@ export function drawPerson(
   }
 }
 
-/** 停在棧橋盡頭的戎克船（俯視，船頭朝下） */
-export function drawMooredShip(ctx: Ctx, hull: string, sail: string, flag: string, time: number) {
+/** 停在棧橋盡頭的船（俯視，船頭朝下）：戎克船或三角帆船 */
+export function drawMooredShip(
+  ctx: Ctx,
+  hull: string,
+  sail: string,
+  flag: string,
+  time: number,
+  lateen = false,
+) {
   const x = DOCK_SPOT.x * TILE + 20;
   const y = 14 * TILE + 2 + Math.round(Math.sin(time * 1.6));
+  if (lateen) {
+    // 三角帆船：尖首尖尾，兩根斜桁上的三角帆
+    px(ctx, x + 2, y + 2, 14, 44, 'rgba(0,0,0,0.2)');
+    px(ctx, x + 6, y - 2, 4, 3, hull);
+    px(ctx, x + 3, y + 1, 10, 3, hull);
+    px(ctx, x + 1, y + 4, 14, 34, hull);
+    px(ctx, x + 3, y + 38, 10, 4, hull);
+    px(ctx, x + 6, y + 42, 4, 3, hull);
+    px(ctx, x + 3, y + 30, 10, 7, '#8a5a33');
+    for (const [my, len] of [
+      [10, 13],
+      [24, 9],
+    ] as const) {
+      px(ctx, x + 7, my + y - 1, 2, 3, '#3a2414');
+      for (let k = 0; k < len; k++) {
+        px(ctx, x - 4 + k * 2, y + my - 5 + k, 2, 1, '#5e3c1c');
+        px(ctx, x - 2 + k * 2, y + my - 4 + k, Math.max(1, len - k), 1, sail);
+      }
+    }
+    px(ctx, x + 14, y + 38, 6, 4, flag);
+    px(ctx, x + 13, y + 38, 1, 8, '#3a2414');
+    return;
+  }
   px(ctx, x + 2, y + 2, 16, 44, 'rgba(0,0,0,0.2)');
   px(ctx, x, y, 16, 42, hull);
   px(ctx, x + 2, y + 40, 12, 3, hull);

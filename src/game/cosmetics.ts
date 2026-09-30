@@ -34,7 +34,7 @@ export const HATS: StyleOption[] = [
   { id: 'none', name: '不戴帽' },
   { id: 'futou', name: '幞頭' },
   { id: 'douli', name: '斗笠' },
-  { id: 'turban', name: '頭巾', achievement: 'ports-3' },
+  { id: 'turban', name: '頭巾' },
   { id: 'captain', name: '船長帽', achievement: 'level-5' },
   { id: 'feather', name: '羽飾帽', achievement: 'here-be-dragons' },
 ];

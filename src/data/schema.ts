@@ -249,6 +249,8 @@ export const Scenario = z.object({
     .default({ name: '陸天行', from: '廣州', look: '一位穿著綢緞長袍的年輕船長' }),
   /** 從這個劇本的文化視角怎麼稱呼各港口（沒列的用港口資料的名字） */
   port_names: z.record(Id, z.string()).default({}),
+  /** 船長一開始戴的帽子（沒有則戴幞頭） */
+  start_hat: z.string().optional(),
   /** 第一次出海時的季風小教室（沒有則用東亞的冬季風說明） */
   first_voyage_lesson: z.string().optional(),
   /** 完成某個主線任務時的結局文字 */

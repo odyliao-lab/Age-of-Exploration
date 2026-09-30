@@ -398,7 +398,7 @@ export function newGame(world: World, scenarioId: string, seed = newSeed()): Ste
     reviews: [],
     daily: null,
     log: [{ day: 0, text: `從${home.name}出發，展開航海生涯`, kind: 'arrive' }],
-    appearance: defaultAppearance(),
+    appearance: { ...defaultAppearance(), hat: scenario.start_hat ?? defaultAppearance().hat },
     rumors: [],
     reported: [],
     cargo: {},

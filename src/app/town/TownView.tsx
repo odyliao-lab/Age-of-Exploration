@@ -154,7 +154,7 @@ function randomWalkable(): Point {
 interface Props {
   culture: Culture;
   appearance: Appearance;
-  ship: { hull: string; sail: string; flag: string };
+  ship: { hull: string; sail: string; flag: string; lateen?: boolean };
   /** 走進建築物或走到船邊 */
   onEnter: (kind: BuildingKind) => void;
   /** 回到城裡時，玩家站在哪棟建築的門口 */
@@ -319,7 +319,7 @@ export function TownView({
       fctx.drawImage(base, 0, 0);
       drawWater(fctx, time);
       const s = shipRef.current;
-      drawMooredShip(fctx, s.hull, s.sail, s.flag, time);
+      drawMooredShip(fctx, s.hull, s.sail, s.flag, time, s.lateen);
       // 港裡還停著幾艘當地的船
       drawLocalBoat(fctx, culture, 3 * TILE, 14 * TILE + 4, time);
       drawLocalBoat(fctx, culture, 21 * TILE, 15 * TILE, time);
