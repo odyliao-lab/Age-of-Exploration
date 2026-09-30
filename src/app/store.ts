@@ -628,6 +628,7 @@ export const useGame = create<GameStore>((set, get) => {
                 '收帆、半帆、滿帆控制速度；靠近港口會出現「入港」按鈕。',
               ],
               lesson:
+                world.scenarios.get(game.scenarioId)?.first_voyage_lesson ??
                 '冬天（11–3 月）南海與東海吹東北季風，往西南順風好走，往東北就是頂風。鄭和船隊都是冬天出發、夏天返航，就是順著季風航行。',
             },
           ],

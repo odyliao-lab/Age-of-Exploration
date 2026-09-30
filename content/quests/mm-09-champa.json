@@ -1,0 +1,50 @@
+{
+  "id": "mm-09-champa",
+  "title": "往秦的海路",
+  "scenario": "monsoon-merchant",
+  "chapter": 4,
+  "tier": 3,
+  "kind": "main",
+  "giver_port": "malacca",
+  "objectives": [
+    {
+      "domain": "A",
+      "text": "能找到南海與中南半島東岸。"
+    },
+    {
+      "domain": "D",
+      "text": "知道往中國要乘西南季風。"
+    }
+  ],
+  "prerequisites": ["mm-08-below-the-winds"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "麻六甲的港務官",
+      "lines": [
+        "要去「秦」（我們對中國的稱呼）？等夏天的西南季風，沿著中南半島的東岸往北走。",
+        "半路在占城補給，那裡的沉香是世界上最好的。"
+      ]
+    },
+    {
+      "type": "navigate",
+      "target": "champa",
+      "hint_level": 3,
+      "text": "線索：中南半島東岸、南海西側的港口，以沉香聞名。"
+    },
+    {
+      "type": "quiz",
+      "question": "從麻六甲往北航向中國，最好乘哪一個季風？",
+      "choices": ["夏天的西南季風", "冬天的東北季風", "全年都吹的西風", "從北極吹來的風"],
+      "answer": 0,
+      "explanation": "夏天南海吹西南季風，從麻六甲往東北航向中國是順風；冬天吹東北季風，則適合從中國南下。所以商人在夏天北上、冬天南下。"
+    }
+  ],
+  "reward": {
+    "xp": 320,
+    "gold": 420,
+    "reputation": 25,
+    "unlock_ports": ["champa"],
+    "codex": []
+  }
+}

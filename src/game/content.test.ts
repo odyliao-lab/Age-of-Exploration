@@ -191,3 +191,28 @@ describe('Treasure Fleet MVP content', () => {
     expect(s.captain.level).toBeGreaterThanOrEqual(5);
   });
 });
+
+describe('Monsoon Merchant content', () => {
+  it('plays every quest from start to finish', () => {
+    let s = newGame(world, 'monsoon-merchant', 2025).state;
+    expect(s.dockedAt).toBe('aden');
+    expect(s.shipTypeId).toBe('sewn-dhow');
+    const remaining = new Set(
+      world.content.quests.filter((q) => q.scenario === 'monsoon-merchant').map((q) => q.id),
+    );
+    for (let round = 0; round < 30 && remaining.size; round++) {
+      const ready = [...remaining].filter((id) =>
+        world.quests.get(id)!.prerequisites.every((p) => s.quests[p]?.status === 'completed'),
+      );
+      expect(ready.length, `卡住的任務：${[...remaining].join(', ')}`).toBeGreaterThan(0);
+      for (const id of ready) {
+        s = playQuest(s, id);
+        remaining.delete(id);
+      }
+    }
+    expect(remaining.size).toBe(0);
+    expect(s.visitedPorts).toEqual(
+      expect.arrayContaining(['aden', 'calicut', 'kilwa', 'quanzhou']),
+    );
+  });
+});

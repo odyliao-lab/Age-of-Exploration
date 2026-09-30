@@ -12,6 +12,7 @@ import {
   visiblePortIds,
   gameDate,
   landAt,
+  myShip,
 } from '@/game/state';
 import { currentAt, windAt } from '@/game/environment';
 import { darkness } from '@/game/navigation';
@@ -187,6 +188,7 @@ export function MapScreen() {
 
   // ---- 船隻配色
   const look = game.appearance;
+  const shipRig = myShip(game).rig;
   useEffect(() => {
     if (!ready) return;
     const hex = (c: string) => parseInt(c.slice(1), 16);
@@ -194,8 +196,9 @@ export function MapScreen() {
       hull: hex(colorOf(HULL_PAINTS, look.hull)),
       sail: hex(colorOf(SAIL_PAINTS, look.sail)),
       flag: hex(colorOf(COLORS, look.flagColor)),
+      rig: shipRig === 'lug' ? 'junk' : 'lateen',
     });
-  }, [ready, look.hull, look.sail, look.flagColor]);
+  }, [ready, look.hull, look.sail, look.flagColor, shipRig]);
 
   // ---- 船與航線
   useEffect(() => {

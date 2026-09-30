@@ -50,9 +50,11 @@ function ScenarioMenu() {
       <CloudAccount />
 
       <section className="scenario-grid">
-        {content.scenarios.map((s) => (
-          <ScenarioCard key={s.id} scenario={s} />
-        ))}
+        {[...content.scenarios]
+          .sort((a, b) => Number(b.recommended) - Number(a.recommended))
+          .map((s) => (
+            <ScenarioCard key={s.id} scenario={s} />
+          ))}
       </section>
 
       <section className="howto">
@@ -105,7 +107,7 @@ function ScenarioCard({ scenario: s }: { scenario: Scenario }) {
       </div>
       <p>{s.tagline}</p>
       <div className="meta">
-        家鄉：{home?.name}（{home?.name_en}）
+        家鄉：{s.port_names[s.home_port] ?? home?.name}（{home?.name_en}）
       </div>
       <div className="meta">
         學習領域：{s.domains.map((d) => LEARNING_DOMAIN_LABELS[d]).join('、')}

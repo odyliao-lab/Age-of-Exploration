@@ -5,7 +5,7 @@ import { buildWorld, scenarioWorld } from './world';
 describe('scenarioWorld', () => {
   const content = contentForTests();
   const base = buildWorld(content);
-  const sid = content.scenarios[0].id;
+  const sid = 'treasure-fleet';
 
   it('沒有要換的港口名稱時沿用原本的世界', () => {
     expect(scenarioWorld(base, sid)).toBe(base);
@@ -15,8 +15,8 @@ describe('scenarioWorld', () => {
     const portId = content.ports[0].id;
     const renamed = buildWorld({
       ...content,
-      scenarios: content.scenarios.map((s, i) =>
-        i === 0 ? { ...s, port_names: { [portId]: '刺桐' } } : s,
+      scenarios: content.scenarios.map((s) =>
+        s.id === sid ? { ...s, port_names: { [portId]: '刺桐' } } : s,
       ),
     });
     const w = scenarioWorld(renamed, sid);

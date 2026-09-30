@@ -1,0 +1,54 @@
+{
+  "id": "mm-05-zanj",
+  "title": "桑給的海岸",
+  "scenario": "monsoon-merchant",
+  "chapter": 2,
+  "tier": 1,
+  "kind": "main",
+  "giver_port": "aden",
+  "objectives": [
+    {
+      "domain": "A",
+      "text": "能找到東非沿岸的港口。"
+    },
+    {
+      "domain": "E",
+      "text": "知道「斯瓦希里」這個名字來自阿拉伯文的「海岸」。"
+    }
+  ],
+  "prerequisites": ["mm-03-monsoon"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "叔父優素福",
+      "lines": [
+        "冬天吹東北季風時，除了去印度，也可以往南到非洲東岸——我們叫那裡「桑給的海岸」。",
+        "先到摩加迪休，再往南到馬林迪。那裡的人說斯瓦希里話，裡面有很多阿拉伯字。"
+      ]
+    },
+    {
+      "type": "navigate",
+      "target": "mogadishu",
+      "hint_level": 2
+    },
+    {
+      "type": "navigate",
+      "target": "malindi",
+      "hint_level": 2
+    },
+    {
+      "type": "quiz",
+      "question": "「斯瓦希里」這個名字，原本是什麼意思？",
+      "choices": ["海岸（的人）", "森林", "黃金", "沙漠"],
+      "answer": 0,
+      "explanation": "「斯瓦希里」來自阿拉伯文 sawāḥil，意思是「海岸」。東非沿岸的城邦幾百年來和阿拉伯、波斯、印度的商人往來，發展出融合非洲班圖語與阿拉伯字彙的斯瓦希里語和文化。"
+    }
+  ],
+  "reward": {
+    "xp": 200,
+    "gold": 280,
+    "reputation": 18,
+    "unlock_ports": ["mogadishu", "malindi"],
+    "codex": []
+  }
+}

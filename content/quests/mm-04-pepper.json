@@ -1,0 +1,56 @@
+{
+  "id": "mm-04-pepper",
+  "title": "胡椒運回亞丁",
+  "scenario": "monsoon-merchant",
+  "chapter": 1,
+  "tier": 1,
+  "kind": "main",
+  "giver_port": "calicut",
+  "objectives": [
+    {
+      "domain": "F",
+      "text": "知道胡椒產在印度西南岸，為什麼要運到阿拉伯。"
+    },
+    {
+      "domain": "D",
+      "text": "能連結熱帶多雨氣候與胡椒的生長。"
+    }
+  ],
+  "prerequisites": ["mm-03-monsoon"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "卡利卡特的阿拉伯商人",
+      "lines": [
+        "我們這些從阿拉伯來的商人，在卡利卡特住了好幾代。扎莫林（這裡的國王）很歡迎外國商人，因為生意做得越多，他收的稅就越多。",
+        "買一些胡椒運回亞丁吧。亞丁的商人會再用駱駝和船，把胡椒轉運到開羅，一路賣到地中海。"
+      ]
+    },
+    {
+      "type": "deliver",
+      "good": "pepper",
+      "qty": 10,
+      "target": "aden",
+      "text": "在卡利卡特、柯欽或奎隆的市集買胡椒"
+    },
+    {
+      "type": "quiz",
+      "question": "胡椒為什麼長在印度西南岸，而不是阿拉伯半島？",
+      "choices": [
+        "胡椒需要高溫多雨，西南季風替馬拉巴爾海岸帶來大量雨水",
+        "阿拉伯半島太冷",
+        "胡椒只長在海裡",
+        "阿拉伯人不喜歡胡椒"
+      ],
+      "answer": 0,
+      "explanation": "夏天的西南季風吹過溫暖的海面，帶著大量水氣撞上印度西岸的高止山脈，降下豐沛的雨水。高溫多雨的馬拉巴爾海岸正適合胡椒生長；乾燥的阿拉伯半島就只能靠貿易取得。"
+    }
+  ],
+  "reward": {
+    "xp": 160,
+    "gold": 300,
+    "reputation": 15,
+    "unlock_ports": ["cochin", "quilon"],
+    "codex": []
+  }
+}

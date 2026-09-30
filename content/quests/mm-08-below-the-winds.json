@@ -1,0 +1,65 @@
+{
+  "id": "mm-08-below-the-winds",
+  "title": "風下之地",
+  "scenario": "monsoon-merchant",
+  "chapter": 3,
+  "tier": 2,
+  "kind": "main",
+  "giver_port": "galle",
+  "objectives": [
+    {
+      "domain": "A",
+      "text": "能找到麻六甲海峽。"
+    },
+    {
+      "domain": "D",
+      "text": "能說明麻六甲為什麼要等季風。"
+    }
+  ],
+  "prerequisites": ["mm-07-serendib"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "加勒的波斯商人",
+      "lines": [
+        "再往東，就是我們說的「風下之地」——季風吹不到那麼強的東南亞群島。",
+        "麻六甲的國王前幾年改信了伊斯蘭教，現在那裡是東西方商人交換貨物的地方：印度的棉布換香料群島的丁香和肉豆蔻。"
+      ]
+    },
+    {
+      "type": "navigate",
+      "target": "samudera",
+      "hint_level": 3,
+      "text": "線索：橫渡孟加拉灣後，蘇門答臘島北端的伊斯蘭王國。"
+    },
+    {
+      "type": "discover",
+      "target": "strait-of-malacca"
+    },
+    {
+      "type": "navigate",
+      "target": "malacca",
+      "hint_level": 3,
+      "text": "線索：沿著蘇門答臘與馬來半島之間的狹長海峽往東南走。"
+    },
+    {
+      "type": "quiz",
+      "question": "為什麼印度洋與南海的商人常在麻六甲停留好幾個月？",
+      "choices": [
+        "要等季風轉向，才能順風回去或繼續往前",
+        "因為麻六甲規定要住滿半年",
+        "因為船都要在那裡換帆",
+        "因為海峽每年結冰幾個月"
+      ],
+      "answer": 0,
+      "explanation": "從印度來的船乘西南季風到麻六甲，從中國來的船乘東北季風南下；雙方在麻六甲交換貨物，再等風向轉換回家。麻六甲正好位在兩個季風系統的交會處，成了最重要的轉口港。"
+    }
+  ],
+  "reward": {
+    "xp": 300,
+    "gold": 400,
+    "reputation": 25,
+    "unlock_ports": ["samudera", "malacca"],
+    "codex": []
+  }
+}

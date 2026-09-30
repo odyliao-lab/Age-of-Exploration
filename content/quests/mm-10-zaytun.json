@@ -1,0 +1,55 @@
+{
+  "id": "mm-10-zaytun",
+  "title": "刺桐之光",
+  "scenario": "monsoon-merchant",
+  "chapter": 4,
+  "tier": 3,
+  "kind": "main",
+  "giver_port": "champa",
+  "objectives": [
+    {
+      "domain": "A",
+      "text": "能找到泉州（刺桐）的位置。"
+    },
+    {
+      "domain": "E",
+      "text": "知道泉州有來自阿拉伯與波斯的商人社群。"
+    }
+  ],
+  "prerequisites": ["mm-09-champa"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "占城的商人",
+      "lines": [
+        "再往東北走，過了廣州，就是你們阿拉伯人說的「刺桐」。",
+        "聽說那位從丹吉爾來的旅行家說，刺桐港裡停著上百艘大船，是世界上最大的港口之一。"
+      ]
+    },
+    {
+      "type": "navigate",
+      "target": "quanzhou",
+      "hint_level": 4,
+      "text": "線索：南海北邊，台灣海峽西岸的大港，城裡種了許多刺桐樹。"
+    },
+    {
+      "type": "quiz",
+      "question": "阿拉伯商人為什麼把泉州叫做「刺桐」（Zaytun）？",
+      "choices": [
+        "因為城裡種了很多刺桐樹，泉州也有「刺桐城」的別名",
+        "因為那裡盛產橄欖",
+        "因為那裡的人都姓刺",
+        "因為港口的形狀像一根刺"
+      ],
+      "answer": 0,
+      "explanation": "泉州城在五代時廣植刺桐樹，有「刺桐城」的別名，阿拉伯與波斯商人就依讀音叫它 Zaytun。宋元時期泉州是世界級大港，城裡住著許多阿拉伯與波斯商人，至今還留有清淨寺等伊斯蘭古蹟。"
+    }
+  ],
+  "reward": {
+    "xp": 400,
+    "gold": 600,
+    "reputation": 35,
+    "unlock_ports": ["quanzhou"],
+    "codex": []
+  }
+}

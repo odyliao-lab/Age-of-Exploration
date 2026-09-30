@@ -1,0 +1,61 @@
+{
+  "id": "mm-07-serendib",
+  "title": "寶石之島塞倫底布",
+  "scenario": "monsoon-merchant",
+  "chapter": 3,
+  "tier": 2,
+  "kind": "main",
+  "giver_port": "calicut",
+  "objectives": [
+    {
+      "domain": "A",
+      "text": "能找到錫蘭島與馬爾地夫群島。"
+    },
+    {
+      "domain": "F",
+      "text": "知道錫蘭出產肉桂與寶石，馬爾地夫出產貨貝。"
+    }
+  ],
+  "prerequisites": ["mm-04-pepper"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "卡利卡特的寶石商",
+      "lines": [
+        "要往東走，就得先繞過印度南端。南邊那座大島，我們阿拉伯人叫它「塞倫底布」，島上有肉桂和紅寶石、藍寶石。",
+        "順路去看看馬爾地夫：那裡的貨貝（小寶螺殼）在孟加拉可以當錢用。"
+      ]
+    },
+    {
+      "type": "navigate",
+      "target": "galle",
+      "hint_level": 3,
+      "text": "線索：印度最南端東南方的大島，島的西南角有個港口。"
+    },
+    {
+      "type": "navigate",
+      "target": "maldives",
+      "hint_level": 3,
+      "text": "線索：印度西南方海上，由許多低平的珊瑚環礁組成的群島。"
+    },
+    {
+      "type": "quiz",
+      "question": "馬爾地夫的貨貝為什麼能在遠方當作錢使用？",
+      "choices": [
+        "小巧、耐用、不易仿造，數量又穩定",
+        "因為可以吃",
+        "因為會發光",
+        "因為很重，不會被偷"
+      ],
+      "answer": 0,
+      "explanation": "貨貝（寶螺殼）小巧堅硬、不易損壞，也很難偽造，馬爾地夫的環礁又能穩定產出，所以在孟加拉、東非甚至西非都被當作貨幣。那位從丹吉爾來的旅行家還在馬爾地夫當過法官呢。"
+    }
+  ],
+  "reward": {
+    "xp": 260,
+    "gold": 350,
+    "reputation": 22,
+    "unlock_ports": ["galle", "maldives"],
+    "codex": []
+  }
+}

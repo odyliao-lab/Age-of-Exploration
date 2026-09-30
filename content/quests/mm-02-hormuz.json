@@ -1,0 +1,58 @@
+{
+  "id": "mm-02-hormuz",
+  "title": "波斯灣的大市集",
+  "scenario": "monsoon-merchant",
+  "chapter": 0,
+  "tier": 0,
+  "kind": "main",
+  "giver_port": "jeddah",
+  "objectives": [
+    {
+      "domain": "B",
+      "text": "能說明霍爾木茲海峽是波斯灣的出入口。"
+    },
+    {
+      "domain": "F",
+      "text": "知道波斯灣出產珍珠，霍爾木茲轉運馬匹到印度。"
+    }
+  ],
+  "prerequisites": ["mm-01-red-sea"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "吉達的馬商",
+      "lines": [
+        "想做大生意？那就去霍爾木茲。那座小島是全世界的市集，印度的王公每年都要從那裡買上千匹阿拉伯馬和波斯馬。",
+        "從亞丁灣出去，沿著阿拉伯半島的海岸往東北走，到了波斯灣的入口就是了。"
+      ]
+    },
+    {
+      "type": "navigate",
+      "target": "hormuz",
+      "hint_level": 1
+    },
+    {
+      "type": "discover",
+      "target": "strait-of-hormuz"
+    },
+    {
+      "type": "quiz",
+      "question": "為什麼印度的王國要從霍爾木茲大量買馬？",
+      "choices": [
+        "印度南部炎熱潮濕，不容易養出好的戰馬",
+        "印度沒有草",
+        "印度的人不會騎馬",
+        "馬匹在印度是神明，不能自己養"
+      ],
+      "answer": 0,
+      "explanation": "印度南部氣候炎熱潮濕，不適合繁殖高大的戰馬，王國打仗需要的馬大多從阿拉伯和波斯經海路運來。霍爾木茲扼守波斯灣出口，成了馬匹、珍珠與香料的轉運大港。"
+    }
+  ],
+  "reward": {
+    "xp": 120,
+    "gold": 200,
+    "reputation": 12,
+    "unlock_ports": ["hormuz"],
+    "codex": []
+  }
+}

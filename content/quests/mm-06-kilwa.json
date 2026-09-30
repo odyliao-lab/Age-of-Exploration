@@ -1,0 +1,49 @@
+{
+  "id": "mm-06-kilwa",
+  "title": "基盧瓦的黃金",
+  "scenario": "monsoon-merchant",
+  "chapter": 2,
+  "tier": 1,
+  "kind": "main",
+  "giver_port": "malindi",
+  "objectives": [
+    {
+      "domain": "F",
+      "text": "知道基盧瓦控制來自內陸的黃金貿易。"
+    },
+    {
+      "domain": "E",
+      "text": "能描述斯瓦希里城邦的珊瑚石建築。"
+    }
+  ],
+  "prerequisites": ["mm-05-zanj"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "馬林迪的商人",
+      "lines": [
+        "要找黃金？再往南到基盧瓦。內陸高原挖出的黃金，先運到南邊的索法拉，再由基盧瓦的蘇丹收購，賣給我們這些外國商人。",
+        "聽說有位從丹吉爾來的旅行家說過，基盧瓦是世界上最美的城市之一，房子都是珊瑚石蓋的。"
+      ]
+    },
+    {
+      "type": "navigate",
+      "target": "kilwa",
+      "hint_level": 2
+    },
+    {
+      "type": "quiz",
+      "question": "基盧瓦的房子和清真寺，主要是用什麼材料蓋的？",
+      "choices": ["珊瑚石", "冰塊", "竹子", "紅磚與琉璃瓦"],
+      "answer": 0,
+      "explanation": "東非海岸有大片珊瑚礁，當地人把珊瑚石切成石塊或燒成石灰來蓋房子，所以斯瓦希里城邦的清真寺與宮殿都是白色的珊瑚石建築。基盧瓦大清真寺就是著名的例子。"
+    }
+  ],
+  "reward": {
+    "xp": 220,
+    "gold": 320,
+    "reputation": 20,
+    "unlock_ports": ["kilwa"],
+    "codex": []
+  }
+}

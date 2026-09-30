@@ -1,0 +1,56 @@
+{
+  "id": "mm-00-frankincense",
+  "title": "第一趟生意：佐法爾的乳香",
+  "scenario": "monsoon-merchant",
+  "chapter": 0,
+  "tier": 0,
+  "kind": "main",
+  "giver_port": "aden",
+  "objectives": [
+    {
+      "domain": "A",
+      "text": "能在海圖上找到亞丁與阿拉伯半島南岸。"
+    },
+    {
+      "domain": "F",
+      "text": "知道乳香產在阿拉伯半島南部。"
+    }
+  ],
+  "prerequisites": [],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "叔父優素福",
+      "lines": [
+        "這艘船以後就交給你了。船板是用椰子纖維縫起來的，別看它不用鐵釘，在大海裡可結實得很。",
+        "第一趟先跑近一點：沿著海岸往東，到佐法爾買乳香。現在是夏末，西南季風還在吹，往東北走是順風。"
+      ]
+    },
+    {
+      "type": "locate",
+      "prompt": "出發前先認認家門口：亞丁西邊有一道窄窄的海峽，把紅海和亞丁灣連起來。請在海圖上點出那道海峽。",
+      "target": [43.4, 12.6],
+      "tolerance_km": 120,
+      "explanation": "那是曼德海峽，最窄的地方只有約 30 公里，對岸就是非洲。從印度洋進出紅海的船都要經過這裡，所以亞丁成了重要的中途港。"
+    },
+    {
+      "type": "navigate",
+      "target": "dhofar",
+      "hint_level": 1
+    },
+    {
+      "type": "quiz",
+      "question": "乳香是從什麼東西得來的？",
+      "choices": ["乳香樹的樹脂", "海裡的貝殼", "駱駝的奶", "岩石裡的礦物"],
+      "answer": 0,
+      "explanation": "乳香是乳香樹割開樹皮後流出、凝固的樹脂，點燃會散發香氣。乳香樹長在阿拉伯半島南部和非洲之角乾燥的山坡上，幾千年來都是珍貴的貿易品。"
+    }
+  ],
+  "reward": {
+    "xp": 60,
+    "gold": 120,
+    "reputation": 5,
+    "unlock_ports": ["dhofar"],
+    "codex": []
+  }
+}

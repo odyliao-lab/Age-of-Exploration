@@ -36,6 +36,7 @@ export interface ShipStyle {
   hull: number;
   sail: number;
   flag: number;
+  rig?: 'junk' | 'lateen';
 }
 
 export interface PortMarker {

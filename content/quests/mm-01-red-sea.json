@@ -1,0 +1,53 @@
+{
+  "id": "mm-01-red-sea",
+  "title": "淚之門與紅海",
+  "scenario": "monsoon-merchant",
+  "chapter": 0,
+  "tier": 0,
+  "kind": "main",
+  "giver_port": "aden",
+  "objectives": [
+    {
+      "domain": "B",
+      "text": "能指出曼德海峽與紅海的位置。"
+    },
+    {
+      "domain": "D",
+      "text": "知道紅海北部大多吹北風。"
+    }
+  ],
+  "prerequisites": ["mm-00-frankincense"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "叔父優素福",
+      "lines": [
+        "去過佐法爾，現在往西走。穿過曼德海峽進紅海，到吉達——去聖城麥加朝聖的人，都在那裡上岸。",
+        "小心紅海：兩岸都是珊瑚礁，北邊又常吹北風，往北走得一路之字形搶風。"
+      ]
+    },
+    {
+      "type": "discover",
+      "target": "bab-el-mandeb"
+    },
+    {
+      "type": "navigate",
+      "target": "jeddah",
+      "hint_level": 1
+    },
+    {
+      "type": "quiz",
+      "question": "「曼德海峽」的阿拉伯文名字是什麼意思？",
+      "choices": ["淚之門", "黃金之門", "太陽之門", "駱駝之門"],
+      "answer": 0,
+      "explanation": "曼德海峽（Bab-el-Mandeb）的意思是「淚之門」，一說是因為這裡水流湍急、礁石多，船隻常常在這裡出事。它把紅海和亞丁灣、印度洋連在一起。"
+    }
+  ],
+  "reward": {
+    "xp": 80,
+    "gold": 150,
+    "reputation": 8,
+    "unlock_ports": ["jeddah"],
+    "codex": []
+  }
+}
