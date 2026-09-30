@@ -932,7 +932,9 @@ export function greetingQuestion(
     (a, b) => distanceKm(a.location, pos) - distanceKm(b.location, pos),
   )[0];
   const g = near && distanceKm(near.location, pos) < 1500 ? greetingFor(near.id) : null;
-  if (!g || !state.visitedPorts.some((id) => greetingFor(id)?.lang === g.lang)) return undefined;
+  const hasInterpreter = state.crew.some((id) => world.crew.get(id)?.profession === 'interpreter');
+  if (!g || !(hasInterpreter || state.visitedPorts.some((id) => greetingFor(id)?.lang === g.lang)))
+    return undefined;
   const others = [
     ...new Map(
       world.content.ports
@@ -1092,7 +1094,8 @@ export function merchantOffer(
         1,
         Math.round(
           quote(world.content.ports, port, good, state.market, state.day).sell *
-            MERCHANT_BUY_FACTOR,
+            MERCHANT_BUY_FACTOR *
+            (state.crew.some((id) => world.crew.get(id)?.profession === 'interpreter') ? 1.1 : 1),
         ),
       ),
     }));

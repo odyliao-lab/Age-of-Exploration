@@ -136,6 +136,13 @@ describe('greeting pirates in their own language', () => {
     expect(q.choices[q.answer]).toBe('Apa khabar?');
     expect(new Set(q.choices).size).toBe(3);
   });
+
+  it('works anywhere with an interpreter on board', () => {
+    const base = newGame(world, 'treasure-fleet', 1).state;
+    const interp = world.content.crew.find((c) => c.profession === 'interpreter')!;
+    const q = greetingQuestion(world, { ...base, crew: [interp.id] }, [101, 3], () => 0.4)!;
+    expect(q.prompt).toContain('馬來語');
+  });
 });
 
 describe('ship refits', () => {
