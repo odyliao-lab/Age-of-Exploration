@@ -990,6 +990,7 @@ function seaLife(
       !hinted.includes('water-low') &&
       state.helm &&
       state.condition.supplies.water < myShip(state).supplyDays * 0.3 &&
+      !desertCoastAt(state.ship.position) &&
       !fetchWaterBlocked(world, state)
     ) {
       hinted = [...hinted, 'water-low'];
