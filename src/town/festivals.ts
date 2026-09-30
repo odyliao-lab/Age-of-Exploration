@@ -55,6 +55,15 @@ const FESTIVALS: { ports: string[]; months: number[]; festival: Festival }[] = [
     },
   },
   {
+    ports: ['siam'],
+    months: [4],
+    festival: {
+      name: '新年潑水節',
+      text: '四月是暹羅的新年，正是一年最熱的時候。大家互相潑水祝福，把舊年的不好洗掉，也消消暑氣。再過不久雨季就要來了。',
+      decor: 'pennants',
+    },
+  },
+  {
     ports: ['galle'],
     months: [5],
     festival: {
