@@ -15,6 +15,10 @@ import {
   acceptQuest,
   acceptContract,
   answerScholar,
+  waitInPort,
+  gameDate,
+  daysUntilMorning,
+  daysUntilNextMonth,
   answerReviewItem,
   appendLog,
   claimDaily,
@@ -271,6 +275,8 @@ interface GameStore {
   accept: (questId: string) => void;
   /** 接下商人的委託 */
   acceptContract: (id: string) => void;
+  /** 在港口的客棧住下：等到明天早上，或等到下個月初 */
+  waitInPort: (until: 'morning' | 'month') => void;
   /** 回答學者的每日小考 */
   answerScholar: (choice: number) => { correct: boolean; question: ScholarQuestion } | null;
   closeDialogue: (questId: string) => void;
@@ -889,6 +895,17 @@ export const useGame = create<GameStore>((set, get) => {
       if (world && game) apply(acceptQuest(world, game, questId));
     },
 
+    waitInPort: (until) => {
+      const { world, game } = get();
+      if (!world || !game) return;
+      const days = until === 'morning' ? daysUntilMorning(game) : daysUntilNextMonth(game);
+      const r = waitInPort(world, game, days);
+      if (r.state === game) return;
+      apply(r);
+      scheduleSave(true);
+      const d = gameDate(r.state);
+      toast({ text: `在客棧住下，現在是 ${d.month} 月 ${d.day} 日早上。`, kind: 'info' });
+    },
     answerScholar: (choice) => {
       const { world, game } = get();
       if (!world || !game) return null;

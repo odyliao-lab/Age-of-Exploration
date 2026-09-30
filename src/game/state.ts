@@ -2898,6 +2898,37 @@ export function buyUpgrade(world: World, state: GameState, id: string): GameStat
   return { ...state, upgrades: [...state.upgrades, id], gold: state.gold - offer.cost };
 }
 
+// ---------------------------------------------------------------- 在港口等待
+
+/** 客棧一晚的價錢 */
+export const INN_PRICE_PER_NIGHT = 3;
+
+/** 住到明天早上要幾天（遊戲日從早上 6 點開始，整數就是早上 6 點） */
+export function daysUntilMorning(state: GameState): number {
+  return Math.floor(state.day) + 1 - state.day;
+}
+
+/** 住到下個月一號早上要幾天 */
+export function daysUntilNextMonth(state: GameState): number {
+  const today = Math.floor(state.day);
+  const month = gameDate(state).month;
+  let d = 1;
+  while (gameDate({ ...state, day: today + d }).month === month) d++;
+  return today + d - state.day;
+}
+
+/**
+ * 在港口的客棧住下，等天亮或等季風轉向。港口裡不消耗補給；
+ * 期間過期的委託會作廢，等完之後照常檢查任務與委託。
+ */
+export function waitInPort(world: World, state: GameState, days: number): StepResult {
+  if (!state.dockedAt || days <= 0) return { state, events: [], fogChanged: [] };
+  const nights = Math.max(1, Math.round(days));
+  const cost = nights * INN_PRICE_PER_NIGHT;
+  if (state.gold < cost) return { state, events: [], fogChanged: [] };
+  return progressQuests(world, { ...state, day: state.day + days, gold: state.gold - cost });
+}
+
 // ---------------------------------------------------------------- 學者的每日小考
 
 /** 今天還能答的題目（沒有題目或今天答完了回傳 null） */

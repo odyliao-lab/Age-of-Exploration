@@ -37,6 +37,11 @@ import {
   setHelm,
   unreportedFinds,
   tick,
+  waitInPort,
+  daysUntilMorning,
+  daysUntilNextMonth,
+  gameDate,
+  INN_PRICE_PER_NIGHT,
   FESTIVAL_REWARD,
   type GameState,
 } from './state';
@@ -398,5 +403,20 @@ describe('the rival at sea', () => {
     const r = hailRival(world, s, 4)!;
     expect(r.text).toContain('9 天');
     expect(rivalShipInReach(r.state)).toBeNull();
+  });
+});
+
+describe('waiting in port', () => {
+  it('passes the night or the rest of the month at the inn', () => {
+    const s = newGame(world, 'treasure-fleet', 1).state;
+    const night = waitInPort(world, s, daysUntilMorning(s)).state;
+    expect(night.day).toBe(1);
+    expect(night.gold).toBe(s.gold - INN_PRICE_PER_NIGHT);
+    const month = waitInPort(world, s, daysUntilNextMonth(s)).state;
+    expect(gameDate(month).day).toBe(1);
+    expect(gameDate(month).month).toBe(1);
+    expect(month.condition.supplies).toEqual(s.condition.supplies);
+    // 錢不夠就住不了
+    expect(waitInPort(world, { ...s, gold: 0 }, 1).state.day).toBe(s.day);
   });
 });

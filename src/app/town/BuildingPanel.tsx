@@ -20,6 +20,9 @@ import {
   shipyardOffers,
   availableContracts,
   scholarToday,
+  daysUntilMorning,
+  daysUntilNextMonth,
+  INN_PRICE_PER_NIGHT,
   standing,
   upgradeOffers,
   myShip,
@@ -434,6 +437,7 @@ function Tavern() {
           <span className="meta">隔壁桌的酒客：</span>「{talk}」
         </p>
       )}
+      <Inn />
       <MarketNews />
       <h3>傳聞</h3>
       {rumors.length === 0 && <p className="meta">今天沒聽到什麼新鮮事。</p>}
@@ -469,6 +473,42 @@ function Tavern() {
           </button>
         </article>
       ))}
+    </>
+  );
+}
+
+/** 客棧：住一晚等天亮，或住到下個月初等季風轉向 */
+function Inn() {
+  const { game, port } = usePort();
+  const wait = useGame((s) => s.waitInPort);
+  const night = Math.max(1, Math.round(daysUntilMorning(game)));
+  const toMonth = Math.max(1, Math.round(daysUntilNextMonth(game)));
+  const nextMonth = gameDate(game, daysUntilNextMonth(game)).month;
+  const wind = windAt(port.location, nextMonth);
+  return (
+    <>
+      <h3>住宿</h3>
+      <div className="row">
+        <button
+          type="button"
+          disabled={game.gold < night * INN_PRICE_PER_NIGHT}
+          onClick={() => wait('morning')}
+        >
+          🛏️ 住到明天早上（{night * INN_PRICE_PER_NIGHT} 金幣）
+        </button>
+        <button
+          type="button"
+          disabled={game.gold < toMonth * INN_PRICE_PER_NIGHT}
+          onClick={() => wait('month')}
+        >
+          📅 住到 {nextMonth} 月初（{toMonth} 晚，{toMonth * INN_PRICE_PER_NIGHT} 金幣）
+        </button>
+      </div>
+      <p className="meta">
+        {nextMonth} 月這一帶
+        {wind.strength < 0.15 ? '幾乎沒有風' : `吹${wind.name}（從${wind.from}吹來）`}。
+        等對的季風再出航，是古代船隊的智慧。
+      </p>
     </>
   );
 }
