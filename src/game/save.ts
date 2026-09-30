@@ -120,7 +120,11 @@ export async function loadSave(scenarioId: string): Promise<GameState | null> {
 }
 
 export async function listSaves(): Promise<
-  (Pick<SaveRecord, 'scenarioId' | 'updatedAt'> & { completedQuests: string[] })[]
+  (Pick<SaveRecord, 'scenarioId' | 'updatedAt'> & {
+    completedQuests: string[];
+    discovered: string[];
+    achievements: string[];
+  })[]
 > {
   try {
     const all = (await getDb()?.saves.toArray()) ?? [];
@@ -130,6 +134,8 @@ export async function listSaves(): Promise<
       completedQuests: Object.entries(data.quests ?? {})
         .filter(([, q]) => q.status === 'completed')
         .map(([id]) => id),
+      discovered: data.discovered ?? [],
+      achievements: data.achievements ?? [],
     }));
   } catch {
     return [];

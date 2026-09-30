@@ -146,7 +146,12 @@ export interface SaveInfo {
   updatedAt: number;
   /** 已完成的任務（主選單顯示各章進度） */
   completedQuests: string[];
+  /** 圖鑑與成就跨劇本共用（企畫書 3.3 第 6 點） */
+  discovered: string[];
+  achievements: string[];
 }
+
+export { sharedProgress } from '@/game/shared';
 
 function endingModal(world: World, g: GameState, e: { title: string; text: string }): Modal {
   const done = Object.values(g.quests).filter((q) => q.status === 'completed').length;

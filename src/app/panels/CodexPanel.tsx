@@ -1,7 +1,7 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { LEARNING_DOMAIN_LABELS, type CodexEntry } from '@/data/schema';
 import { formatLonLat } from '@/map/projection';
-import { useGame } from '../store';
+import { sharedProgress, useGame } from '../store';
 import { CATEGORY_LABELS } from '../labels';
 
 export function CodexPanel() {
@@ -11,6 +11,12 @@ export function CodexPanel() {
   const openPanel = useGame((s) => s.openPanel);
   const showOnMap = useGame((s) => s.showOnMap);
   const rumors = useGame((s) => s.game!.rumors);
+  const saves = useGame((s) => s.saves);
+  const scenarioId = useGame((s) => s.game!.scenarioId);
+  const shared = useMemo(
+    () => sharedProgress(world, saves, scenarioId).discovered,
+    [world, saves, scenarioId],
+  );
   const focusRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
@@ -19,6 +25,7 @@ export function CodexPanel() {
 
   const entries = world.content.codex;
   const found = entries.filter((e) => discovered.includes(e.id)).length;
+  const fromOthers = entries.filter((e) => !discovered.includes(e.id) && shared.has(e.id)).length;
   const byCategory = Object.keys(CATEGORY_LABELS)
     .map((cat) => ({
       cat: cat as CodexEntry['category'],
@@ -34,6 +41,7 @@ export function CodexPanel() {
             圖鑑{' '}
             <span className="meta">
               {found} / {entries.length}
+              {fromOthers > 0 && `（其他劇本另外發現 ${fromOthers} 張）`}
             </span>
           </h2>
           <button type="button" className="close" aria-label="關閉" onClick={() => openPanel(null)}>
@@ -45,7 +53,9 @@ export function CodexPanel() {
             <h3>{CATEGORY_LABELS[cat]}</h3>
             <div className="codex-grid">
               {items.map((e) => {
-                const known = discovered.includes(e.id);
+                const own = discovered.includes(e.id);
+                const elsewhere = own ? undefined : shared.get(e.id);
+                const known = own || !!elsewhere;
                 return (
                   <article
                     key={e.id}
@@ -80,6 +90,9 @@ export function CodexPanel() {
                           {e.domains.map((d) => LEARNING_DOMAIN_LABELS[d]).join('、')}
                         </div>
                         <div className="meta source">資料來源：{e.source}</div>
+                        {elsewhere && (
+                          <div className="meta elsewhere">📖 在「{elsewhere}」劇本發現</div>
+                        )}
                       </>
                     ) : (
                       <>
