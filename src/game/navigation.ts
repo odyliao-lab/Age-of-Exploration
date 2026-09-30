@@ -73,11 +73,19 @@ export function sunAltitude(day: number, sun: SunInfo): number {
 }
 
 /**
- * 緯度 50° 以上才用太陽的實際高度算日夜（白夜、永夜在這裡才明顯）；
- * 低緯度維持固定的作息（晚上 7 點到清晨 5 點），遊戲節奏比較好掌握。
+ * 高緯度用太陽的實際高度算日夜（白夜、永夜在這裡才明顯）；低緯度維持固定的作息
+ * （晚上 7 點到清晨 5 點），遊戲節奏比較好掌握。緯度 45°～55° 之間兩者漸漸過渡，不會突然變天。
  */
-function highLatitude(sun: SunInfo): boolean {
-  return Math.abs(sun.lat) >= 50;
+function solarWeight(sun: SunInfo): number {
+  return Math.min(1, Math.max(0, (Math.abs(sun.lat) - 45) / 10));
+}
+
+/** 固定作息的黑暗程度 */
+function fixedDarkness(h: number): number {
+  if (h >= 7 && h < 17) return 0;
+  if (h >= 17 && h < 20) return (h - 17) / 3;
+  if (h >= 4 && h < 7) return 1 - (h - 4) / 3;
+  return 1;
 }
 
 /** 太陽要在地平線下這麼多度，天才夠黑、看得到星星 */
@@ -93,12 +101,15 @@ export function isWhiteNight(sun: SunInfo): boolean {
  * 沒給時用一般的晚上 7 點到清晨 5 點。
  */
 export function isNight(day: number, sun?: SunInfo): boolean {
-  if (!sun || !highLatitude(sun)) {
+  if (!sun || solarWeight(sun) === 0) {
     const h = hourOfDay(day);
     return h >= 19 || h < 5;
   }
-  return sunAltitude(day, sun) < STARS_VISIBLE_BELOW;
+  return darkness(day, sun) >= NIGHT_DARKNESS;
 }
+
+/** 黑暗程度到這裡算天黑（太陽約在地平線下 8°，看得到星星） */
+const NIGHT_DARKNESS = (2 - STARS_VISIBLE_BELOW) / 14;
 
 /** 第幾個夜晚（每晚只能觀星一次）：以正午為界，傍晚到隔天清晨算同一晚 */
 export function nightIndex(day: number): number {
@@ -108,22 +119,20 @@ export function nightIndex(day: number): number {
 /** 畫面用的黑暗程度 0（白天）到 1（深夜），黃昏與黎明漸變；給了太陽的位置時依緯度與季節計算 */
 export function darkness(day: number, sun?: SunInfo): number {
   const h = hourOfDay(day);
-  if (!sun || !highLatitude(sun)) {
-    if (h >= 7 && h < 17) return 0;
-    if (h >= 17 && h < 20) return (h - 17) / 3;
-    if (h >= 4 && h < 7) return 1 - (h - 4) / 3;
-    return 1;
-  }
+  const fixed = fixedDarkness(h);
+  if (!sun) return fixed;
+  const w = solarWeight(sun);
+  if (w === 0) return fixed;
   // 太陽在地平線上：白天；在地平線下 12° 以下：全黑；中間是黃昏與黎明
-  const alt = sunAltitude(day, sun);
-  return Math.min(1, Math.max(0, (2 - alt) / 14));
+  const solar = Math.min(1, Math.max(0, (2 - sunAltitude(day, sun)) / 14));
+  return fixed * (1 - w) + solar * w;
 }
 
 export function timeLabel(day: number, sun?: SunInfo): string {
   const h = Math.floor(hourOfDay(day));
   const hh = `${String(h).padStart(2, '0')}:00`;
   // 高緯度：夏天的半夜天還亮著（白夜），冬天中午太陽也不升起（永夜）
-  if (sun && highLatitude(sun)) {
+  if (sun && solarWeight(sun) === 1) {
     if (sunAltitude(0.25, sun) < 0) return `永夜 ${hh}`;
     if ((h >= 20 || h < 4) && isWhiteNight(sun)) return `白夜 ${hh}`;
   }

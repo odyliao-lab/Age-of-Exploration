@@ -143,6 +143,7 @@ import {
 } from './encounters';
 import {
   canSightPolaris,
+  hourOfDay,
   isNight,
   isWhiteNight,
   type SunInfo,
@@ -776,7 +777,7 @@ function seaLife(
 
   // 沿岸航行時看見還沒標在海圖上的港口
   let unlockedPorts = state.unlockedPorts;
-  for (const p of world.content.ports) {
+  for (const p of scenarioPorts(world, state)) {
     if (unlockedPorts.includes(p.id) || state.visitedPorts.includes(p.id)) continue;
     if (distanceKm(p.location, pos) > PORT_SIGHT_KM) continue;
     unlockedPorts = [...unlockedPorts, p.id];
@@ -799,7 +800,7 @@ function seaLife(
         : rand() <
             perStep(regionId && !UNSAILED_SEAS.includes(regionId) ? MERCHANT_CHANCE_PER_DAY : 0)
           ? 'merchant'
-          : rand() < perStep(treasureEra && ENVOYS[regionId] ? ENVOY_CHANCE_PER_DAY : 0)
+          : rand() < perStep(treasureEra && regionId && ENVOYS[regionId] ? ENVOY_CHANCE_PER_DAY : 0)
             ? 'envoy'
             : rand() <
                 perStep(
@@ -1181,13 +1182,10 @@ export function treasureFleetSeas(
   state: GameState,
   regionId: string | null,
   extraDays = 0,
-): regionId is string {
-  return (
-    !!regionId &&
-    !ATLANTIC_REGIONS.includes(regionId) &&
-    gameDate(state, extraDays).year >= TREASURE_FLEET_FIRST_YEAR &&
-    gameDate(state, extraDays).year <= TREASURE_FLEET_LAST_YEAR
-  );
+): boolean {
+  if (!regionId || ATLANTIC_REGIONS.includes(regionId)) return false;
+  const year = gameDate(state, extraDays).year;
+  return year >= TREASURE_FLEET_FIRST_YEAR && year <= TREASURE_FLEET_LAST_YEAR;
 }
 
 /** 附近可以致意的寶船艦隊（船隊很大，遠一點也喊得到） */
@@ -1262,8 +1260,8 @@ export interface GreetResult {
 export const MERCHANT_BUY_FACTOR = 0.8;
 
 /** 商船要開往哪個港口：依船的編號，從附近 3000 公里內的港口挑一個（固定不變） */
-export function merchantDestination(world: World, f: SeaFleet): Port | null {
-  const near = world.content.ports
+export function merchantDestination(world: World, state: GameState, f: SeaFleet): Port | null {
+  const near = scenarioPorts(world, state)
     .map((p) => ({ p, km: distanceKm(p.location, f.position) }))
     .filter((x) => x.km > 150 && x.km < 3000)
     .sort((a, b) => a.km - b.km)
@@ -1287,7 +1285,7 @@ export function merchantOffer(
   const f = state.fleets.find((x) => x.id === fleetId);
   if (!f || f.kind !== 'merchant' || cargoUsed(state.cargo) === 0) return null;
   if (distanceKm(f.position, state.ship.position) > HAIL_KM) return null;
-  const port = merchantDestination(world, f);
+  const port = merchantDestination(world, state, f);
   if (!port) return null;
   const items = Object.entries(state.cargo)
     .filter(([, lot]) => lot.qty > 0)
@@ -1504,6 +1502,8 @@ export function sunSightBlocked(state: GameState): string | null {
   if (!isNoon(state.day)) return '要等正午（11～13 點）太陽最高的時候';
   const sun = sunOf(state);
   if (noonSunAltitude(sun.lat, sun.decl) < 0) return '這裡現在是永夜，太陽整天都不會升起';
+  // 看得到北極星、晚上也夠黑的地方，還是用觀星定位
+  if (canSightPolaris(sun.lat) && !isWhiteNight(sun)) return '這裡晚上看得到北極星，用觀星定位吧';
   if (insideMist(state.mists, state.ship.position)) return '霧太濃，看不到太陽';
   if (state.sunDay === Math.floor(state.day)) return '今天已經量過太陽了';
   return null;
@@ -1524,7 +1524,7 @@ export function sightSun(
   const alt = noonSunAltitude(lat, decl);
   const ns = (x: number) => `${x >= 0 ? '北' : '南'}緯 ${Math.abs(x).toFixed(0)}°`;
   const now = positionErrorKm(world, state);
-  const xp = gainXp(state, 10);
+  const xp = gainXp(state, 5);
   let next: GameState = {
     ...state,
     sunDay: Math.floor(state.day),
@@ -1552,9 +1552,12 @@ export function starSightBlocked(state: GameState): string | null {
   if (!state.helm) return '要在海上才能觀星定位';
   if (!isNight(state.day, sunOf(state))) {
     const sun = sunOf(state);
-    return isWhiteNight(sun)
-      ? '夏天的高緯度地區，半夜天空還是亮的（白夜），看不到星星'
-      : '白天看不到星星，等天黑再觀星';
+    const h = hourOfDay(state.day);
+    if ((h >= 20 || h < 4) && isWhiteNight(sun))
+      return '夏天的高緯度地區，半夜天空還是亮的（白夜），看不到星星';
+    if (noonSunAltitude(sun.lat, sun.decl) < 0)
+      return '極地的冬天中午還有一點微光，等天色更暗再觀星';
+    return '白天看不到星星，等天黑再觀星';
   }
   if (insideMist(state.mists, state.ship.position)) return '霧太濃，看不到星星';
   if (!canSightPolaris(state.ship.position[1])) return '北極星太低，貼在海平面上量不準';
@@ -1646,8 +1649,8 @@ export function desertCoastAt([lon, lat]: LonLat): boolean {
 
 /** 這個距離內有沒有陸地 */
 function landWithin(world: World, pos: LonLat, km: number): boolean {
-  for (const d of [3, 8, 14, km]) {
-    for (let b = 0; b < 360; b += 22.5) if (landAt(world, destinationPoint(pos, b, d))) return true;
+  for (const d of [km / 2, km]) {
+    for (let b = 0; b < 360; b += 45) if (landAt(world, destinationPoint(pos, b, d))) return true;
   }
   return false;
 }
@@ -2059,13 +2062,7 @@ export function reportFinds(
  */
 /** 這個劇本的對手船長 */
 export function rivalOf(world: World, state: GameState): Scenario['rival'] {
-  return (
-    world.scenarios.get(state.scenarioId)?.rival ?? {
-      name: '陸天行',
-      from: '廣州',
-      look: '一位穿著綢緞長袍的年輕船長',
-    }
-  );
+  return world.scenarios.get(state.scenarioId)!.rival;
 }
 
 /** 完成這個任務時的劇本結局（沒有則為 null） */
@@ -3144,9 +3141,17 @@ export function dismissCrew(state: GameState, id: string): GameState {
 }
 
 /** 這個劇本航行範圍內的港口（劇本有設定 Tier 的海域） */
+const scenarioPortCache = new WeakMap<World, Map<string, Port[]>>();
+
 export function scenarioPorts(world: World, state: GameState): Port[] {
+  let cache = scenarioPortCache.get(world);
+  if (!cache) scenarioPortCache.set(world, (cache = new Map()));
+  const hit = cache.get(state.scenarioId);
+  if (hit) return hit;
   const tiers = world.scenarios.get(state.scenarioId)?.region_tiers ?? {};
-  return world.content.ports.filter((p) => tiers[p.region] !== undefined);
+  const ports = world.content.ports.filter((p) => tiers[p.region] !== undefined);
+  cache.set(state.scenarioId, ports);
+  return ports;
 }
 
 /** 主港：各地的大港，加上這個劇本的家鄉港口（造船廠可以買船、買塗裝） */

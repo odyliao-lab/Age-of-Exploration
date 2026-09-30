@@ -111,7 +111,20 @@ function hashText(text: string): number {
  * 市場缺貨：每週大約一半的港口缺某一種外地貨，收購價提高。
  * 依港口與週數決定，同一週都一樣，酒館裡聽得到消息。
  */
+const shortageCache = new WeakMap<Port[], Map<string, string | null>>();
+
 export function shortageAt(ports: Port[], port: Port, day: number): string | null {
+  // 同一週、同一個港口的結果都一樣；買賣時每一單位都會查一次，先記下來
+  const key = `${port.id}#${Math.floor(day / 7)}`;
+  let cache = shortageCache.get(ports);
+  if (!cache) shortageCache.set(ports, (cache = new Map()));
+  if (cache.has(key)) return cache.get(key)!;
+  const result = computeShortage(ports, port, day);
+  cache.set(key, result);
+  return result;
+}
+
+function computeShortage(ports: Port[], port: Port, day: number): string | null {
   const h = hashText(`${port.id}#${Math.floor(day / 7)}`);
   if (h % 2) return null;
   // 只缺附近海域買得到的貨（例如印度洋的港口不會缺只產在大西洋的葡萄酒）
