@@ -105,7 +105,13 @@ function playQuest(s: GameState, questId: string): GameState {
       s = sailTo(s, step.target);
     } else if (step?.type === 'deliver') {
       // 到產地買貨，再運到目的港
-      const source = world.content.ports.find((p) => p.goods.includes(step.good))!;
+      // 到最近的產地買（例如加勒比海的棉布就在身邊，不必跑去印度）
+      const source = world.content.ports
+        .filter((p) => p.goods.includes(step.good))
+        .sort(
+          (a, b) =>
+            distanceKm(a.location, s.ship.position) - distanceKm(b.location, s.ship.position),
+        )[0];
       s = sailTo(s, source.id);
       s = { ...s, gold: Math.max(s.gold, 5000), cargo: {} };
       s = tradeBuy(world, s, step.good, step.qty).state;
