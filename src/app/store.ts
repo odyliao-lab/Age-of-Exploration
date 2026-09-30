@@ -149,6 +149,8 @@ export interface SaveInfo {
   /** 圖鑑與成就跨劇本共用（企畫書 3.3 第 6 點） */
   discovered: string[];
   achievements: string[];
+  /** 問答紀錄（知識掌握度跨劇本共用） */
+  quiz: { domains: string[]; firstTry: boolean }[];
 }
 
 export { sharedProgress } from '@/game/shared';

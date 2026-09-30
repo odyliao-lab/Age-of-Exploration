@@ -22,3 +22,13 @@ export function sharedProgress(
   }
   return { discovered, achievements };
 }
+
+/**
+ * 想補強某個學習領域時，可以玩哪些劇本（企畫書 12：日誌中看到「哪些劇本能補強我的弱項」）。
+ * 回傳其他涵蓋這個領域的劇本名稱。
+ */
+export function scenariosFor(world: World, domain: string, exceptScenarioId: string): string[] {
+  return world.content.scenarios
+    .filter((s) => s.id !== exceptScenarioId && (s.domains as string[]).includes(domain))
+    .map((s) => s.name);
+}

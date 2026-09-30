@@ -124,6 +124,7 @@ export async function listSaves(): Promise<
     completedQuests: string[];
     discovered: string[];
     achievements: string[];
+    quiz: { domains: string[]; firstTry: boolean }[];
   })[]
 > {
   try {
@@ -136,6 +137,7 @@ export async function listSaves(): Promise<
         .map(([id]) => id),
       discovered: data.discovered ?? [],
       achievements: data.achievements ?? [],
+      quiz: (data.quizLog ?? []).map((q) => ({ domains: q.domains, firstTry: q.firstTry })),
     }));
   } catch {
     return [];

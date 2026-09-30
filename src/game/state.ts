@@ -3091,6 +3091,12 @@ export function mainPortNames(world: World, state: GameState): string[] {
     .map((p) => p.name);
 }
 
+/** 這個劇本範圍內聽得到的傳聞地點 */
+export function scenarioRumors(world: World, state: GameState): CodexEntry[] {
+  const ports = new Set(scenarioPorts(world, state).map((p) => p.id));
+  return world.rumors.filter((c) => ports.has(c.rumor!.port));
+}
+
 /** 這個劇本範圍內去過幾個港口、共有幾個 */
 export function portsProgress(world: World, state: GameState): { visited: number; total: number } {
   const ports = scenarioPorts(world, state);

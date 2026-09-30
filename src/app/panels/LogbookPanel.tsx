@@ -7,8 +7,9 @@ import {
   dueReviews,
   type Mastery,
 } from '@/game/learning';
-import { rivalOf, openRumors, unreportedFinds } from '@/game/state';
+import { rivalOf, scenarioRumors, openRumors, unreportedFinds } from '@/game/state';
 import { useGame } from '../store';
+import { scenariosFor } from '@/game/shared';
 import { useNow } from '../useNow';
 
 const MASTERY_LABEL: Record<Mastery, string> = {
@@ -29,8 +30,22 @@ export function LogbookPanel() {
   const [pinned, setPinned] = useState<string | null>(null);
   const due = dueReviews(game.reviews, now);
   const shownKey = pinned ?? due[0]?.key ?? null;
-  const codexDomains = game.discovered.map((id) => world.codex.get(id)?.domains ?? []);
-  const stats = domainStats(game.quizLog, game.reviews, codexDomains);
+  // 知識掌握度跨劇本共用：一起算進其他劇本的問答與圖鑑
+  const saves = useGame((s) => s.saves);
+  const others = saves.filter((x) => x.scenarioId !== game.scenarioId);
+  const allDiscovered = new Set([...game.discovered, ...others.flatMap((x) => x.discovered)]);
+  const codexDomains = [...allDiscovered].map((id) => world.codex.get(id)?.domains ?? []);
+  const stats = domainStats(
+    [...game.quizLog, ...others.flatMap((x) => x.quiz)],
+    game.reviews,
+    codexDomains,
+  );
+  // 答過幾題以後才給建議：一開始全部都是「尚未接觸」，不需要推薦
+  const answered = stats.reduce((n, s) => n + s.answered, 0);
+  const weakest =
+    stats.find((s) => s.mastery === 'needs-work') ??
+    (answered >= 5 ? stats.find((s) => s.mastery === 'untouched') : undefined);
+  const suggest = weakest ? scenariosFor(world, weakest.domain, game.scenarioId) : [];
   const daily = game.daily;
   const pending = game.reviews.filter((r) => !r.mastered);
   const mastered = game.reviews.filter((r) => r.mastered).length;
@@ -131,6 +146,13 @@ export function LogbookPanel() {
               </li>
             ))}
           </ul>
+          {others.length > 0 && <p className="meta">已經算進你在其他劇本的問答與圖鑑。</p>}
+          {weakest && suggest.length > 0 && (
+            <p className="meta">
+              想加強「{LEARNING_DOMAIN_LABELS[weakest.domain]}」？也可以試試「{suggest.join('」「')}
+              」劇本。
+            </p>
+          )}
         </section>
 
         <section>
@@ -223,7 +245,7 @@ function RumorLog() {
       <h3>
         傳聞與發現{' '}
         <span className="meta">
-          已回報 {game.reported.length}／{world.rumors.length} 個地方
+          已回報 {game.reported.length}／{scenarioRumors(world, game).length} 個地方
         </span>
       </h3>
       {open.length === 0 && finds.length === 0 && (

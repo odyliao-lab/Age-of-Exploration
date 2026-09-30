@@ -18,3 +18,16 @@ describe('sharedProgress', () => {
     expect(m.achievements.get('equator')).toBe('東方寶船');
   });
 });
+
+describe('scenariosFor', () => {
+  it('suggests other scenarios that cover a learning domain', async () => {
+    const { scenariosFor } = await import('./shared');
+    const world = buildWorld(contentForTests());
+    // 只有「航向未知」涵蓋 C（地形與河流、生物）
+    expect(scenariosFor(world, 'C', 'treasure-fleet')).toEqual(['航向未知']);
+    expect(scenariosFor(world, 'D', 'treasure-fleet')).toEqual(
+      expect.arrayContaining(['季風商人', '航向未知']),
+    );
+    expect(scenariosFor(world, 'D', 'treasure-fleet')).not.toContain('東方寶船');
+  });
+});
