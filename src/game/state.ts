@@ -1498,7 +1498,7 @@ export function fishBlocked(state: GameState): string | null {
 
 /**
  * 撒網捕魚：每天一次，補一點糧食（不超過船能裝的量）。
- * 漁獲依漁場而定；第一次撒網、或遇到湧升流時附上地理小教室。
+ * 漁獲依漁場而定；每種漁場第一次撒網時附上地理小教室。
  */
 export function goFishing(
   world: World,
