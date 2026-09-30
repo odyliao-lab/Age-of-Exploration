@@ -31,6 +31,11 @@ export function QuestTracker() {
           text = t ? navigateHint(world, game, t) : '';
         } else if (step.type === 'discover') {
           text = `發現「${world.codex.get(step.target)?.name}」：航經附近時瞭望員會回報`;
+        } else if (step.type === 'deliver') {
+          const have = game.cargo[step.good]?.qty ?? 0;
+          const good = world.codex.get(step.good)?.name ?? step.good;
+          const to = world.ports.get(step.target)?.name ?? step.target;
+          text = `把${good} ${step.qty} 擔運到${to}（船上有 ${have} 擔）${step.text ? `——${step.text}` : ''}`;
         } else if (step.type === 'dialogue') text = `與${step.speaker}交談`;
         else text = '回答問題';
         return (

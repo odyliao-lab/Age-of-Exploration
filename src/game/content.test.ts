@@ -18,6 +18,7 @@ import {
   resolveEvent,
   startVoyage,
   tick,
+  tradeBuy,
   type GameState,
 } from './state';
 import { contentForTests } from './testContent';
@@ -100,6 +101,16 @@ function playQuest(s: GameState, questId: string): GameState {
       else if (d.type === 'quiz') s = answerQuiz(world, s, questId, d.answer).state;
       else s = answerLocate(world, s, questId, d.target).state;
     } else if (step?.type === 'navigate') {
+      s = sailTo(s, step.target);
+    } else if (step?.type === 'deliver') {
+      // 到產地買貨，再運到目的港
+      const source = world.content.ports.find((p) => p.goods.includes(step.good))!;
+      s = sailTo(s, source.id);
+      s = { ...s, gold: Math.max(s.gold, 5000), cargo: {} };
+      s = tradeBuy(world, s, step.good, step.qty).state;
+      expect(s.cargo[step.good]?.qty, `${questId}：買不到 ${step.good}`).toBeGreaterThanOrEqual(
+        step.qty,
+      );
       s = sailTo(s, step.target);
     } else if (step?.type === 'discover') {
       // 地標在任務航線之外：開到地標旁的海面去找它

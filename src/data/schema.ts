@@ -151,6 +151,14 @@ export const QuestStep = z.discriminatedUnion('type', [
     speaker: z.string(),
     lines: z.array(z.string()).min(1),
   }),
+  /** 運貨：把幾擔某種貨運到指定港口（貨物要自己在產地買） */
+  z.object({
+    type: z.literal('deliver'),
+    good: Id,
+    qty: z.number().int().positive(),
+    target: Id,
+    text: z.string().optional(),
+  }),
 ]);
 export type QuestStep = z.infer<typeof QuestStep>;
 

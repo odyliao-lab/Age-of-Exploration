@@ -2225,6 +2225,8 @@ export function activeNavigateTargets(world: World, state: GameState): NavigateT
     const step = world.quests.get(questId)?.steps[p.step];
     if (step?.type === 'navigate') {
       out.push({ questId, portId: step.target, hintLevel: step.hint_level, text: step.text });
+    } else if (step?.type === 'deliver') {
+      out.push({ questId, portId: step.target, hintLevel: 1, text: step.text });
     }
   }
   return out;
@@ -2435,6 +2437,25 @@ export function progressQuests(world: World, state: GameState): StepResult {
         continue;
       }
       const step = quest.steps[p.step];
+      if (
+        step.type === 'deliver' &&
+        s.dockedAt === step.target &&
+        (s.cargo[step.good]?.qty ?? 0) >= step.qty
+      ) {
+        // 交貨：從船艙搬下約定的數量
+        const lot = s.cargo[step.good];
+        const left = lot.qty - step.qty;
+        const cargo = { ...s.cargo };
+        if (left > 0) cargo[step.good] = { qty: left, cost: (lot.cost * left) / lot.qty };
+        else delete cargo[step.good];
+        s = { ...s, cargo, quests: { ...s.quests, [questId]: { ...p, step: p.step + 1 } } };
+        events.push({
+          type: 'warning',
+          text: `交貨完成：${world.codex.get(step.good)?.name ?? step.good} ${step.qty} 擔已經送到${world.ports.get(step.target)?.name}。`,
+        });
+        changed = true;
+        continue;
+      }
       const satisfied =
         (step.type === 'navigate' && s.dockedAt === step.target) ||
         (step.type === 'discover' && s.discovered.includes(step.target));

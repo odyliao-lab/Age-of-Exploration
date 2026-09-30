@@ -1,0 +1,50 @@
+{
+  "id": "tf-r16-pepper",
+  "title": "把胡椒運到忽魯謨斯",
+  "scenario": "treasure-fleet",
+  "chapter": 3,
+  "tier": 2,
+  "kind": "region",
+  "giver_port": "calicut",
+  "objectives": [
+    { "domain": "F", "text": "能說明物產為什麼會從產地運往遠方。" },
+    { "domain": "D", "text": "知道胡椒需要熱帶多雨的氣候。" }
+  ],
+  "prerequisites": ["tf-09-hormuz"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "古里的胡椒商",
+      "lines": [
+        "忽魯謨斯的商人又來訂胡椒了。那裡什麼都買得到，偏偏自己種不出胡椒。",
+        "幫我運 12 擔胡椒過去。記得看季風：往西北走，要等對的風。"
+      ]
+    },
+    {
+      "type": "deliver",
+      "good": "pepper",
+      "qty": 12,
+      "target": "hormuz",
+      "text": "在古里、柯枝或小葛蘭的市集買胡椒"
+    },
+    {
+      "type": "quiz",
+      "question": "為什麼忽魯謨斯、阿拉伯一帶的人要從印度買胡椒？",
+      "choices": [
+        "胡椒要熱帶多雨的氣候才長得好，乾燥的波斯灣與阿拉伯種不出來",
+        "因為那裡的胡椒都被吃光了",
+        "因為那裡太冷，胡椒會結冰",
+        "因為印度的胡椒是用機器做的"
+      ],
+      "answer": 0,
+      "explanation": "胡椒是熱帶的藤本植物，需要高溫和大量雨水。印度西南岸有季風帶來的豐沛雨量，正適合種胡椒；波斯灣與阿拉伯半島氣候乾燥，只能靠貿易取得。各地氣候不同、物產不同，就產生了貿易。"
+    }
+  ],
+  "reward": {
+    "xp": 160,
+    "gold": 360,
+    "reputation": 8,
+    "unlock_ports": [],
+    "codex": []
+  }
+}

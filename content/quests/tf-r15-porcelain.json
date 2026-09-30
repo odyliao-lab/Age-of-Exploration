@@ -1,0 +1,50 @@
+{
+  "id": "tf-r15-porcelain",
+  "title": "運往南洋的青花瓷",
+  "scenario": "treasure-fleet",
+  "chapter": 1,
+  "tier": 1,
+  "kind": "region",
+  "giver_port": "quanzhou",
+  "objectives": [
+    { "domain": "F", "text": "知道瓷器是海上絲路的重要貨物。" },
+    { "domain": "B", "text": "能規劃從泉州到麻六甲的海上航線。" }
+  ],
+  "prerequisites": ["tf-04-malacca"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "泉州的瓷器商",
+      "lines": [
+        "麻六甲的商人最喜歡我們的青花瓷，白底藍花，擺在屋裡又亮又好看。",
+        "幫我運 10 擔瓷器過去吧！瓷器在市集就買得到，路上小心別讓風浪打碎了。"
+      ]
+    },
+    {
+      "type": "deliver",
+      "good": "porcelain",
+      "qty": 10,
+      "target": "malacca",
+      "text": "在泉州或廣州的市集買瓷器"
+    },
+    {
+      "type": "quiz",
+      "question": "為什麼瓷器大多走海路，而不是用駱駝、馬車走陸路？",
+      "choices": [
+        "瓷器又重又容易碎，陸路顛簸容易打破；海船平穩又載得多",
+        "因為陸路上不准運瓷器",
+        "因為瓷器會浮在水上，可以拖在船後面",
+        "因為海上比較涼，瓷器不會融化"
+      ],
+      "answer": 0,
+      "explanation": "瓷器沉重又易碎，用駱駝或馬車走長途陸路很容易打破；海船航行平穩、一次能裝很多，所以大量瓷器經由海路運往東南亞、印度洋與西亞，海上絲路也被稱為「陶瓷之路」。"
+    }
+  ],
+  "reward": {
+    "xp": 120,
+    "gold": 320,
+    "reputation": 8,
+    "unlock_ports": [],
+    "codex": []
+  }
+}
