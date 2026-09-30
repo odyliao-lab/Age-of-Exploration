@@ -1,0 +1,56 @@
+{
+  "id": "tf-r17-sulfur",
+  "title": "火山島的硫磺",
+  "scenario": "treasure-fleet",
+  "chapter": 0,
+  "tier": 0,
+  "kind": "region",
+  "giver_port": "quanzhou",
+  "objectives": [
+    {
+      "domain": "C",
+      "text": "知道火山地區會產出硫磺。"
+    },
+    {
+      "domain": "F",
+      "text": "知道琉球以硫磺和明朝往來。"
+    }
+  ],
+  "prerequisites": ["tf-r3-mingzhou"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "泉州的藥材商",
+      "lines": [
+        "琉球人每次來朝貢，船上都載著一簍簍黃澄澄的硫磺。",
+        "硫磺能做藥，也能做火藥。幫我從那霸運 8 擔回來吧！"
+      ]
+    },
+    {
+      "type": "deliver",
+      "good": "sulfur",
+      "qty": 8,
+      "target": "quanzhou",
+      "text": "到琉球那霸的市集買硫磺，再運回泉州"
+    },
+    {
+      "type": "quiz",
+      "question": "琉球為什麼盛產硫磺？",
+      "choices": [
+        "琉球群島有火山，火山噴氣口附近會結出黃色的硫磺",
+        "琉球的硫磺是從海裡撈上來的",
+        "硫磺是琉球人用米釀出來的",
+        "因為琉球下雪，雪融化後變成硫磺"
+      ],
+      "answer": 0,
+      "explanation": "琉球群島北邊有火山島（例如硫黃鳥島），火山噴出的氣體含有硫，在噴氣口附近冷卻、結晶成黃色的硫磺。琉球王國把硫磺當作重要的貢品，送到明朝製作火藥與藥材。"
+    }
+  ],
+  "reward": {
+    "xp": 120,
+    "gold": 260,
+    "reputation": 8,
+    "unlock_ports": [],
+    "codex": []
+  }
+}

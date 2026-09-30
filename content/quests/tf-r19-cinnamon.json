@@ -1,0 +1,51 @@
+{
+  "id": "tf-r19-cinnamon",
+  "title": "錫蘭肉桂到紅海",
+  "scenario": "treasure-fleet",
+  "chapter": 3,
+  "tier": 2,
+  "kind": "region",
+  "giver_port": "aden",
+  "objectives": [
+    {
+      "domain": "F",
+      "text": "知道肉桂是錫蘭的特產。"
+    },
+    {
+      "domain": "B",
+      "text": "能找出錫蘭到紅海口的航線。"
+    }
+  ],
+  "prerequisites": ["tf-10-tianfang"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "阿丹的香料商",
+      "lines": [
+        "紅海那頭的商人最愛錫蘭的肉桂，香氣最好。",
+        "幫我從錫蘭山運 8 擔肉桂來阿丹，趁季風對的時候出發！"
+      ]
+    },
+    {
+      "type": "deliver",
+      "good": "cinnamon",
+      "qty": 8,
+      "target": "aden",
+      "text": "到錫蘭山（加勒）的市集買肉桂"
+    },
+    {
+      "type": "quiz",
+      "question": "肉桂是肉桂樹的哪一個部分？",
+      "choices": ["樹皮", "果實", "花", "根"],
+      "answer": 0,
+      "explanation": "肉桂是肉桂樹內層的樹皮。把枝條的樹皮剝下來曬乾，就會自己捲成一捲一捲的。錫蘭（斯里蘭卡）出產的肉桂品質最好，經過阿丹、紅海一路賣到地中海沿岸。"
+    }
+  ],
+  "reward": {
+    "xp": 170,
+    "gold": 380,
+    "reputation": 8,
+    "unlock_ports": [],
+    "codex": []
+  }
+}

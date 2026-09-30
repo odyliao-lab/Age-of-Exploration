@@ -1,0 +1,56 @@
+{
+  "id": "tf-r18-tin",
+  "title": "馬來半島的錫",
+  "scenario": "treasure-fleet",
+  "chapter": 1,
+  "tier": 1,
+  "kind": "region",
+  "giver_port": "guangzhou",
+  "objectives": [
+    {
+      "domain": "C",
+      "text": "知道馬來半島出產錫礦。"
+    },
+    {
+      "domain": "F",
+      "text": "知道錫的用途。"
+    }
+  ],
+  "prerequisites": ["tf-04-malacca"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "廣州的錫匠",
+      "lines": [
+        "打錫壺、做錫紙、跟銅一起熔成青銅，樣樣都要錫。",
+        "聽說麻六甲、淡馬錫那一帶的河沙裡就淘得到錫。幫我運 10 擔回廣州！"
+      ]
+    },
+    {
+      "type": "deliver",
+      "good": "tin",
+      "qty": 10,
+      "target": "guangzhou",
+      "text": "到麻六甲或淡馬錫的市集買錫"
+    },
+    {
+      "type": "quiz",
+      "question": "馬來半島的錫，大多是從哪裡找到的？",
+      "choices": [
+        "山上的岩石風化後，錫礦砂被河水沖到山谷與河床裡",
+        "從海裡的魚肚子裡找到的",
+        "從天上掉下來的隕石",
+        "長在樹上的果實裡"
+      ],
+      "answer": 0,
+      "explanation": "馬來半島的山地有大量含錫的花崗岩。岩石風化後，比較重的錫礦砂被雨水和河流沖刷、堆積在河床與山谷裡，人們就在河邊淘洗出錫砂。這一帶到近代都還是世界重要的錫產地。"
+    }
+  ],
+  "reward": {
+    "xp": 130,
+    "gold": 280,
+    "reputation": 8,
+    "unlock_ports": [],
+    "codex": []
+  }
+}
