@@ -21,6 +21,7 @@ const DURATION: Record<SeaSight, number> = {
   waterspout: 9,
   albatross: 7,
   birds: 6,
+  mirage: 9,
 };
 
 /** 淡入淡出：開頭與結尾各 0.6 秒 */
@@ -157,6 +158,38 @@ export class SeaLife {
             });
           }
           g.ellipse(base.x, base.y, 9 * px, 3 * px).fill({ color: 0xffffff, alpha: a * 0.5 });
+          break;
+        }
+        case 'mirage': {
+          // 遠方的島在熱空氣裡晃動，上方還有一個倒過來的影子
+          const p = at(105, -30);
+          const wob = Math.sin(age * 3) * 1.5 * px;
+          const shimmer = a * (0.35 + 0.15 * Math.sin(age * 5));
+          const island = (y: number, flip: number) => {
+            g.poly(
+              [
+                p.x - 30 * px,
+                y,
+                p.x - 14 * px + wob,
+                y - 7 * flip * px,
+                p.x - 4 * px,
+                y - 13 * flip * px,
+                p.x + 8 * px - wob,
+                y - 8 * flip * px,
+                p.x + 30 * px,
+                y,
+              ],
+              true,
+            ).fill({ color: 0x8a9a8e, alpha: shimmer });
+          };
+          island(p.y, 1);
+          island(p.y - 30 * px, -1);
+          for (let k = 0; k < 4; k++) {
+            g.rect(p.x - 34 * px, p.y - (4 + k * 8) * px + wob, 68 * px, 1.5 * px).fill({
+              color: 0xfbf6ea,
+              alpha: shimmer * 0.8,
+            });
+          }
           break;
         }
         case 'albatross':

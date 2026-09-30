@@ -47,7 +47,8 @@ export interface Talk {
   sight?: SeaSight;
 }
 
-export type SeaSight = 'flyingfish' | 'dolphins' | 'whale' | 'waterspout' | 'albatross' | 'birds';
+export type SeaSight =
+  'flyingfish' | 'dolphins' | 'whale' | 'waterspout' | 'albatross' | 'birds' | 'mirage';
 
 const pick = <T>(xs: T[], roll: number): T =>
   xs[Math.min(xs.length - 1, Math.floor(roll * xs.length))];
@@ -120,6 +121,12 @@ export function crewTalk(ctx: TalkContext): Talk | null {
   }
   if (rid === 'east-china-sea' || rid === 'arabian-sea' || rid === 'east-africa') {
     nature('右舷噴起一道水柱，是鯨魚在換氣！鯨魚跟人一樣是哺乳類，要浮上海面呼吸。', 'whale');
+  }
+  if ((rid === 'arabian-sea' || rid === 'east-china-sea') && w.strength < 0.35 && !ctx.night) {
+    nature(
+      '遠方海面上浮著一座島，底下好像懸在半空中……那是海市蜃樓！海面和上方空氣的溫度不一樣，把光線折彎了，遠處的景物就被「搬」到奇怪的位置。',
+      'mirage',
+    );
   }
   if (rid === 'arabian-sea') {
     lines.push('風裡帶著細細的沙，陸地那邊就是大沙漠了。這一帶一年下不了幾場雨。');
