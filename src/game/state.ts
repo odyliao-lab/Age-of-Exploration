@@ -976,6 +976,27 @@ function seaLife(
     }
     // 離開有名字的海域時也要記住，下次進來才會再介紹
     if (!region && lastRegionId) lastRegionId = null;
+    // 第一次碰到新狀況時，提醒可以用的航海方法
+    if (!hinted.includes('polaris-low') && !canSightPolaris(pos[1])) {
+      hinted = [...hinted, 'polaris-low'];
+      events.push({
+        type: 'talk',
+        speaker: crewSpeaker(world, state),
+        text: '北極星已經貼在海平面上，快看不見了。從現在起，中午太陽最高的時候量太陽的高度，一樣能算出緯度。',
+      });
+    } else if (
+      !hinted.includes('water-low') &&
+      state.helm &&
+      state.condition.supplies.water < myShip(state).supplyDays * 0.3 &&
+      !fetchWaterBlocked(world, state)
+    ) {
+      hinted = [...hinted, 'water-low'];
+      events.push({
+        type: 'talk',
+        speaker: crewSpeaker(world, state),
+        text: '水桶快見底了。岸就在附近，要不要派小艇上岸找找河流或泉水？',
+      });
+    }
   }
 
   return {
