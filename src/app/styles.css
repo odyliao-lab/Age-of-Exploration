@@ -2197,3 +2197,15 @@ html.large-text .helm-left .condition.compact {
     display: none;
   }
 }
+
+.scenario-more {
+  margin: 0 0 8px;
+  font-size: 0.9rem;
+}
+.scenario-more summary {
+  cursor: pointer;
+  color: var(--accent, #b5482b);
+}
+.scenario-more p {
+  margin: 6px 0;
+}

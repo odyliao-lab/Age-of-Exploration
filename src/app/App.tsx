@@ -106,6 +106,11 @@ function ScenarioCard({ scenario: s }: { scenario: Scenario }) {
         {s.culture} · {s.era} · 約 {s.estimated_hours} 小時
       </div>
       <p>{s.tagline}</p>
+      <details className="scenario-more">
+        <summary>劇本介紹</summary>
+        <p>{s.description}</p>
+        <p className="meta">歷史靈感：{s.inspiration}</p>
+      </details>
       <div className="meta">
         家鄉：{s.port_names[s.home_port] ?? home?.name}（{home?.name_en}）
       </div>

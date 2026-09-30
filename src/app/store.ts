@@ -90,6 +90,7 @@ import { SKILLS } from '@/game/progression';
 import { findSeaPath } from '@/geo/seaPath';
 import { play } from './sound';
 import { scenarioWorld, type World } from '@/game/world';
+import { BUILDING_NAMES, cultureOf } from '@/town/layout';
 import type { Appearance } from '@/game/cosmetics';
 import type { SailSetting } from '@/game/sailing';
 import type { SeaSight } from '@/game/crewTalk';
@@ -503,6 +504,23 @@ export const useGame = create<GameStore>((set, get) => {
       await deleteSave(scenarioId);
       const { state } = newGame(scenarioWorld(world, scenarioId), scenarioId);
       get().loadGame(state);
+      // 新的航程：先用劇本簡介交代故事背景
+      const scenario = world.scenarios.get(scenarioId);
+      if (scenario) {
+        set((s) => ({
+          modals: [
+            ...s.modals,
+            {
+              type: 'info',
+              title: `${scenario.name}：序`,
+              text: scenario.description,
+              note: `${scenario.era}・歷史靈感：${scenario.inspiration}。先到「${
+                BUILDING_NAMES[cultureOf(world.ports.get(scenario.home_port)!.country)].office
+              }」接第一個差事吧！`,
+            },
+          ],
+        }));
+      }
       void persist(state);
     },
 
