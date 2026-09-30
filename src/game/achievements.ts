@@ -265,8 +265,8 @@ export const ACHIEVEMENTS: AchievementDef[] = [
   },
   {
     id: 'indian-ocean',
-    name: '橫渡孟加拉灣',
-    description: '抵達錫蘭山',
+    name: '寶石之島',
+    description: '抵達錫蘭島的加勒',
     category: '探索',
     check: (s) => s.visitedPorts.includes('galle'),
   },
