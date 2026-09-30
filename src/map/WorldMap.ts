@@ -15,6 +15,7 @@ import { SeaFx } from './seaFx';
 import { ShipSprite } from './shipSprite';
 import { NightSky } from './nightSky';
 import { SeaLife } from './seaLife';
+import { drawWindField, type FieldSampler } from './windField';
 import { drawPortIcon, type PortCulture } from './portIcons';
 import type { SeaSight } from '@/game/crewTalk';
 import { SeaEntities, type FleetView, type MistView, type StormView } from './seaEntities';
@@ -128,6 +129,11 @@ export class WorldMap {
   private courseGfx = new Graphics();
   private entities = new SeaEntities();
   private seaLife = new SeaLife();
+  private windGfx = new Graphics();
+  private windSampler: FieldSampler | null = null;
+  /** 風場要重畫（跟著鏡頭移動，限制頻率） */
+  private windDirty = false;
+  private windDrawnAt = 0;
   /** 港口目前畫成城鎮剪影（拉近時） */
   private portIcons = false;
   private sky = new NightSky();
@@ -188,6 +194,7 @@ export class WorldMap {
       this.fog.container,
       this.entities.container,
       this.seaLife.container,
+      this.windGfx,
       this.drawGraticule(),
       this.routeGfx,
       this.courseGfx,
@@ -290,6 +297,11 @@ export class WorldMap {
     this.fx.update(dt);
     this.entities.update(dt);
     this.seaLife.update(dt);
+    if (this.windDirty && this.time - this.windDrawnAt > 0.25) {
+      this.windDirty = false;
+      this.windDrawnAt = this.time;
+      drawWindField(this.windGfx, this.windSampler, this.view, this.size);
+    }
     this.sky.setSize(this.size.width, this.size.height);
     this.sky.setShipScreen(
       this.shipWorld && this.ship.visible
@@ -305,6 +317,12 @@ export class WorldMap {
   /** 海上看得見的其他船隊 */
   setFleets(list: FleetView[]) {
     this.entities.setFleets(list);
+  }
+
+  /** 風與洋流圖：null 表示關閉 */
+  setWindField(sampler: FieldSampler | null) {
+    this.windSampler = sampler;
+    drawWindField(this.windGfx, sampler, this.view, this.size);
   }
 
   /** 船員看到的海洋生物與景象，畫在船邊 */
@@ -500,6 +518,7 @@ export class WorldMap {
     this.fx.setView(this.view, this.size);
     this.entities.setView(this.view);
     this.seaLife.setScale(this.view.scale);
+    if (this.windSampler) this.windDirty = true;
     this.places.setScale(this.view.scale);
     this.drawRoute();
     this.drawMarks();

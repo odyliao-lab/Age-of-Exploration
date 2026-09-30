@@ -193,6 +193,9 @@ interface GameStore {
   seaSight: { kind: SeaSight; key: number } | null;
   /** 剛發現的地點（海圖上放光圈） */
   celebration: { at: LonLat; key: number } | null;
+  /** 海圖上顯示風與洋流圖 */
+  windField: boolean;
+  toggleWindField: () => void;
   /** 從圖鑑跳到海圖上的某個地點 */
   mapFocus: { at: LonLat; key: number } | null;
   showOnMap: (at: LonLat) => void;
@@ -419,6 +422,8 @@ export const useGame = create<GameStore>((set, get) => {
     coastSight: null,
     celebration: null,
     mapFocus: null,
+    windField: false,
+    toggleWindField: () => set((s) => ({ windField: !s.windField })),
     seaSight: null,
 
     init: (world) => {

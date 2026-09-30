@@ -11,7 +11,9 @@ import {
   sailingStatus,
   visiblePortIds,
   gameDate,
+  landAt,
 } from '@/game/state';
+import { currentAt, windAt } from '@/game/environment';
 import { darkness } from '@/game/navigation';
 import { insideMist, insideStorm } from '@/game/encounters';
 import { bearingDeg } from '@/geo/geo';
@@ -278,6 +280,22 @@ export function MapScreen() {
     if (ready && seaSight) mapRef.current?.showSight(seaSight.kind);
   }, [ready, seaSight]);
 
+  // ---- 風與洋流圖：這個月各處的風向與洋流
+  const windField = useGame((s) => s.windField);
+  const month = gameDate(game).month;
+  useEffect(() => {
+    if (!ready) return;
+    mapRef.current?.setWindField(
+      windField
+        ? (p) => ({
+            land: landAt(world, p),
+            wind: windAt(p, month),
+            current: currentAt(p, month),
+          })
+        : null,
+    );
+  }, [ready, windField, month, world]);
+
   // ---- 從圖鑑跳到海圖上的地點：移過去並放光圈標出位置
   const mapFocus = useGame((s) => s.mapFocus);
   useEffect(() => {
@@ -378,6 +396,23 @@ export function MapScreen() {
           >
             {showTown ? '🗺️ 看海圖' : `🏘️ 回到${dockedPort.name}城裡`}
           </button>
+        )}
+
+        {!showTown && (
+          <button
+            type="button"
+            className={`wind-toggle ${atSea ? 'at-sea' : ''} ${windField ? 'on' : ''}`}
+            aria-pressed={windField}
+            onClick={() => useGame.getState().toggleWindField()}
+          >
+            🌬️ {windField ? '關閉風與洋流圖' : '風與洋流圖'}
+          </button>
+        )}
+        {windField && !showTown && (
+          <div className={`wind-legend ${atSea ? 'at-sea' : ''}`}>
+            <span className="w">➜</span> 風（{month} 月）{'  '}
+            <span className="c">➜</span> 洋流
+          </div>
         )}
 
         <QuestTracker />
