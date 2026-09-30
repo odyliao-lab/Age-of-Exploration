@@ -224,6 +224,8 @@ export const Scenario = z.object({
   /** 劇本開始日期（西曆 YYYY-MM-DD），決定出發時的季節與季風 */
   start_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, '日期格式為 YYYY-MM-DD'),
   recommended: z.boolean().default(false),
+  /** 主選單的排列順序（企畫書 3.3 的開發順序） */
+  order: z.number().int().default(99),
   /** 涵蓋的學習領域 */
   domains: z.array(LearningDomain).min(1),
   estimated_hours: z.number().positive(),

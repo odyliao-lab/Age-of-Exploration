@@ -49,6 +49,7 @@ const base = (): ContentBundle => ({
       starting_ship: 'junk',
       start_date: '1405-12-15',
       recommended: true,
+      order: 1,
       domains: ['A'],
       estimated_hours: 1,
       chapters: [{ index: 0, title: '序章', tier: 0, summary: '' }],

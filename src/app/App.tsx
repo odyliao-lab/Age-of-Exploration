@@ -51,7 +51,7 @@ function ScenarioMenu() {
 
       <section className="scenario-grid">
         {[...content.scenarios]
-          .sort((a, b) => Number(b.recommended) - Number(a.recommended))
+          .sort((a, b) => a.order - b.order)
           .map((s) => (
             <ScenarioCard key={s.id} scenario={s} />
           ))}
