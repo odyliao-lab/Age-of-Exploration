@@ -191,6 +191,9 @@ interface GameStore {
   seaSight: { kind: SeaSight; key: number } | null;
   /** 剛發現的地點（海圖上放光圈） */
   celebration: { at: LonLat; key: number } | null;
+  /** 從圖鑑跳到海圖上的某個地點 */
+  mapFocus: { at: LonLat; key: number } | null;
+  showOnMap: (at: LonLat) => void;
 
   init: (world: World) => void;
   refreshSaves: () => Promise<void>;
@@ -409,6 +412,7 @@ export const useGame = create<GameStore>((set, get) => {
     stargazing: false,
     coastSight: null,
     celebration: null,
+    mapFocus: null,
     seaSight: null,
 
     init: (world) => {
@@ -599,6 +603,10 @@ export const useGame = create<GameStore>((set, get) => {
     },
 
     setTownView: (on) => set({ townView: on, building: null }),
+    showOnMap: (at) => {
+      get().openPanel(null);
+      set({ townView: false, building: null, follow: false, mapFocus: { at, key: Date.now() } });
+    },
 
     openStargazing: (on) => set({ stargazing: on }),
     openCoastSight: (on) => {

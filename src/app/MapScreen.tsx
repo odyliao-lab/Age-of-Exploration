@@ -278,6 +278,14 @@ export function MapScreen() {
     if (ready && seaSight) mapRef.current?.showSight(seaSight.kind);
   }, [ready, seaSight]);
 
+  // ---- 從圖鑑跳到海圖上的地點：移過去並放光圈標出位置
+  const mapFocus = useGame((s) => s.mapFocus);
+  useEffect(() => {
+    if (!ready || !mapFocus) return;
+    mapRef.current?.centerOn(mapFocus.at, 12);
+    mapRef.current?.celebrate(mapFocus.at);
+  }, [ready, mapFocus]);
+
   // ---- 調查發現新地方時，海圖上放金色光圈
   const celebration = useGame((s) => s.celebration);
   useEffect(() => {

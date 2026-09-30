@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { LEARNING_DOMAIN_LABELS, type CodexEntry } from '@/data/schema';
+import { formatLonLat } from '@/map/projection';
 import { useGame } from '../store';
 import { CATEGORY_LABELS } from '../labels';
 
@@ -8,6 +9,8 @@ export function CodexPanel() {
   const discovered = useGame((s) => s.game!.discovered);
   const focus = useGame((s) => s.codexFocus);
   const openPanel = useGame((s) => s.openPanel);
+  const showOnMap = useGame((s) => s.showOnMap);
+  const rumors = useGame((s) => s.game!.rumors);
   const focusRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
@@ -61,6 +64,18 @@ export function CodexPanel() {
                             {e.science_note}
                           </p>
                         )}
+                        {e.location && (
+                          <div className="meta codex-where">
+                            📍 {formatLonLat(e.location)}{' '}
+                            <button
+                              type="button"
+                              className="link"
+                              onClick={() => showOnMap(e.location!)}
+                            >
+                              在海圖上看
+                            </button>
+                          </div>
+                        )}
                         <div className="meta">
                           {e.domains.map((d) => LEARNING_DOMAIN_LABELS[d]).join('、')}
                         </div>
@@ -69,7 +84,11 @@ export function CodexPanel() {
                     ) : (
                       <>
                         <h4>？？？</h4>
-                        <p className="meta">尚未發現</p>
+                        {e.rumor && rumors.includes(e.id) ? (
+                          <p className="meta">聽過的傳聞：「{e.rumor.text}」——還沒找到</p>
+                        ) : (
+                          <p className="meta">尚未發現</p>
+                        )}
                       </>
                     )}
                   </article>
