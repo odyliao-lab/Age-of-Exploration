@@ -890,6 +890,11 @@ function seaLife(
     if (rand() < perStep(stormSpawnChance(risk))) {
       const w = windAt(pos, month);
       storms = [spawnStorm(nextEntityId++, pos, risk, w, day, rand)];
+      events.push({
+        type: 'talk',
+        speaker: crewSpeaker(world, state),
+        text: stormOmen(storms[0], pos, isNight(day)),
+      });
     }
   }
   storms = storms.map((c) => stepStorm(c, stepDays, day)).filter((c): c is StormCell => !!c);
@@ -978,6 +983,23 @@ function seaLife(
     events,
     encounter,
   };
+}
+
+/**
+ * 風暴的前兆：雲團剛出現在上游時，船員從海象、天色看出來，並指出方向。
+ * 颱風外圍的長浪跑得比颱風本身快，所以「無風起長浪」是古老的預警。
+ */
+export function stormOmen(storm: StormCell, pos: LonLat, night: boolean): string {
+  const dir = compass16(bearingDeg(pos, storm.center));
+  if (storm.kind === 'typhoon' || storm.kind === 'hurricane' || storm.kind === 'cyclone') {
+    return (
+      `長浪從${dir}方一波一波湧過來，浪很長，風卻不大。老船員說「無風起長浪，風暴在後頭」——` +
+      `${storm.name}的長浪跑得比風暴本身快，${dir}方大概有${storm.name}，快想辦法避開！`
+    );
+  }
+  return night
+    ? `${dir}方的星星一顆顆被雲吞掉，閃電在雲裡亮個不停——那邊的天氣要變壞了，繞開走吧。`
+    : `${dir}方的天邊堆起又高又黑的雲，海鳥都往岸邊飛，風向也亂了——那邊要起大風，繞開走吧。`;
 }
 
 /**

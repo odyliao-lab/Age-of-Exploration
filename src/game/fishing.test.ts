@@ -26,3 +26,23 @@ describe('castNet', () => {
     expect(castNet([55, 14], deep, 1, 0.5).ground).toBe('ocean');
   });
 });
+
+describe('stormOmen', () => {
+  it('颱風的前兆是長浪，並指出方向', async () => {
+    const { stormOmen } = await import('./state');
+    const storm = {
+      id: 1,
+      center: [122, 20] as [number, number],
+      radiusKm: 60,
+      kind: 'typhoon' as const,
+      name: '颱風',
+      toward: 300,
+      speed: 140,
+      endDay: 10,
+      lesson: '',
+    };
+    const text = stormOmen(storm, [122, 21.5], false);
+    expect(text).toContain('長浪');
+    expect(text).toContain('南方');
+  });
+});
