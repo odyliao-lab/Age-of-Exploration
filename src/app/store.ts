@@ -1145,6 +1145,7 @@ function effectStats(e: EventEffect): string[] {
   if (e.morale) out.push(`士氣 ${sign(e.morale)}`);
   if (e.food) out.push(`糧食 ${sign(e.food)} 天份`);
   if (e.water) out.push(`淡水 ${sign(e.water)} 天份`);
+  if (e.reputation) out.push(`名聲 ${sign(e.reputation)}`);
   return out;
 }
 

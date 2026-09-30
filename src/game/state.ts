@@ -1975,7 +1975,15 @@ function warnConditionChanges(before: ShipCondition, after: ShipCondition, event
   }
 }
 
-const EVENT_ORDER: EventId[] = ['pirates', 'doldrums', 'scurvy', 'stargazing', 'lost', 'flotsam'];
+const EVENT_ORDER: EventId[] = [
+  'pirates',
+  'doldrums',
+  'scurvy',
+  'stargazing',
+  'lost',
+  'castaway',
+  'flotsam',
+];
 
 function rollEvent(
   world: World,
@@ -2145,6 +2153,7 @@ export function resolveEvent(
       skillPoints: xp?.skillPoints ?? state.skillPoints,
       condition,
       gold: Math.max(0, state.gold + (effect.gold ?? 0)),
+      reputation: state.reputation + (effect.reputation ?? 0),
       day: state.day + (effect.days ?? 0),
     },
     events,
