@@ -60,11 +60,11 @@ export function contractOffers(
     }
   }
   const goods = [...sources.keys()].sort();
+  // 先決定這週的兩張委託，再拿掉已經接過或做完的，其他委託才不會跟著改變
   const offers: Contract[] = [];
   while (offers.length < 2 && goods.length) {
     const good = goods.splice(Math.floor(rand() * goods.length), 1)[0];
     const id = `${portId}-${week}-${good}`;
-    if (exclude.includes(id)) continue;
     const qty = 6 + Math.floor(rand() * 10);
     const price = quote(ports, port, good, market, day).sell;
     const reward = Math.round((price * qty * REWARD_FACTOR) / 10) * 10;
@@ -72,5 +72,5 @@ export function contractOffers(
     const due = (week + 1) * 7 + 15 + Math.round(sources.get(good)! / 120);
     offers.push({ id, portId, good, qty, reward, due });
   }
-  return offers;
+  return offers.filter((o) => !exclude.includes(o.id));
 }

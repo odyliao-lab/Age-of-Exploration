@@ -192,7 +192,12 @@ describe('merchant contracts', () => {
     const offer = availableContracts(world, s, 'quanzhou')[0];
     s = acceptContract(world, s, offer.id);
     expect(s.contracts).toHaveLength(1);
-    expect(availableContracts(world, s, 'quanzhou').map((c) => c.id)).not.toContain(offer.id);
+    // 接下一張之後，另一張委託維持原樣
+    expect(availableContracts(world, s, 'quanzhou')).toEqual(
+      availableContracts(world, known(newGame(world, 'treasure-fleet', 1).state), 'quanzhou').slice(
+        1,
+      ),
+    );
     // 帶著貨回到泉州
     const loaded: GameState = {
       ...s,
@@ -208,5 +213,24 @@ describe('merchant contracts', () => {
     expect(late.state.contracts).toHaveLength(0);
     expect(late.state.gold).toBe(s.gold);
     expect(late.state.contractsDone).toContain(offer.id);
+  });
+});
+
+describe('quest deliveries come before commissions', () => {
+  it('lets the quest take the cargo first when both want the same good', () => {
+    const base = newGame(world, 'treasure-fleet', 1).state;
+    const s: GameState = {
+      ...base,
+      dockedAt: 'malacca',
+      cargo: { porcelain: { qty: 10, cost: 200 } },
+      quests: { ...base.quests, 'tf-r15-porcelain': { status: 'active', step: 1 } },
+      contracts: [
+        { id: 'x', portId: 'malacca', good: 'porcelain', qty: 10, reward: 500, due: 999 },
+      ],
+    };
+    const r = progressQuests(world, s);
+    expect(r.state.quests['tf-r15-porcelain'].step).toBe(2);
+    expect(r.state.contracts).toHaveLength(1);
+    expect(r.state.cargo.porcelain).toBeUndefined();
   });
 });

@@ -2550,10 +2550,9 @@ function settleContracts(
 }
 
 /** 自動推進已滿足的步驟（航行抵達、已發現），並結算完成的任務 */
-export function progressQuests(world: World, input: GameState): StepResult {
-  const settled = settleContracts(world, input);
-  let s = settled.state;
-  const events: GameEvent[] = [...settled.events];
+export function progressQuests(world: World, state: GameState): StepResult {
+  let s = state;
+  const events: GameEvent[] = [];
   const fogChanged: number[] = [];
   let changed = true;
   while (changed) {
@@ -2599,6 +2598,10 @@ export function progressQuests(world: World, input: GameState): StepResult {
       }
     }
   }
+  // 任務交貨優先，剩下的貨再交給商人的委託
+  const settled = settleContracts(world, s);
+  s = settled.state;
+  events.push(...settled.events);
   return { state: s, events, fogChanged };
 }
 
