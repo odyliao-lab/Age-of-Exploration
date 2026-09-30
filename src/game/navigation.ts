@@ -22,6 +22,27 @@ export const DRIFT_KM_PER_DAY = 14;
 /** 北極星要在海平面上至少這個高度才量得準 */
 export const MIN_POLARIS_LAT = 3;
 
+/** 正午量太陽定位後的誤差（公里） */
+export const SUN_FIX_KM = 45;
+
+/** 某月某日太陽直射的緯度（赤緯，近似公式）：夏至約北緯 23.4°、冬至約南緯 23.4° */
+export function solarDeclination(month: number, dayOfMonth: number): number {
+  const DAYS = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334];
+  const doy = DAYS[month - 1] + dayOfMonth;
+  return 23.44 * Math.sin((2 * Math.PI * (doy - 81)) / 365);
+}
+
+/** 正午太陽的高度（仰角）：90° 減去所在緯度與太陽直射緯度的差 */
+export function noonSunAltitude(lat: number, declination: number): number {
+  return 90 - Math.abs(lat - declination);
+}
+
+/** 現在是不是正午前後（11～13 點），太陽最高、量得最準 */
+export function isNoon(day: number): boolean {
+  const h = hourOfDay(day);
+  return h >= 11 && h <= 13;
+}
+
 export function hourOfDay(day: number): number {
   return (((day * 24 + DAY_START_HOUR) % 24) + 24) % 24;
 }

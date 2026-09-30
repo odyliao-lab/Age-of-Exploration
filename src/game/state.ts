@@ -144,7 +144,11 @@ import {
 import {
   canSightPolaris,
   isNight,
+  isNoon,
   judgeSighting,
+  noonSunAltitude,
+  solarDeclination,
+  SUN_FIX_KM,
   nightIndex,
   positionError,
   soundAt,
@@ -268,6 +272,8 @@ export interface GameState {
   nav: NavFix;
   /** 上次觀星是第幾個夜晚（每晚一次） */
   starNight: number;
+  /** 上次正午量太陽的遊戲日 */
+  sunDay: number;
   /** 上次看岸形定位是第幾天（每天一次） */
   coastDay: number;
   /** 上次撒網捕魚的遊戲日（每天一次） */
@@ -407,6 +413,7 @@ export function newGame(world: World, scenarioId: string, seed = newSeed()): Ste
     market: {},
     nav: { day: 0, errorKm: 2 },
     starNight: -1,
+    sunDay: -1,
     coastDay: -1,
     fishDay: -1,
     waterDay: -99,
@@ -1436,6 +1443,52 @@ export interface StarSighting {
   state: GameState;
   result: SightingResult;
   events: GameEvent[];
+}
+
+/** 為什麼現在不能量正午太陽（可以時回傳 null） */
+export function sunSightBlocked(state: GameState): string | null {
+  if (!state.helm) return '要在海上才能量太陽';
+  if (!isNoon(state.day)) return '要等正午（11～13 點）太陽最高的時候';
+  if (insideMist(state.mists, state.ship.position)) return '霧太濃，看不到太陽';
+  if (state.sunDay === Math.floor(state.day)) return '今天已經量過太陽了';
+  return null;
+}
+
+/**
+ * 正午量太陽：量出太陽的高度，再查「太陽今天直射哪個緯度」的表，就能算出緯度。
+ * 越過赤道看不到北極星以後，葡萄牙的領航員就是這樣定位的。
+ */
+export function sightSun(
+  world: World,
+  state: GameState,
+): { state: GameState; text: string; lesson: string | null; events: GameEvent[] } | null {
+  if (sunSightBlocked(state)) return null;
+  const d = gameDate(state);
+  const decl = solarDeclination(d.month, d.day);
+  const lat = state.ship.position[1];
+  const alt = noonSunAltitude(lat, decl);
+  const ns = (x: number) => `${x >= 0 ? '北' : '南'}緯 ${Math.abs(x).toFixed(0)}°`;
+  const now = positionErrorKm(world, state);
+  const xp = gainXp(state, 10);
+  let next: GameState = {
+    ...state,
+    sunDay: Math.floor(state.day),
+    nav: { day: state.day, errorKm: Math.min(now, SUN_FIX_KM) },
+    captain: xp.captain,
+    skillPoints: xp.skillPoints,
+  };
+  const sunSide = lat >= decl ? '南' : '北';
+  const text =
+    `正午的太陽在我們的${sunSide}方，離海平面約 ${alt.toFixed(0)}°。` +
+    `查表：今天太陽直射在${ns(decl)}附近，所以我們大約在${ns(lat)}。`;
+  let lesson: string | null = null;
+  if (!state.hinted.includes('sun-sight')) {
+    next = { ...next, hinted: [...next.hinted, 'sun-sight'] };
+    lesson =
+      '太陽直射的緯度會隨季節在南北回歸線之間移動：夏至直射北回歸線、冬至直射南回歸線，春分秋分直射赤道。' +
+      '正午太陽的高度 = 90° −（所在緯度與太陽直射緯度的差）。葡萄牙的領航員帶著記錄每天太陽位置的表，用星盤量出正午太陽的高度，就能在看不到北極星的南半球算出緯度。';
+  }
+  return { state: next, text, lesson, events: xp.events };
 }
 
 /** 為什麼現在不能觀星（可以時回傳 null） */

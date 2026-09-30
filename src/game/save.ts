@@ -71,6 +71,7 @@ export function deserialize(data: SerializedSave): GameState {
     market: data.market ?? {},
     nav: data.nav ?? { day: data.day ?? 0, errorKm: 2 },
     starNight: data.starNight ?? -1,
+    sunDay: data.sunDay ?? -1,
     coastDay: data.coastDay ?? -1,
     fishDay: data.fishDay ?? -1,
     waterDay: data.waterDay ?? -99,

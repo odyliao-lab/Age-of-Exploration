@@ -17,6 +17,7 @@ import {
   starSightBlocked,
   fishBlocked,
   fetchWaterBlocked,
+  sunSightBlocked,
   rivalOf,
 } from '@/game/state';
 import { isNight, timeLabel } from '@/game/navigation';
@@ -64,6 +65,7 @@ export function HelmPanel() {
     hailRival,
     fish,
     fetchWater,
+    sightSun,
   } = useGame.getState();
   const dial = useRef<SVGSVGElement>(null);
   const dragging = useRef(false);
@@ -97,6 +99,7 @@ export function HelmPanel() {
   const coastBlocked = coastSightBlocked(world, game);
   const canFish = !fishBlocked(game);
   const canFetchWater = !fetchWaterBlocked(world, game);
+  const canSightSun = !sunSightBlocked(game);
   const kn = knots(st.motion.speed);
   const sailClass =
     st.motion.pointOfSail === '頂風' ? 'bad' : st.motion.pointOfSail === '迎風' ? 'ok' : 'good';
@@ -183,6 +186,11 @@ export function HelmPanel() {
           {canFish && (
             <button type="button" onClick={fish} title="撒網捕魚，補一點糧食（每天一次）">
               🐟 撒網
+            </button>
+          )}
+          {canSightSun && (
+            <button type="button" onClick={sightSun} title="量正午太陽的高度，推算緯度">
+              ☀️ 正午量太陽
             </button>
           )}
           {night && !starBlocked && (

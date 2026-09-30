@@ -452,3 +452,29 @@ describe('上岸取水', () => {
     expect(fetchWaterBlocked(world, ocean)).toBe('離岸太遠了');
   });
 });
+
+describe('正午量太陽', () => {
+  it('works south of the equator where Polaris is gone', async () => {
+    const { sightSun, sunSightBlocked, starSightBlocked } = await import('./state');
+    const { solarDeclination, noonSunAltitude } = await import('./navigation');
+    // 夏至太陽直射北回歸線附近、冬至直射南回歸線附近
+    expect(solarDeclination(6, 21)).toBeGreaterThan(23);
+    expect(solarDeclination(12, 21)).toBeLessThan(-23);
+    expect(noonSunAltitude(23.4, 23.4)).toBeCloseTo(90);
+    const s0 = departPort(world, newGame(world, 'into-the-unknown', 4).state);
+    // 第 0.25 天是正午（遊戲從早上 6 點開始）
+    const south: GameState = {
+      ...s0,
+      day: 0.25,
+      ship: { position: [5, -20], heading: 180 },
+      nav: { day: -20, errorKm: 300 },
+    };
+    expect(starSightBlocked({ ...south, day: 0.6 })).not.toBeNull();
+    expect(sunSightBlocked(south)).toBeNull();
+    const r = sightSun(world, south)!;
+    expect(r.text).toContain('南緯 20°');
+    expect(r.state.nav.errorKm).toBeLessThanOrEqual(45);
+    expect(sunSightBlocked(r.state)).not.toBeNull();
+    expect(sunSightBlocked({ ...south, day: 0.6 })).not.toBeNull();
+  });
+});

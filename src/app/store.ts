@@ -47,6 +47,7 @@ import {
   takeSounding,
   goFishing,
   fetchWater,
+  sightSun,
   crewSpeaker,
   sightStars,
   pray,
@@ -254,6 +255,7 @@ interface GameStore {
   sound: () => void;
   fish: () => void;
   fetchWater: () => void;
+  sightSun: () => void;
   /** 向使節船致意 */
   greetEnvoy: (fleetId: number) => void;
   /** 向寶船艦隊致意 */
@@ -801,6 +803,25 @@ export const useGame = create<GameStore>((set, get) => {
           modals: [
             ...s.modals,
             { type: 'info', title: '上岸取水', text: r.text, lesson: r.lesson! },
+          ],
+        }));
+      } else {
+        toast({ text: `${crewSpeaker(world, game)}：「${r.text}」`, kind: 'talk' });
+      }
+    },
+    sightSun: () => {
+      const { world, game } = get();
+      if (!world || !game) return;
+      const r = sightSun(world, game);
+      if (!r) return;
+      apply({ state: r.state, events: r.events, fogChanged: [] });
+      scheduleSave(true);
+      play('correct');
+      if (r.lesson) {
+        set((s) => ({
+          modals: [
+            ...s.modals,
+            { type: 'info', title: '正午量太陽', text: r.text, lesson: r.lesson! },
           ],
         }));
       } else {
