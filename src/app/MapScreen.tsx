@@ -153,6 +153,7 @@ export function MapScreen() {
         kind: p.kind,
         home: id === scenario.home_port,
         target: !!target && target.hintLevel <= 1,
+        culture: cultureOf(p.country),
       };
     });
     // 只在港口相關狀態改變時重建

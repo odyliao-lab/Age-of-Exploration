@@ -15,6 +15,7 @@ import { SeaFx } from './seaFx';
 import { ShipSprite } from './shipSprite';
 import { NightSky } from './nightSky';
 import { SeaLife } from './seaLife';
+import { drawPortIcon, type PortCulture } from './portIcons';
 import type { SeaSight } from '@/game/crewTalk';
 import { SeaEntities, type FleetView, type MistView, type StormView } from './seaEntities';
 import { PlaceLabels, type PlaceLabel } from './placeLabels';
@@ -44,7 +45,12 @@ export interface PortMarker {
   home: boolean;
   /** 進行中任務的目的地（提示等級 1 時加強標示） */
   target: boolean;
+  /** 文化圈：拉近時畫成對應樣式的城鎮剪影 */
+  culture?: PortCulture;
 }
+
+/** 縮放到這個倍率以上，港口改畫成城鎮剪影 */
+const PORT_ICON_MIN_SCALE = 4;
 
 export interface RouteView {
   /** 已航行的部分（實線） */
@@ -122,6 +128,8 @@ export class WorldMap {
   private courseGfx = new Graphics();
   private entities = new SeaEntities();
   private seaLife = new SeaLife();
+  /** 港口目前畫成城鎮剪影（拉近時） */
+  private portIcons = false;
   private sky = new NightSky();
   private sailing: SailingView | null = null;
   private shipWorld: Point | null = null;
@@ -382,6 +390,21 @@ export class WorldMap {
     const r = m.data.kind === 'hub' ? 6 : 4.5;
     const selected = m.data.id === this.selectedId;
     m.dot.clear();
+    if (this.portIcons && m.data.culture) {
+      m.dot.scale.set(1.6);
+      if (m.data.target) m.dot.circle(0, -8, 14).stroke({ width: 1.6, color: COLORS.target });
+      if (selected) m.dot.circle(0, -8, 13).fill({ color: COLORS.selected, alpha: 0.35 });
+      drawPortIcon(m.dot, m.data.culture, m.data.kind === 'hub');
+      m.dot
+        .circle(0, 0, 2.5)
+        .fill({ color: m.data.home ? COLORS.home : COLORS.marker })
+        .stroke({ width: 1, color: 0xfbf6ea });
+      m.label.position.set(24, -10);
+      m.dot.circle(0, -8, 13).fill({ color: 0xffffff, alpha: 0.001 });
+      return;
+    }
+    m.dot.scale.set(1);
+    m.label.position.set(10, 0);
     if (m.data.target) m.dot.circle(0, 0, r + 7).stroke({ width: 2.5, color: COLORS.target });
     if (selected) m.dot.circle(0, 0, r + 4).fill({ color: COLORS.selected, alpha: 0.9 });
     m.dot
@@ -463,6 +486,11 @@ export class WorldMap {
     this.world.scale.set(this.view.scale);
     const inv = 1 / this.view.scale;
     const showLabels = this.view.scale >= LABEL_MIN_SCALE;
+    const icons = this.view.scale >= PORT_ICON_MIN_SCALE;
+    if (icons !== this.portIcons) {
+      this.portIcons = icons;
+      for (const m of this.markers) this.drawMarker(m);
+    }
     for (const m of this.markers) {
       m.root.scale.set(inv);
       m.label.visible = showLabels || m.data.id === this.selectedId || m.data.target;
