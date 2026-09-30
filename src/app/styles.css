@@ -2151,3 +2151,12 @@ html.large-text .helm-left .condition.compact {
   margin: 4px 0;
   padding-left: 1.2em;
 }
+
+.quiz-right {
+  color: #2f7d3a;
+  font-weight: 700;
+}
+.quiz-wrong {
+  color: #b5482b;
+  font-weight: 700;
+}

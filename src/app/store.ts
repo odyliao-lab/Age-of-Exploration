@@ -14,6 +14,7 @@ import { deleteSave, listSaves, loadSave, writeSave } from '@/game/save';
 import {
   acceptQuest,
   acceptContract,
+  answerScholar,
   answerReviewItem,
   appendLog,
   claimDaily,
@@ -84,6 +85,7 @@ import type { Appearance } from '@/game/cosmetics';
 import type { SailSetting } from '@/game/sailing';
 import type { SeaSight } from '@/game/crewTalk';
 import { reputationRank } from '@/game/reputation';
+import type { ScholarQuestion } from '@/game/scholar';
 import type { SightingResult } from '@/game/navigation';
 import type { CoastChoice } from '@/game/state';
 import type { BuildingKind } from '@/town/layout';
@@ -269,6 +271,8 @@ interface GameStore {
   accept: (questId: string) => void;
   /** 接下商人的委託 */
   acceptContract: (id: string) => void;
+  /** 回答學者的每日小考 */
+  answerScholar: (choice: number) => { correct: boolean; question: ScholarQuestion } | null;
   closeDialogue: (questId: string) => void;
   answer: (questId: string, choice: number) => boolean;
   spend: (key: AttributeKey) => void;
@@ -885,6 +889,16 @@ export const useGame = create<GameStore>((set, get) => {
       if (world && game) apply(acceptQuest(world, game, questId));
     },
 
+    answerScholar: (choice) => {
+      const { world, game } = get();
+      if (!world || !game) return null;
+      const r = answerScholar(world, game, choice);
+      if (!r) return null;
+      apply({ state: r.state, events: r.events, fogChanged: [] });
+      scheduleSave(true);
+      play(r.correct ? 'correct' : 'wrong');
+      return { correct: r.correct, question: r.question };
+    },
     acceptContract: (id) => {
       const { world, game } = get();
       if (!world || !game) return;

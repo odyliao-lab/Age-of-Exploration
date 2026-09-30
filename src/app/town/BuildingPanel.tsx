@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { LEARNING_DOMAIN_LABELS, type Quest } from '@/data/schema';
 import { formatLonLat } from '@/map/projection';
 import { drawPerson, type PersonLook } from '@/town/art';
@@ -19,6 +19,7 @@ import {
   rumorsAt,
   shipyardOffers,
   availableContracts,
+  scholarToday,
   standing,
   upgradeOffers,
   myShip,
@@ -27,6 +28,7 @@ import {
 import { PROFESSIONS } from '@/game/progression';
 import { MAX_CONTRACTS } from '@/game/contracts';
 import { CONTRACT_BONUS_PER_RANK } from '@/game/reputation';
+import { SCHOLAR_REWARD, type ScholarQuestion } from '@/game/scholar';
 import { repairCost, resupplyCost } from '@/game/ship';
 import { shortageAt } from '@/game/trade';
 import { distanceKm } from '@/geo/geo';
@@ -276,10 +278,72 @@ function Academy() {
           </button>
         </>
       )}
+      <ScholarQuiz />
       <MonsoonCalendar />
       <h3>學者的挑戰</h3>
       <p className="meta">學者的挑戰都是選擇性的；答錯的題目會在航海日誌裡安排複習。</p>
       <QuestList quests={quests} />
+    </>
+  );
+}
+
+/** 學者的每日小考：用你知道的港口出題，每天三題 */
+function ScholarQuiz() {
+  const { world, game } = usePort();
+  const answer = useGame((s) => s.answerScholar);
+  const [result, setResult] = useState<{
+    correct: boolean;
+    question: ScholarQuestion;
+    picked: number;
+  } | null>(null);
+  const today = scholarToday(world, game);
+  if (result) {
+    const q = result.question;
+    return (
+      <>
+        <h3>學者的每日小考</h3>
+        <p>{q.prompt}</p>
+        <p className={result.correct ? 'quiz-right' : 'quiz-wrong'}>
+          {result.correct
+            ? `答對了！經驗 +${SCHOLAR_REWARD.xp}、金幣 +${SCHOLAR_REWARD.gold}`
+            : `答案是「${q.choices[q.answer]}」。這題會排進航海日誌的錯題複習。`}
+        </p>
+        <p className="lesson">
+          <strong>地理小教室：</strong>
+          {q.explanation}
+        </p>
+        <button type="button" onClick={() => setResult(null)}>
+          {today ? '下一題' : '好'}
+        </button>
+      </>
+    );
+  }
+  return (
+    <>
+      <h3>學者的每日小考</h3>
+      {!today ? (
+        <p className="meta">今天的三題都答完了（或是你知道的港口還太少）。明天再來吧！</p>
+      ) : (
+        <>
+          <p className="meta">今天還有 {today.remaining} 題。</p>
+          <p>{today.question.prompt}</p>
+          <div className="choices">
+            {today.question.choices.map((c, i) => (
+              <button
+                key={c}
+                type="button"
+                className="choice"
+                onClick={() => {
+                  const r = answer(i);
+                  if (r) setResult({ ...r, picked: i });
+                }}
+              >
+                {c}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
     </>
   );
 }

@@ -114,6 +114,7 @@ import type { World } from './world';
 import { crewTalk, type SeaSight } from './crewTalk';
 import { contractOffers, MAX_CONTRACTS, type Contract } from './contracts';
 import { CONTRACT_BONUS_PER_RANK, reputationRank } from './reputation';
+import { scholarQuestion, SCHOLAR_PER_DAY, SCHOLAR_REWARD, type ScholarQuestion } from './scholar';
 import {
   HAIL_KM,
   MAX_FLEETS,
@@ -279,6 +280,8 @@ export interface GameState {
   contracts: Contract[];
   /** 參加過的節慶（港口:年:節慶名） */
   festivalsSeen: string[];
+  /** 學者每日小考：哪一天、答了幾題 */
+  scholar: { day: number; count: number };
   /** 玩家自己寫在海圖上的註記 */
   notes: { id: number; at: LonLat; text: string }[];
   /** 完成或過期的委託（不再出現） */
@@ -408,6 +411,7 @@ export function newGame(world: World, scenarioId: string, seed = newSeed()): Ste
     contractsDone: [],
     festivalsSeen: [],
     notes: [],
+    scholar: { day: -1, count: 0 },
     nextEntityId: 1,
     talkDay: 0.5,
     lastRegionId: null,
@@ -2881,6 +2885,76 @@ export function buyUpgrade(world: World, state: GameState, id: string): GameStat
   const offer = upgradeOffers(world, state).find((o) => o.upgrade.id === id);
   if (!offer || offer.reason) return state;
   return { ...state, upgrades: [...state.upgrades, id], gold: state.gold - offer.cost };
+}
+
+// ---------------------------------------------------------------- 學者的每日小考
+
+/** 今天還能答的題目（沒有題目或今天答完了回傳 null） */
+export function scholarToday(
+  world: World,
+  state: GameState,
+): { question: ScholarQuestion; remaining: number } | null {
+  const today = Math.floor(state.day);
+  const count = state.scholar.day === today ? state.scholar.count : 0;
+  if (count >= SCHOLAR_PER_DAY) return null;
+  const known = [...new Set([...state.visitedPorts, ...state.unlockedPorts])]
+    .map((id) => world.ports.get(id))
+    .filter((p): p is Port => !!p);
+  const question = scholarQuestion(known, (g) => world.codex.get(g)?.name ?? g, today, count);
+  return question ? { question, remaining: SCHOLAR_PER_DAY - count } : null;
+}
+
+/** 回答學者的題目：答對得經驗與金幣，答錯排進錯題複習 */
+export function answerScholar(
+  world: World,
+  state: GameState,
+  choice: number,
+  now = Date.now(),
+): { state: GameState; correct: boolean; question: ScholarQuestion; events: GameEvent[] } | null {
+  const t = scholarToday(world, state);
+  if (!t) return null;
+  const q = t.question;
+  const today = Math.floor(state.day);
+  const count = state.scholar.day === today ? state.scholar.count : 0;
+  const correct = choice === q.answer;
+  let next: GameState = {
+    ...state,
+    scholar: { day: today, count: count + 1 },
+    quizLog: [
+      ...state.quizLog,
+      {
+        questId: 'scholar',
+        step: today * 10 + count,
+        domains: [q.domain],
+        attempts: 1,
+        firstTry: correct,
+        day: state.day,
+      },
+    ],
+  };
+  const events: GameEvent[] = [];
+  if (correct) {
+    const xp = gainXp(next, SCHOLAR_REWARD.xp);
+    events.push(...xp.events);
+    next = {
+      ...next,
+      captain: xp.captain,
+      skillPoints: xp.skillPoints,
+      gold: next.gold + SCHOLAR_REWARD.gold,
+    };
+  } else {
+    next = {
+      ...next,
+      reviews: scheduleReview(
+        next.reviews,
+        `scholar:${today}:${count}`,
+        { prompt: q.prompt, choices: q.choices, answer: q.answer, explanation: q.explanation },
+        [q.domain],
+        now,
+      ),
+    };
+  }
+  return { state: next, correct, question: q, events };
 }
 
 // ---------------------------------------------------------------- 海圖註記

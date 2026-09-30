@@ -87,6 +87,7 @@ export function deserialize(data: SerializedSave): GameState {
     contractsDone: data.contractsDone ?? [],
     festivalsSeen: data.festivalsSeen ?? [],
     notes: data.notes ?? [],
+    scholar: data.scholar ?? { day: -1, count: 0 },
   };
 }
 
