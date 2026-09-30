@@ -1,0 +1,55 @@
+{
+  "id": "mm-r5-bengal",
+  "title": "孟加拉的三角洲",
+  "scenario": "monsoon-merchant",
+  "chapter": 3,
+  "tier": 1,
+  "kind": "region",
+  "giver_port": "calicut",
+  "objectives": [
+    {
+      "domain": "B",
+      "text": "能找到恆河三角洲與孟加拉灣。"
+    }
+  ],
+  "prerequisites": ["mm-07-serendib"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "卡利卡特的船主",
+      "lines": [
+        "孟加拉的棉布和稻米最多，因為恆河和布拉馬普特拉河在那裡出海，沖積出一大片肥沃的三角洲。",
+        "去吉大港看看吧。"
+      ]
+    },
+    {
+      "type": "navigate",
+      "target": "chittagong",
+      "hint_level": 3,
+      "text": "線索：孟加拉灣東北角，大河三角洲東邊的港口。"
+    },
+    {
+      "type": "discover",
+      "target": "ganges-delta"
+    },
+    {
+      "type": "quiz",
+      "question": "恆河三角洲的土地為什麼特別肥沃？",
+      "choices": [
+        "河流帶來大量泥沙，堆積成平坦肥沃的沖積平原",
+        "因為那裡是沙漠",
+        "因為火山灰",
+        "因為終年結冰"
+      ],
+      "answer": 0,
+      "explanation": "大河從喜馬拉雅山帶下大量泥沙，在出海口堆積成三角洲。三角洲地勢平坦、土壤肥沃、水源充足，適合種稻米和黃麻，養活了大量人口。"
+    }
+  ],
+  "reward": {
+    "xp": 200,
+    "gold": 260,
+    "reputation": 15,
+    "unlock_ports": ["chittagong"],
+    "codex": []
+  }
+}

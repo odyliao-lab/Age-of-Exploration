@@ -1,0 +1,47 @@
+{
+  "id": "mm-a1-kamal",
+  "title": "學者的考驗：量星的木板",
+  "scenario": "monsoon-merchant",
+  "chapter": 0,
+  "tier": 0,
+  "kind": "academy",
+  "giver_port": "aden",
+  "objectives": [
+    {
+      "domain": "A",
+      "text": "能說明北極星的高度約等於所在的緯度。"
+    }
+  ],
+  "prerequisites": ["mm-00-frankincense"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "亞丁的學者",
+      "lines": [
+        "阿拉伯的領航員用一種叫「卡馬爾」的小木板量星：木板中間穿一條打了結的繩子，用牙齒咬住繩子，把木板伸出去，讓下緣對齊海平面、上緣對齊北極星。",
+        "繩子上的結越多，代表北極星越高。北極星的高度，差不多就是你所在的緯度。"
+      ]
+    },
+    {
+      "type": "quiz",
+      "question": "在亞丁（約北緯 13°）看北極星，它離海平面大約多高？",
+      "choices": ["約 13°", "約 45°", "約 90°", "看不到北極星"],
+      "answer": 0,
+      "explanation": "北極星的仰角約等於所在地的緯度，亞丁在北緯 13° 左右，北極星就在海平面上約 13° 的地方。阿拉伯的卡馬爾和中國的牽星板，都是利用同一個原理。"
+    },
+    {
+      "type": "locate",
+      "prompt": "請在海圖上點出北緯 20°、東經 60° 附近的海面（阿拉伯海的中央）。",
+      "target": [60, 20],
+      "tolerance_km": 150,
+      "explanation": "北緯 20° 表示在赤道以北 20 度；東經 60° 表示在本初子午線以東 60 度。經緯度兩個數字，就能在地球上找到一個點。"
+    }
+  ],
+  "reward": {
+    "xp": 60,
+    "gold": 60,
+    "reputation": 3,
+    "unlock_ports": [],
+    "codex": []
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "id": "mm-r3-cotton",
+  "title": "印度棉布運到東非",
+  "scenario": "monsoon-merchant",
+  "chapter": 2,
+  "tier": 1,
+  "kind": "region",
+  "giver_port": "calicut",
+  "objectives": [
+    {
+      "domain": "F",
+      "text": "知道印度棉布是印度洋貿易的重要商品。"
+    }
+  ],
+  "prerequisites": ["mm-05-zanj"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "卡利卡特的布商",
+      "lines": [
+        "東非的城邦最喜歡印度的棉布，拿象牙、黃金來換。",
+        "運 10 匹棉布到基盧瓦吧，冬天吹東北季風時往西南走，一路順風。"
+      ]
+    },
+    {
+      "type": "deliver",
+      "good": "cotton-cloth",
+      "qty": 10,
+      "target": "kilwa",
+      "text": "在卡利卡特或吉大港的市集買棉布"
+    },
+    {
+      "type": "quiz",
+      "question": "冬天從印度航向東非，為什麼是順風？",
+      "choices": [
+        "冬天吹東北季風，風從東北吹向西南",
+        "冬天吹西南季風",
+        "冬天沒有風，只能划槳",
+        "因為東非比較低"
+      ],
+      "answer": 0,
+      "explanation": "冬天亞洲大陸冷、形成高氣壓，風從東北吹向西南，正好把船從印度送往東非。到了夏天風向相反，商人再乘西南季風回來。"
+    }
+  ],
+  "reward": {
+    "xp": 160,
+    "gold": 250,
+    "reputation": 12,
+    "unlock_ports": [],
+    "codex": []
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "id": "mm-r8-guangzhou",
+  "title": "廣州的番坊",
+  "scenario": "monsoon-merchant",
+  "chapter": 4,
+  "tier": 3,
+  "kind": "region",
+  "giver_port": "champa",
+  "objectives": [
+    {
+      "domain": "A",
+      "text": "能找到珠江口與廣州。"
+    },
+    {
+      "domain": "E",
+      "text": "知道廣州很早就有阿拉伯與波斯商人居住。"
+    }
+  ],
+  "prerequisites": ["mm-09-champa"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "占城的商人",
+      "lines": [
+        "廣州是阿拉伯商人最早到的中國港口之一。幾百年前，外國商人就聚居在城裡的「番坊」。",
+        "沿著海岸往東北走，找到珠江口就到了。"
+      ]
+    },
+    {
+      "type": "discover",
+      "target": "pearl-river-mouth"
+    },
+    {
+      "type": "navigate",
+      "target": "guangzhou",
+      "hint_level": 4,
+      "text": "線索：南海北岸，一條大江出海口深處的港口。"
+    },
+    {
+      "type": "quiz",
+      "question": "廣州的港口不在海邊，而在河口深處，有什麼好處？",
+      "choices": [
+        "可以避開外海的大風浪，貨物也能沿著河運往內陸",
+        "因為海邊太冷",
+        "因為船不能碰到海水",
+        "因為河水比較鹹"
+      ],
+      "answer": 0,
+      "explanation": "河港在河口深處，受外海的颱風與巨浪影響小，船可以安全停泊；貨物又能沿著珠江的水路，運到更遠的內陸城市。"
+    }
+  ],
+  "reward": {
+    "xp": 300,
+    "gold": 400,
+    "reputation": 20,
+    "unlock_ports": ["guangzhou"],
+    "codex": []
+  }
+}

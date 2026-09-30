@@ -1,0 +1,52 @@
+{
+  "id": "mm-r2-frankincense",
+  "title": "乳香運往霍爾木茲",
+  "scenario": "monsoon-merchant",
+  "chapter": 0,
+  "tier": 0,
+  "kind": "region",
+  "giver_port": "dhofar",
+  "objectives": [
+    {
+      "domain": "F",
+      "text": "能說明乳香從產地運往遠方的貿易路線。"
+    }
+  ],
+  "prerequisites": ["mm-02-hormuz"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "佐法爾的乳香商",
+      "lines": [
+        "霍爾木茲的商人又來訂乳香了，他們會再轉賣到波斯和更遠的地方。",
+        "幫我運 8 擔乳香過去。"
+      ]
+    },
+    {
+      "type": "deliver",
+      "good": "frankincense",
+      "qty": 8,
+      "target": "hormuz",
+      "text": "在佐法爾的市集買乳香"
+    },
+    {
+      "type": "quiz",
+      "question": "乳香為什麼在古代這麼珍貴？",
+      "choices": [
+        "只產在阿拉伯半島南部和非洲之角少數地方，又被各地拿來焚香、做藥",
+        "因為可以用來造船",
+        "因為到處都有",
+        "因為可以當飲用水"
+      ],
+      "answer": 0,
+      "explanation": "乳香樹只長在阿拉伯半島南部、索馬利亞一帶乾燥的山坡，產地很少，需求卻遍及地中海、波斯、印度和中國，焚香、醫藥都用得到，所以價格很高。"
+    }
+  ],
+  "reward": {
+    "xp": 80,
+    "gold": 120,
+    "reputation": 6,
+    "unlock_ports": [],
+    "codex": []
+  }
+}

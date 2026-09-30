@@ -1,0 +1,37 @@
+{
+  "id": "mm-a3-hijri",
+  "title": "學者的考驗：月亮的曆法",
+  "scenario": "monsoon-merchant",
+  "chapter": 0,
+  "tier": 0,
+  "kind": "academy",
+  "giver_port": "jeddah",
+  "objectives": [
+    {
+      "domain": "E",
+      "text": "知道伊斯蘭曆是以月亮的圓缺計算的陰曆。"
+    }
+  ],
+  "prerequisites": ["mm-01-red-sea"],
+  "steps": [
+    {
+      "type": "quiz",
+      "question": "伊斯蘭曆一年大約 354 天，比太陽曆少約 11 天。這會造成什麼結果？",
+      "choices": [
+        "齋月每年提早大約 11 天，會輪流落在不同的季節",
+        "齋月永遠在夏天",
+        "齋月永遠在冬天",
+        "每年多出一個月"
+      ],
+      "answer": 0,
+      "explanation": "伊斯蘭曆依月亮的圓缺計算，十二個月約 354 天，不另外加閏月。所以齋月在太陽曆上每年提早約 11 天，大約 33 年繞完一整圈，有時在夏天、有時在冬天。"
+    }
+  ],
+  "reward": {
+    "xp": 60,
+    "gold": 60,
+    "reputation": 3,
+    "unlock_ports": [],
+    "codex": []
+  }
+}
