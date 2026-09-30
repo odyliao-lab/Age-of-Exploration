@@ -24,6 +24,7 @@ export function FleetPanel() {
 
         <article className="ship-card">
           <h3>
+            {game.appearance.shipName && `「${game.appearance.shipName}」`}
             {ship.name} <span className="en">{ship.name_en}</span>
           </h3>
           <ul className="ship-stats">

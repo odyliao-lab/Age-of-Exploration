@@ -280,6 +280,12 @@ export function MapScreen() {
     if (ready && seaSight) mapRef.current?.showSight(seaSight.kind);
   }, [ready, seaSight]);
 
+  // ---- 船名
+  const shipName = game.appearance.shipName;
+  useEffect(() => {
+    if (ready) mapRef.current?.setShipName(shipName);
+  }, [ready, shipName]);
+
   // ---- 風與洋流圖：這個月各處的風向與洋流
   const windField = useGame((s) => s.windField);
   const month = gameDate(game).month;

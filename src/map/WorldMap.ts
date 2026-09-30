@@ -130,6 +130,18 @@ export class WorldMap {
   private entities = new SeaEntities();
   private seaLife = new SeaLife();
   private windGfx = new Graphics();
+  /** 玩家的船名（拉近時顯示在船下方） */
+  private shipLabel = new Text({
+    text: '',
+    style: {
+      fontFamily: 'Noto Sans TC, PingFang TC, Microsoft JhengHei, sans-serif',
+      fontSize: 13,
+      fontWeight: '700',
+      fill: 0x7a2e1b,
+      stroke: { color: 0xfbf6ea, width: 3 },
+    },
+    resolution: 2,
+  });
   private windSampler: FieldSampler | null = null;
   /** 風場要重畫（跟著鏡頭移動，限制頻率） */
   private windDirty = false;
@@ -202,7 +214,10 @@ export class WorldMap {
       this.places.container,
       this.portLayer,
       this.ship,
+      this.shipLabel,
     );
+    this.shipLabel.anchor.set(0.5, 0);
+    this.shipLabel.visible = false;
     this.app.stage.addChild(this.sky.container);
     this.app.ticker.add((t) => this.frame(Math.min(0.1, t.deltaMS / 1000)));
 
@@ -515,6 +530,8 @@ export class WorldMap {
     }
     // 拉近航行時船畫大一點，看得到帆的角度
     this.ship.scale.set(inv * (this.view.scale >= 4 && this.sailing ? 1.7 : 1));
+    this.shipLabel.scale.set(inv);
+    this.placeShipLabel();
     this.fx.setView(this.view, this.size);
     this.entities.setView(this.view);
     this.seaLife.setScale(this.view.scale);
@@ -608,8 +625,22 @@ export class WorldMap {
     this.shipWorld = p;
     this.shipHeading = heading;
     this.follow = follow;
+    this.placeShipLabel();
     this.fx.trackShip(position, !!this.sailing?.moving);
     this.drawCourse();
+  }
+
+  /** 玩家替船取的名字；空字串就不顯示 */
+  setShipName(name: string) {
+    this.shipLabel.text = name ? `「${name}」` : '';
+    this.placeShipLabel();
+  }
+
+  private placeShipLabel() {
+    const p = this.shipWorld;
+    this.shipLabel.visible =
+      !!p && this.ship.visible && !!this.shipLabel.text && this.view.scale >= 4;
+    if (p) this.shipLabel.position.set(p.x, p.y + (this.sailing ? 34 : 22) / this.view.scale);
   }
 
   /** 整張迷霧重畫（載入存檔時） */

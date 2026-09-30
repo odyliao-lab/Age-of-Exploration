@@ -17,6 +17,7 @@ import {
   PAINT_PRICE,
   SAIL_PAINTS,
   SKIN_TONES,
+  SHIP_NAME_MAX,
   defaultAppearance,
   optionUnlocked,
   paintOwned,
@@ -2943,6 +2944,9 @@ export function setAppearance(
   a.coat = pick(COLORS, patch.coat) ?? a.coat;
   a.flagColor = pick(COLORS, patch.flagColor) ?? a.flagColor;
   a.emblem = pick(EMBLEMS, patch.emblem) ?? a.emblem;
+  if (patch.shipName !== undefined) {
+    a.shipName = [...patch.shipName.replace(/\s+/g, ' ').trim()].slice(0, SHIP_NAME_MAX).join('');
+  }
   if (patch.hull) {
     const o = HULL_PAINTS.find((x) => x.id === patch.hull);
     if (o && paintOwned('hull', o, a, ach)) a.hull = o.id;

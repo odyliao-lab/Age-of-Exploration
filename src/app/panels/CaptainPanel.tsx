@@ -17,6 +17,7 @@ import {
   optionUnlocked,
   paintOwned,
   type StyleOption,
+  SHIP_NAME_MAX,
 } from '@/game/cosmetics';
 import { ACHIEVEMENT_MAP } from '@/game/achievements';
 import { Avatar, Emblem, Flag } from './Avatar';
@@ -420,6 +421,19 @@ function LooksTab() {
           </svg>
         ),
       )}
+      <h3>船名</h3>
+      <input
+        className="ship-name-input"
+        type="text"
+        maxLength={SHIP_NAME_MAX}
+        placeholder="替你的船取個名字"
+        defaultValue={look.shipName}
+        onBlur={(e) => customize({ shipName: e.currentTarget.value })}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') e.currentTarget.blur();
+        }}
+        aria-label="船名"
+      />
       <h3>船身塗裝</h3>
       {paints('hull', HULL_PAINTS, look.hull)}
       <h3>船帆</h3>

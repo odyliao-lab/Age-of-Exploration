@@ -2084,3 +2084,12 @@ table.market .tag {
   color: #2f9fc4;
   font-weight: 700;
 }
+
+.ship-name-input {
+  width: min(260px, 100%);
+  font-size: 1rem;
+  padding: 6px 10px;
+  border: 1px solid var(--parchment-dark);
+  border-radius: 6px;
+  background: #fffdf7;
+}

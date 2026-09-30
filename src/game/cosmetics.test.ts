@@ -44,3 +44,15 @@ describe('appearance', () => {
     expect(deserialize(old as never).appearance.hull).toBe('wood');
   });
 });
+
+describe('ship name', () => {
+  it('is trimmed and limited to eight characters', () => {
+    const s = newGame(world, 'treasure-fleet', 1).state;
+    expect(s.appearance.shipName).toBe('');
+    const named = setAppearance(s, { shipName: '  清和號  ' });
+    expect(named.appearance.shipName).toBe('清和號');
+    expect(setAppearance(s, { shipName: '一二三四五六七八九十' }).appearance.shipName).toBe(
+      '一二三四五六七八',
+    );
+  });
+});
