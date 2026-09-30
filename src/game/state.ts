@@ -72,6 +72,10 @@ import {
   type VoyageEvent,
 } from './events';
 import { greetingFor } from '@/town/folkTalk';
+import { festivalAt } from '@/town/festivals';
+
+/** 參加節慶提升的士氣 */
+export const FESTIVAL_MORALE = 15;
 import { createFog, exploredAreaKm2, exploredFraction, revealAround } from './fog';
 import { newSeed, nextRandom } from './rng';
 import {
@@ -272,6 +276,8 @@ export interface GameState {
   rival: RivalState;
   /** 接下的商人委託 */
   contracts: Contract[];
+  /** 參加過的節慶（港口:年:節慶名） */
+  festivalsSeen: string[];
   /** 完成或過期的委託（不再出現） */
   contractsDone: string[];
   nextEntityId: number;
@@ -397,6 +403,7 @@ export function newGame(world: World, scenarioId: string, seed = newSeed()): Ste
     rival: { ...EMPTY_RIVAL },
     contracts: [],
     contractsDone: [],
+    festivalsSeen: [],
     nextEntityId: 1,
     talkDay: 0.5,
     lastRegionId: null,
@@ -2240,9 +2247,25 @@ function arrive(world: World, state: GameState, portId: string): StepResult {
   for (const g of newGoods) events.push({ type: 'discovered', codexId: g });
   const fogChanged = revealAround(state.fog, port.location, PORT_REVEAL_KM);
   const gift = firstVisit ? mods(world, state).firstVisitGold : 0;
+  // 碰上港口的節慶：船員上岸同樂，士氣大振（每個節慶每年一次）
+  let condition = rest(state.condition);
+  let festivalsSeen = state.festivalsSeen;
+  const date = gameDate(state);
+  const festival = festivalAt(portId, date);
+  const festivalKey = festival ? `${portId}:${date.year}:${festival.name}` : null;
+  if (festival && festivalKey && !festivalsSeen.includes(festivalKey)) {
+    festivalsSeen = [...festivalsSeen, festivalKey];
+    condition = { ...condition, morale: Math.min(100, condition.morale + FESTIVAL_MORALE) };
+    events.push({
+      type: 'talk',
+      speaker: crewSpeaker(world, state),
+      text: `${port.name}正在過${festival.name}！大家上岸湊熱鬧，士氣大振（士氣 +${FESTIVAL_MORALE}）。`,
+    });
+  }
   return {
     state: {
       ...state,
+      festivalsSeen,
       gold: state.gold + gift,
       voyage: null,
       helm: null,
@@ -2252,7 +2275,7 @@ function arrive(world: World, state: GameState, portId: string): StepResult {
       mists: [],
       dockedAt: portId,
       lastPortId: portId,
-      condition: rest(state.condition),
+      condition,
       ship: { position: port.location, heading: state.ship.heading },
       discovered: [...state.discovered, ...newGoods],
       visitedPorts: firstVisit ? [...state.visitedPorts, portId] : state.visitedPorts,

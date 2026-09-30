@@ -61,6 +61,8 @@ export interface AchievementInput {
   routes: Record<string, unknown>;
   /** 和對手船長比賽的戰績 */
   rival: { wins: number };
+  /** 參加過的節慶（港口:年:節慶名） */
+  festivalsSeen: string[];
 }
 
 export interface AchievementDef {
@@ -354,6 +356,14 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     category: '知識',
     title: '通譯',
     check: (s) => languagesHeard(s.visitedPorts) >= 6,
+  },
+  {
+    id: 'festivals-3',
+    name: '四海同歡',
+    description: '在 3 個不同的港口參加當地的節慶',
+    category: '探索',
+    title: '節慶旅人',
+    check: (s) => new Set(s.festivalsSeen.map((k) => k.split(':')[0])).size >= 3,
   },
   {
     id: 'contracts-5',
