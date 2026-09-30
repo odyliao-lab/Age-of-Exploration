@@ -3,7 +3,7 @@
  * 遊戲規則只透過這裡讀取加成，避免數值散落在各處。
  */
 import type { Captain } from './captain';
-import { shipDef, type Profession } from './progression';
+import { shipWithUpgrades, type Profession } from './progression';
 
 export interface Modifiers {
   /** 航速倍率（不含風、洋流、船況） */
@@ -42,13 +42,15 @@ export interface ModifierSource {
   skills: string[];
   crewProfessions: Profession[];
   shipTypeId: string;
+  /** 造船廠的改裝 */
+  upgrades?: string[];
 }
 
 export function modifiersFor(src: ModifierSource): Modifiers {
   const a = src.captain.attrs;
   const has = (id: string) => src.skills.includes(id);
   const crew = (p: Profession) => src.crewProfessions.filter((x) => x === p).length;
-  const ship = shipDef(src.shipTypeId);
+  const ship = shipWithUpgrades(src.shipTypeId, src.upgrades ?? []);
   return {
     speed:
       ship.speed *

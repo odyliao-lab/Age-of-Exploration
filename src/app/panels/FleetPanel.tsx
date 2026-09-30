@@ -1,5 +1,5 @@
-import { PROFESSIONS, shipDef } from '@/game/progression';
-import { crewSlots } from '@/game/state';
+import { PROFESSIONS, UPGRADES } from '@/game/progression';
+import { cargoCapacity, crewSlots, myShip } from '@/game/state';
 import { useGame } from '../store';
 import { ConditionBars } from './Condition';
 
@@ -9,7 +9,7 @@ export function FleetPanel() {
   const game = useGame((s) => s.game)!;
   const openPanel = useGame((s) => s.openPanel);
   const dismiss = useGame((s) => s.dismiss);
-  const ship = shipDef(game.shipTypeId);
+  const ship = myShip(game);
   const slots = crewSlots(game);
 
   return (
@@ -28,10 +28,19 @@ export function FleetPanel() {
           </h3>
           <ul className="ship-stats">
             <li>補給容量：{ship.supplyDays} 天</li>
-            <li>航速：×{ship.speed}</li>
-            <li>船體強度：×{ship.sturdiness}</li>
+            <li>貨艙：{cargoCapacity(game)}</li>
+            <li>航速：×{Math.round(ship.speed * 100) / 100}</li>
+            <li>船體強度：×{Math.round(ship.sturdiness * 100) / 100}</li>
             <li>船員位子：{slots}</li>
           </ul>
+          {game.upgrades.length > 0 && (
+            <div className="meta">
+              改裝：
+              {UPGRADES.filter((u) => game.upgrades.includes(u.id))
+                .map((u) => u.name)
+                .join('、')}
+            </div>
+          )}
           <p className="lesson">
             <strong>船隻小知識：</strong>
             {ship.lore}

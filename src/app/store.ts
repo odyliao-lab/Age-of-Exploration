@@ -19,6 +19,7 @@ import {
   ensureDaily,
   trackDaily,
   buyShip,
+  buyUpgrade,
   departPort,
   chartedArea,
   coastSighting,
@@ -252,6 +253,8 @@ interface GameStore {
   hire: (crewId: string) => void;
   dismiss: (crewId: string) => void;
   buy: (shipId: string) => void;
+  /** 造船廠改裝 */
+  upgradeShip: (id: string) => void;
   chooseTitle: (achievementId: string | null) => void;
   customize: (patch: Partial<Omit<Appearance, 'paints'>>) => void;
   buyPaint: (kind: 'hull' | 'sail', id: string) => void;
@@ -922,6 +925,15 @@ export const useGame = create<GameStore>((set, get) => {
       if (next === game) return;
       commit(next);
       toast({ text: '新船下水！', kind: 'success' });
+    },
+
+    upgradeShip: (id) => {
+      const { world, game } = get();
+      if (!world || !game) return;
+      const next = buyUpgrade(world, game, id);
+      if (next === game) return;
+      commit(next);
+      toast({ text: '改裝完成！', kind: 'success' });
     },
 
     customize: (patch) => {

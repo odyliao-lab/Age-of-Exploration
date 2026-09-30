@@ -227,3 +227,57 @@ export const SHIPS: Record<string, ShipDef> = {
 export function shipDef(id: string): ShipDef {
   return SHIPS[id] ?? SHIPS.junk;
 }
+
+/** 造船廠的改裝：裝在目前這艘船上，換船時留給舊船 */
+export interface ShipUpgrade {
+  id: string;
+  name: string;
+  effect: string;
+  price: number;
+  /** 造船小知識 */
+  lore: string;
+}
+
+export const UPGRADES: ShipUpgrade[] = [
+  {
+    id: 'hold',
+    name: '擴建貨艙',
+    effect: '貨艙容量 +50%',
+    price: 250,
+    lore: '中國帆船用隔艙板把船艙分成許多艙，不同的貨分開裝，一艙進水也不會淹掉全船。',
+  },
+  {
+    id: 'tanks',
+    name: '加裝水櫃',
+    effect: '淡水與糧食多帶 15 天',
+    price: 200,
+    lore: '遠洋航行最怕缺淡水。大船會在艙底放大水櫃，下雨時也用帆布接雨水。',
+  },
+  {
+    id: 'sails',
+    name: '改良帆具',
+    effect: '航速 +6%',
+    price: 300,
+    lore: '中國帆船的硬帆用竹條撐開，可以一段一段升降，調整角度也比軟帆容易，逆風時更好用。',
+  },
+  {
+    id: 'hull',
+    name: '加固船殼',
+    effect: '風暴損傷 -20%',
+    price: 300,
+    lore: '福船的船殼用好幾層木板釘合，縫隙塞進麻絲，再塗上桐油和石灰調成的油灰，防水又防蟲。',
+  },
+];
+
+/** 加上改裝之後的船隻數值 */
+export function shipWithUpgrades(id: string, upgrades: string[]): ShipDef {
+  const base = shipDef(id);
+  const has = (u: string) => upgrades.includes(u);
+  return {
+    ...base,
+    cargo: has('hold') ? Math.round(base.cargo * 1.5) : base.cargo,
+    supplyDays: base.supplyDays + (has('tanks') ? 15 : 0),
+    speed: base.speed * (has('sails') ? 1.06 : 1),
+    sturdiness: base.sturdiness * (has('hull') ? 1.25 : 1),
+  };
+}

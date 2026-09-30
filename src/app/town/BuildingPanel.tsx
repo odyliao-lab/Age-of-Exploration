@@ -18,10 +18,12 @@ import {
   reportReward,
   rumorsAt,
   shipyardOffers,
+  upgradeOffers,
+  myShip,
   unreportedFinds,
 } from '@/game/state';
 import { PROFESSIONS } from '@/game/progression';
-import { repairCost, resupplyCost, shipType } from '@/game/ship';
+import { repairCost, resupplyCost } from '@/game/ship';
 import { distanceKm } from '@/geo/geo';
 import { stormRiskAt, windAt } from '@/game/environment';
 import { ConditionBars } from '../panels/Condition';
@@ -496,6 +498,8 @@ function Shipyard() {
   const buy = useGame((s) => s.buy);
   const price = mods(world, game).price;
   const offers = shipyardOffers(world, game);
+  const upgrades = upgradeOffers(world, game);
+  const upgradeShip = useGame((s) => s.upgradeShip);
   const cost = repairCost(game.condition, price);
   return (
     <>
@@ -503,6 +507,19 @@ function Shipyard() {
       <button type="button" disabled={cost === 0 || game.gold === 0} onClick={repair}>
         🔨 修船（{cost} 金幣）
       </button>
+      <h3>改裝這艘船</h3>
+      {upgrades.map((o) => (
+        <article key={o.upgrade.id} className="crew-card">
+          <h4>
+            {o.upgrade.name} <span className="tag">{o.upgrade.effect}</span>
+          </h4>
+          <p>{o.upgrade.lore}</p>
+          <button type="button" disabled={!!o.reason} onClick={() => upgradeShip(o.upgrade.id)}>
+            {o.done ? '✅ 已經改裝' : (o.reason ?? `改裝（${o.cost} 金幣）`)}
+          </button>
+        </article>
+      ))}
+      <p className="meta">改裝裝在目前這艘船上；換新船時，改裝會留給舊船。</p>
       {offers.length > 0 && <h3>新船</h3>}
       {offers.map((o) => (
         <article key={o.def.id} className="crew-card">
@@ -531,7 +548,7 @@ function Dock() {
   const autoSail = useGame((s) => s.autoSail);
   const routes = familiarRoutes(world, game, game.dockedAt!);
   const price = mods(world, game).price;
-  const cost = resupplyCost(game.condition, shipType(game.shipTypeId), price);
+  const cost = resupplyCost(game.condition, myShip(game), price);
   return (
     <>
       <ConditionBars game={game} />
