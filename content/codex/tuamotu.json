@@ -1,0 +1,12 @@
+{
+  "id": "tuamotu",
+  "category": "landmark",
+  "name": "土阿莫土群島的環礁",
+  "name_en": "Tuamotu Atolls",
+  "location": [-145.0, -16.0],
+  "discover_radius_km": 300,
+  "domains": ["C", "B"],
+  "body": "一大片低平的珊瑚環礁，最高的地方只比海面高幾公尺。環礁是火山島慢慢下沉、四周的珊瑚礁卻一直往上長，最後只剩下圍著潟湖的一圈珊瑚島。",
+  "source": "維基百科「環礁」「土阿莫土群島」條目",
+  "reviewed": false
+}

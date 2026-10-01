@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useMoney, useMoneyIcon } from '../money';
 import { useGame } from '../store';
 
 interface Pop {
@@ -10,6 +11,8 @@ let popSeq = 0;
 
 /** 金幣數字：金幣變多或變少時，旁邊飄出「+N」或「−N」 */
 export function GoldCounter() {
+  const money = useMoney();
+  const moneyIcon = useMoneyIcon();
   const gold = useGame((s) => s.game?.gold ?? 0);
   const [pops, setPops] = useState<Pop[]>([]);
 
@@ -34,8 +37,8 @@ export function GoldCounter() {
   );
 
   return (
-    <span className="gold-counter" title="金幣">
-      💰 {gold}
+    <span className="gold-counter" title={`${money}`}>
+      {moneyIcon} {gold}
       {pops.map((p) => (
         <span key={p.id} className={p.delta > 0 ? 'gold-pop gain' : 'gold-pop loss'}>
           {p.delta > 0 ? `+${p.delta}` : `−${-p.delta}`}

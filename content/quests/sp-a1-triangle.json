@@ -1,0 +1,39 @@
+{
+  "id": "sp-a1-triangle",
+  "title": "航海家的考驗：大三角",
+  "scenario": "star-navigators",
+  "chapter": 0,
+  "tier": 0,
+  "kind": "academy",
+  "giver_port": "raiatea",
+  "objectives": [
+    {
+      "domain": "A",
+      "text": "能在海圖上找到玻里尼西亞三角的頂點。"
+    }
+  ],
+  "prerequisites": ["sp-00-star-compass"],
+  "steps": [
+    {
+      "type": "locate",
+      "prompt": "玻里尼西亞三角最北的頂點是夏威夷群島。請在海圖上點出夏威夷（大約北緯 20°、西經 156°）。",
+      "target": [-155.5, 19.8],
+      "tolerance_km": 300,
+      "explanation": "夏威夷群島在北緯 19°～22°，是北太平洋中央最孤立的群島。玻里尼西亞三角的另外兩個頂點是西南方的奧特亞羅瓦（紐西蘭）和東方的拉帕努伊。"
+    },
+    {
+      "type": "quiz",
+      "question": "玻里尼西亞三角大約有多大？",
+      "choices": ["比整個亞洲還大", "跟台灣差不多", "跟一座城市差不多", "比月球還大"],
+      "answer": 0,
+      "explanation": "玻里尼西亞三角的面積超過兩千萬平方公里，比亞洲還大，但陸地加起來很小，大部分都是海。能在這麼大的海上找到一座座小島，是人類航海史上最了不起的成就之一。"
+    }
+  ],
+  "reward": {
+    "xp": 60,
+    "gold": 60,
+    "reputation": 3,
+    "unlock_ports": [],
+    "codex": []
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "id": "coconut",
+  "category": "goods",
+  "name": "椰子",
+  "name_en": "Coconut",
+  "domains": ["F", "C"],
+  "body": "椰子樹耐鹽、耐風，在熱帶的海邊和珊瑚島上都長得好。椰子肉能吃、椰子水能喝、椰殼能做碗、纖維能搓成綁獨木舟的繩子，是航海家最重要的植物之一。",
+  "source": "維基百科「椰子」條目",
+  "reviewed": false
+}

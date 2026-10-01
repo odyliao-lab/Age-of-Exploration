@@ -1,0 +1,54 @@
+{
+  "id": "sp-04-north",
+  "title": "北方的群星",
+  "scenario": "star-navigators",
+  "chapter": 3,
+  "tier": 3,
+  "kind": "main",
+  "giver_port": "nuku-hiva",
+  "objectives": [
+    {
+      "domain": "A",
+      "text": "能說明天頂星如何指出緯度。"
+    },
+    {
+      "domain": "D",
+      "text": "知道越過赤道後北極星會出現。"
+    }
+  ],
+  "prerequisites": ["sp-03-sunrise"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "老航海家泰卡",
+      "lines": [
+        "傳說北方有一群大島，山頂會下雪。往北航行，越過赤道以後，北方的天空會出現一顆從來不動的星星。",
+        "等到「霍庫雷阿」——那顆歡樂之星——從我們頭頂正上方經過，就到了那群島的緯度。再往西，就找得到它們。"
+      ]
+    },
+    {
+      "type": "discover",
+      "target": "mauna-kea"
+    },
+    {
+      "type": "navigate",
+      "target": "kealakekua",
+      "hint_level": 4,
+      "text": "線索：越過赤道往北，到大角星從頭頂經過的緯度，再往西找一座山頂積雪的大火山島。"
+    },
+    {
+      "type": "quiz",
+      "question": "航海家看到大角星（霍庫雷阿）剛好從頭頂正上方經過，可以知道什麼？",
+      "choices": ["已經到了夏威夷的緯度", "已經到了赤道", "船在往東走", "快要下雨了"],
+      "answer": 0,
+      "explanation": "每顆星都只會在某一個緯度從頭頂正上方經過，這顆星就是那個緯度的「天頂星」。大角星的天頂在北緯 19° 左右，正好是夏威夷的緯度。"
+    }
+  ],
+  "reward": {
+    "xp": 300,
+    "gold": 400,
+    "reputation": 25,
+    "unlock_ports": ["kealakekua"],
+    "codex": ["zenith-star"]
+  }
+}

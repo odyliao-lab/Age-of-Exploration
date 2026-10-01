@@ -48,6 +48,12 @@ export const GOODS_PRICE: Record<string, number> = {
   'walrus-ivory': 80,
   'wool-cloth': 18,
   timber: 16,
+  tapa: 20,
+  feathers: 60,
+  'basalt-adze': 40,
+  'sweet-potato': 12,
+  coconut: 8,
+  'pearl-shell': 50,
 };
 
 const PRODUCER_FACTOR = 0.55;

@@ -1,0 +1,10 @@
+{
+  "id": "star-compass",
+  "category": "culture",
+  "name": "星羅盤",
+  "name_en": "Star Compass",
+  "domains": ["A", "D"],
+  "body": "玻里尼西亞的航海家把地平線分成許多「房子」，記住每顆星從哪一間房子升起、落到哪一間房子。同一顆星每天都從地平線上同一個方位升起，所以只要看著正在升起的星星，就知道船頭朝哪裡。",
+  "source": "維基百科「玻里尼西亞的導航」條目",
+  "reviewed": false
+}

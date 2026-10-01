@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useMoney } from '../money';
 import { LEARNING_DOMAIN_LABELS } from '@/data/schema';
 import {
   DAILY_REWARD,
@@ -21,6 +22,7 @@ const MASTERY_LABEL: Record<Mastery, string> = {
 
 /** 航海日誌：今日航程、錯題複習、學習領域掌握度、航海紀錄（企畫書 12.3） */
 export function LogbookPanel() {
+  const money = useMoney();
   const world = useGame((s) => s.world)!;
   const game = useGame((s) => s.game)!;
   const openPanel = useGame((s) => s.openPanel);
@@ -101,7 +103,7 @@ export function LogbookPanel() {
                 disabled={!dailyComplete(daily)}
                 onClick={claim}
               >
-                領取獎勵（經驗 +{DAILY_REWARD.xp}、金幣 +{DAILY_REWARD.gold}）
+                領取獎勵（經驗 +{DAILY_REWARD.xp}、{money} +{DAILY_REWARD.gold}）
               </button>
             )}
           </section>

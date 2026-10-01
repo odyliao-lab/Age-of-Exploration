@@ -1,7 +1,9 @@
 import { activeNavigateTargets, navigateHint, openRumors } from '@/game/state';
+import { useMoney } from '../money';
 import { useGame } from '../store';
 
 export function QuestTracker() {
+  const money = useMoney();
   const world = useGame((s) => s.world)!;
   const game = useGame((s) => s.game)!;
 
@@ -28,7 +30,7 @@ export function QuestTracker() {
             <strong>委託</strong>・{world.codex.get(c.good)?.name} {c.qty} 擔運到
             {world.ports.get(c.portId)?.name}
             <div>
-              船上有 {have} 擔・還有 {left} 天・酬勞 {c.reward} 金幣
+              船上有 {have} 擔・還有 {left} 天・酬勞 {c.reward} {money}
             </div>
           </div>
         );

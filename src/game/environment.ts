@@ -66,6 +66,10 @@ export function windAt(p: LonLat, month: number): Wind {
     }
     if (lat < 35) return { toward: 215, strength: 0.55, name: '東北信風', from: '東北' };
   }
+  // 南太平洋的夏天（12～2 月）信風常常減弱，偶爾吹起西風：玻里尼西亞人趁這時往東航行
+  if (inRange(lon, -180, -105) && inRange(lat, -30, -5) && (month === 12 || month <= 2)) {
+    return { toward: 90, strength: 0.5, name: '夏季的西風（信風減弱時）', from: '西' };
+  }
   const a = Math.abs(lat);
   if (a < 5) return { toward: 270, strength: 0.1, name: '赤道無風帶', from: '不定' };
   if (a < 30) {

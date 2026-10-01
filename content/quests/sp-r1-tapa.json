@@ -1,0 +1,49 @@
+{
+  "id": "sp-r1-tapa",
+  "title": "塔帕布帶回故鄉",
+  "scenario": "star-navigators",
+  "chapter": 1,
+  "tier": 1,
+  "kind": "main",
+  "giver_port": "tongatapu",
+  "objectives": [
+    {
+      "domain": "F",
+      "text": "知道塔帕布用構樹皮製作，構樹是祖先帶來的植物。"
+    }
+  ],
+  "prerequisites": ["sp-02-homeland"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "東加的織布婦人",
+      "lines": ["把這些塔帕布帶到賴阿特阿吧，送給那裡的首領，換些紅羽毛回來。"]
+    },
+    {
+      "type": "deliver",
+      "good": "tapa",
+      "qty": 8,
+      "target": "raiatea",
+      "text": "在東加塔布、烏波盧或拉羅湯加買塔帕布"
+    },
+    {
+      "type": "quiz",
+      "question": "做塔帕布用的構樹，在太平洋的島上原本沒有。它是怎麼來的？",
+      "choices": [
+        "祖先坐著獨木舟從西方一路帶過來種的",
+        "被風吹過來的",
+        "從海裡長出來的",
+        "是鳥帶來的"
+      ],
+      "answer": 0,
+      "explanation": "構樹原產東亞，台灣也有。研究構樹的基因，可以追蹤它從台灣一帶傳到太平洋各島的路線——祖先在獨木舟上帶著幼苗和種子，到每座新島都種下需要的植物。"
+    }
+  ],
+  "reward": {
+    "xp": 150,
+    "gold": 220,
+    "reputation": 12,
+    "unlock_ports": [],
+    "codex": []
+  }
+}

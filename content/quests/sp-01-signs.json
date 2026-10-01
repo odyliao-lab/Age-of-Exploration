@@ -1,0 +1,45 @@
+{
+  "id": "sp-01-signs",
+  "title": "海鳥與雲",
+  "scenario": "star-navigators",
+  "chapter": 0,
+  "tier": 0,
+  "kind": "main",
+  "giver_port": "tahiti",
+  "objectives": [
+    {
+      "domain": "C",
+      "text": "能說明海鳥、雲與湧浪如何指出島嶼的位置。"
+    }
+  ],
+  "prerequisites": ["sp-00-star-compass"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "老航海家泰卡",
+      "lines": [
+        "看不到島的時候，大海會告訴你島在哪裡：黃昏的海鳥、停著不動的雲、從島邊反射回來的湧浪。",
+        "去西南方的拉羅湯加。航行時試著按「讀海上的徵兆」，用你學到的找到島。"
+      ]
+    },
+    {
+      "type": "navigate",
+      "target": "rarotonga",
+      "hint_level": 1
+    },
+    {
+      "type": "quiz",
+      "question": "黃昏時，燕鷗成群往西北方飛去。島最可能在哪個方向？",
+      "choices": ["西北方", "東南方", "正上方", "哪裡都有可能"],
+      "answer": 0,
+      "explanation": "燕鷗白天到海上捕魚，傍晚一定飛回島上過夜。所以黃昏時跟著牠們飛的方向走，就會找到島；清晨則相反，牠們是從島上飛出來的。"
+    }
+  ],
+  "reward": {
+    "xp": 70,
+    "gold": 120,
+    "reputation": 6,
+    "unlock_ports": ["rarotonga"],
+    "codex": []
+  }
+}

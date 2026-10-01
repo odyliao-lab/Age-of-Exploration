@@ -31,6 +31,9 @@ import {
   departPort,
   chartedArea,
   coastSighting,
+  seaSignQuestion,
+  readSigns,
+  type SeaSignQuestion,
   coastChoices,
   autoSail,
   reportFinds,
@@ -204,6 +207,10 @@ interface GameStore {
   stargazing: boolean;
   /** 正在看岸形（遊戲暫停）：這次的三個選項 */
   coastSight: CoastChoice[] | null;
+  /** 讀海上徵兆的題目（打開時才有） */
+  seaSigns: SeaSignQuestion | null;
+  openSeaSigns: (on: boolean) => void;
+  answerSeaSigns: (choice: number) => { correct: boolean; text: string; lesson: string } | null;
   /** 船員剛看到的海洋生物（海圖上畫在船邊） */
   seaSight: { kind: SeaSight; key: number } | null;
   /** 剛發現的地點（海圖上放光圈） */
@@ -470,6 +477,7 @@ export const useGame = create<GameStore>((set, get) => {
     lastBuilding: null,
     stargazing: false,
     coastSight: null,
+    seaSigns: null,
     celebration: null,
     mapFocus: null,
     windField: false,
@@ -623,7 +631,7 @@ export const useGame = create<GameStore>((set, get) => {
     advance: (realSeconds) => {
       const { world, game, paused, speed, modals } = get();
       if (!world || !game || (!game.voyage && !game.helm) || paused || modals.length) return;
-      if (get().stargazing || get().coastSight || get().noteEdit) return;
+      if (get().stargazing || get().coastSight || get().seaSigns || get().noteEdit) return;
       const perDay = game.helm ? SAIL_SECONDS_PER_DAY : SECONDS_PER_DAY;
       const days = (Math.min(realSeconds, 0.25) / perDay) * speed;
       apply(tick(world, game, days));
@@ -704,6 +712,19 @@ export const useGame = create<GameStore>((set, get) => {
     },
 
     openStargazing: (on) => set({ stargazing: on }),
+    openSeaSigns: (on) => {
+      const { world, game } = get();
+      set({ seaSigns: on && world && game ? seaSignQuestion(world, game) : null });
+    },
+    answerSeaSigns: (choice) => {
+      const { world, game } = get();
+      if (!world || !game) return null;
+      const r = readSigns(world, game, choice);
+      if (!r) return null;
+      apply({ state: r.state, events: r.events, fogChanged: [] });
+      play(r.correct ? 'correct' : 'wrong');
+      return { correct: r.correct, text: r.text, lesson: r.lesson };
+    },
     openCoastSight: (on) => {
       const { world, game } = get();
       // 選項在打開時決定一次（含隨機的干擾選項與順序）

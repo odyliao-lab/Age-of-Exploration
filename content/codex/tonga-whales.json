@@ -1,0 +1,17 @@
+{
+  "id": "tonga-whales",
+  "category": "wildlife",
+  "name": "東加的座頭鯨",
+  "name_en": "Humpback whales of Tonga",
+  "location": [-174.1, -18.75],
+  "domains": ["C", "D"],
+  "body": "座頭鯨夏天在南極附近的冷水吃磷蝦，冬天游幾千公里到溫暖的東加海域生小鯨魚，每年往返，是遷徙距離最長的哺乳動物之一。",
+  "source": "維基百科「座頭鯨」條目",
+  "rumor": {
+    "port": "tongatapu",
+    "from": "捕魚的老人",
+    "text": "往北走一天，那一串小島之間的海灣裡，冬天會來好多大鯨魚，帶著小鯨魚在水面上跳。牠們從很冷很冷的南方游過來。",
+    "investigate_km": 50
+  },
+  "reviewed": false
+}

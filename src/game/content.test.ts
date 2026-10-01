@@ -7,6 +7,7 @@ import type { LonLat } from '@/data/schema';
 import { findSeaPath, nearestSea } from '@/geo/seaPath';
 import { checkLeg } from './voyage';
 import {
+  scenarioPorts,
   acceptQuest,
   answerLocate,
   answerQuiz,
@@ -317,5 +318,35 @@ describe('Northern Longship content', () => {
     expect(s.visitedPorts).toEqual(
       expect.arrayContaining(['reykjavik', 'brattahlid', 'leifsbudir']),
     );
+  });
+});
+
+describe('Star Navigators content', () => {
+  it('plays every quest from start to finish', () => {
+    let s = newGame(world, 'star-navigators', 1200).state;
+    expect(s.dockedAt).toBe('raiatea');
+    expect(s.shipTypeId).toBe('vaka');
+    const sc = world.scenarios.get('star-navigators')!;
+    expect(sc.wayfinding).toBe(true);
+    expect(sc.currency).toBe('珍寶');
+    // 海圖不跨換日線：所有港口都在西經
+    for (const p of scenarioPorts(world, s)) {
+      expect(p.location[0], p.id).toBeLessThan(0);
+    }
+    const remaining = new Set(
+      world.content.quests.filter((q) => q.scenario === 'star-navigators').map((q) => q.id),
+    );
+    for (let round = 0; round < 30 && remaining.size; round++) {
+      const ready = [...remaining].filter((id) =>
+        world.quests.get(id)!.prerequisites.every((p) => s.quests[p]?.status === 'completed'),
+      );
+      expect(ready.length, `卡住的任務：${[...remaining].join(', ')}`).toBeGreaterThan(0);
+      for (const id of ready) {
+        s = playQuest(s, id);
+        remaining.delete(id);
+      }
+    }
+    expect(remaining.size).toBe(0);
+    expect(s.visitedPorts).toEqual(expect.arrayContaining(['kealakekua', 'rapa-nui', 'nuku-hiva']));
   });
 });

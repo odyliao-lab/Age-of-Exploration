@@ -1,0 +1,19 @@
+{
+  "id": "raiatea",
+  "name": "賴阿特阿島",
+  "name_en": "Ra'iātea",
+  "historical_names": [],
+  "country": "法屬玻里尼西亞（社會群島）",
+  "country_en": "French Polynesia",
+  "region": "society-islands",
+  "location": [-151.45, -16.83],
+  "kind": "hub",
+  "goods": ["coconut"],
+  "climate": "熱帶雨林氣候",
+  "blurb": "社會群島西邊的大島，古名「哈瓦伊基」，相傳是玻里尼西亞人的故鄉與遠航的出發地。島上的塔普塔普阿泰瑪拉埃是整個東玻里尼西亞最神聖的地方。",
+  "sights": ["taputapuatea"],
+  "gossip": [
+    "航海家出發前，都會在瑪拉埃前祈禱，帶一塊這裡的石頭到新的島上。",
+    "傳說人死後，靈魂會回到西邊的故鄉。"
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "id": "pearl-shell",
+  "category": "goods",
+  "name": "黑蝶珍珠貝",
+  "name_en": "Black-lip Pearl Oyster",
+  "domains": ["F", "C"],
+  "body": "生長在溫暖清澈的潟湖裡。貝殼內層閃著彩虹般的光澤，玻里尼西亞人把它做成魚鉤、刀子和裝飾品；殼裡偶爾會長出黑色的珍珠。",
+  "source": "維基百科「黑蝶貝」條目",
+  "reviewed": false
+}

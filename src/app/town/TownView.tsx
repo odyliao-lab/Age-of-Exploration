@@ -50,6 +50,7 @@ const HAT_COLORS: Record<string, string | null> = {
   turban: '#f4ecd8',
   barrete: '#9b2f1f',
   woolcap: '#6b5a3a',
+  flowers: '#d9653a',
   captain: '#2c4a7a',
   feather: '#6b3f1f',
 };
@@ -77,6 +78,20 @@ const TOWNSFOLK: Record<Culture, PersonLook[]> = {
     { skin: '#e8c4a0', coat: '#4a5a3a', hat: '#6b3f1f', hair: '#3a2414' },
     { skin: '#d9a57c', coat: '#5a4a7a', hat: null, hair: '#1c1410', robe: true },
     { skin: '#e8c4a0', coat: '#8a6a3a', hat: '#2b2118', hair: '#3a2414', hatStyle: 'cap' },
+  ],
+  polynesia: [
+    { skin: '#9e6a44', coat: '#e0c080', hat: '#d9653a', hair: '#1c1410', hatStyle: 'cap' },
+    { skin: '#a8714a', coat: '#c9a86a', hat: null, hair: '#1c1410', robe: true },
+    { skin: '#94603f', coat: '#b5482b', hat: null, hair: '#1c1410' },
+    {
+      skin: '#a8714a',
+      coat: '#f4ecd8',
+      hat: '#e0b94a',
+      hair: '#1c1410',
+      hatStyle: 'cap',
+      robe: true,
+    },
+    { skin: '#9e6a44', coat: '#6b4426', hat: null, hair: '#1c1410' },
   ],
   norse: [
     { skin: '#efd2b8', coat: '#6b5a3a', hat: '#8a6a3a', hair: '#c9a86a', hatStyle: 'cap' },

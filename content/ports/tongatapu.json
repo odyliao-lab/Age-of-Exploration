@@ -1,0 +1,16 @@
+{
+  "id": "tongatapu",
+  "name": "東加塔布",
+  "name_en": "Tongatapu",
+  "historical_names": [],
+  "country": "東加",
+  "country_en": "Tonga",
+  "region": "west-polynesia",
+  "location": [-175.2, -21.13],
+  "kind": "port",
+  "goods": ["tapa"],
+  "climate": "熱帶雨林氣候",
+  "blurb": "東加王國的主島，地勢低平。東加人很早就在這裡定居，用樹皮敲打出大片的塔帕布，上面畫著黑褐色的花紋。",
+  "sights": [],
+  "gossip": ["每年冬天，座頭鯨會游到我們的海灣生小鯨魚。", "我們的祖先比東邊島上的人更早來到這裡。"]
+}

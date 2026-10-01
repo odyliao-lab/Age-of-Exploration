@@ -1,4 +1,5 @@
 import { useMemo, useRef } from 'react';
+import { useMoney, useMoneyIcon } from '../money';
 import { compass16 } from '@/geo/geo';
 import { knots, normDeg, type SailSetting } from '@/game/sailing';
 import {
@@ -20,6 +21,7 @@ import {
   sunSightBlocked,
   rivalOf,
   sunOf,
+  signsBlocked,
 } from '@/game/state';
 import { isNight, timeLabel } from '@/game/navigation';
 import { useGame } from '../store';
@@ -49,6 +51,8 @@ const SAIL_LABELS: Record<SailSetting, string> = { 0: '收帆', 1: '半帆', 2: 
 
 /** 親手駕船的操作面板：舵盤、帆、下錨、時間，以及風與船況 */
 export function HelmPanel() {
+  const money = useMoney();
+  const moneyIcon = useMoneyIcon();
   const world = useGame((s) => s.world)!;
   const game = useGame((s) => s.game)!;
   const paused = useGame((s) => s.paused);
@@ -104,6 +108,9 @@ export function HelmPanel() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const canFetchWater = useMemo(() => !fetchWaterBlocked(world, game), [world, waterKey]);
   const canSightSun = !sunSightBlocked(game);
+  const signsKey = `${Math.floor(game.day)}|${game.signDay}|${game.ship.position[0].toFixed(1)}|${game.ship.position[1].toFixed(1)}`;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const canReadSigns = useMemo(() => !signsBlocked(world, game), [world, signsKey]);
   const kn = knots(st.motion.speed);
   const sailClass =
     st.motion.pointOfSail === '頂風' ? 'bad' : st.motion.pointOfSail === '迎風' ? 'ok' : 'good';
@@ -150,11 +157,11 @@ export function HelmPanel() {
                 🤝 向商船打聽消息
               </button>
               <button type="button" onClick={() => greetMerchant(merchant.id, 'supplies')}>
-                🛢️ 向商船買補給（20 金幣）
+                🛢️ 向商船買補給（20 {money}）
               </button>
               {offer && (
                 <button type="button" onClick={() => sellToMerchant(merchant.id)}>
-                  💰 把貨賣給開往{offer.port.name}的商船（{offer.total} 金幣）
+                  {moneyIcon} 把貨賣給開往{offer.port.name}的商船（{offer.total} {money}）
                 </button>
               )}
             </>
@@ -190,6 +197,15 @@ export function HelmPanel() {
           {canFish && (
             <button type="button" onClick={fish} title="撒網捕魚，補一點糧食（每天一次）">
               🐟 撒網
+            </button>
+          )}
+          {canReadSigns && (
+            <button
+              type="button"
+              onClick={() => useGame.getState().openSeaSigns(true)}
+              title="看海鳥、雲和湧浪，判斷島在哪個方向"
+            >
+              🌊 讀海上的徵兆
             </button>
           )}
           {canSightSun && (

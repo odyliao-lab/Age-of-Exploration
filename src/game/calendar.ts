@@ -39,3 +39,8 @@ export const SEASON_OF_MONTH = [
   '秋',
   '冬',
 ];
+
+/** 季節要看半球：南半球的季節和北半球相反（11 月在大溪地是春天） */
+export function seasonAt(month: number, lat: number): string {
+  return SEASON_OF_MONTH[lat < 0 ? ((month + 5) % 12) + 1 : month];
+}

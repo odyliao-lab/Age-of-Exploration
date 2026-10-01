@@ -19,6 +19,7 @@ const ARABIC: Greeting = {
   meaning: '願平安與你同在',
 };
 const SWAHILI: Greeting = { phrase: 'Jambo！', lang: '斯瓦希里語', meaning: '你好' };
+const TAHITIAN: Greeting = { phrase: 'Ia ora na！', lang: '大溪地語', meaning: '祝你安好' };
 const NORSE: Greeting = { phrase: 'Heill ok sæll！', lang: '古諾斯語', meaning: '祝你健康、幸福' };
 const PORTUGUESE: Greeting = { phrase: 'Bom dia！', lang: '葡萄牙語', meaning: '早安、日安' };
 const MALAYALAM: Greeting = {
@@ -58,6 +59,14 @@ const GREETINGS: Record<string, Greeting> = {
   lisbon: PORTUGUESE,
   palos: { phrase: '¡Buenos días!', lang: '西班牙語', meaning: '早安、日安' },
   'las-palmas': { phrase: '¡Buenos días!', lang: '西班牙語', meaning: '早安、日安' },
+  raiatea: TAHITIAN,
+  tahiti: TAHITIAN,
+  'nuku-hiva': { phrase: 'Kaoha！', lang: '馬克薩斯語', meaning: '你好、歡迎' },
+  rarotonga: { phrase: 'Kia orana！', lang: '庫克群島毛利語', meaning: '祝你長壽、你好' },
+  tongatapu: { phrase: 'Mālō e lelei！', lang: '東加語', meaning: '你好' },
+  upolu: { phrase: 'Tālofa！', lang: '薩摩亞語', meaning: '你好' },
+  kealakekua: { phrase: 'Aloha！', lang: '夏威夷語', meaning: '愛、你好、再見' },
+  'rapa-nui': { phrase: "'Iorana！", lang: '拉帕努伊語', meaning: '你好' },
   nidaros: NORSE,
   torshavn: NORSE,
   reykjavik: NORSE,
@@ -81,6 +90,13 @@ const CULTURE_LINES: Record<Culture, string[]> = {
     '夏天幾乎不下雨，天空藍得發亮；雨都集中在冬天。',
     '製圖師把每一艘船帶回來的消息畫進海圖，海圖上的海岸線一年比一年長。',
     '水手出海前都會到教堂祈禱，一趟遠航常常一兩年才回得來。',
+  ],
+  polynesia: [
+    '我們的祖先從西邊來，一座島一座島往東、往北、往南找到新的土地。',
+    '航海家不用儀器：記住哪顆星從哪裡升起、哪裡落下，船頭就不會走錯方向。',
+    '島上的椰子、麵包樹和芋頭，都是祖先坐著獨木舟帶來種下的。',
+    '海龜、海鳥和鯨魚都是我們的老師，牠們知道島在哪裡。',
+    '珊瑚礁圍起來的潟湖風平浪靜，是捕魚和划船的好地方。',
   ],
   norse: [
     '夏天太陽幾乎不下山，半夜天還是亮的；到了冬天，白天只有短短幾個小時。',

@@ -30,6 +30,7 @@ import { SailBar } from './panels/SailBar';
 import { HelmPanel } from './panels/HelmPanel';
 import { StarSightModal } from './panels/StarSightModal';
 import { CoastSightModal } from './panels/CoastSightModal';
+import { SeaSignsModal } from './panels/SeaSignsModal';
 import { TownView } from './town/TownView';
 import { BuildingPanel } from './town/BuildingPanel';
 import { cultureOf } from '@/town/layout';
@@ -82,6 +83,7 @@ export function MapScreen() {
   const lastBuilding = useGame((s) => s.lastBuilding);
   const stargazing = useGame((s) => s.stargazing);
   const coastSight = useGame((s) => s.coastSight);
+  const seaSigns = useGame((s) => s.seaSigns);
 
   const scenario = world.scenarios.get(game.scenarioId)!;
   const hostRef = useRef<HTMLDivElement>(null);
@@ -200,6 +202,7 @@ export function MapScreen() {
   // ---- 船隻配色
   const look = game.appearance;
   const shipRig = myShip(game).rig;
+  const shipLook = myShip(game).look;
   useEffect(() => {
     if (!ready) return;
     const hex = (c: string) => parseInt(c.slice(1), 16);
@@ -207,9 +210,9 @@ export function MapScreen() {
       hull: hex(colorOf(HULL_PAINTS, look.hull)),
       sail: hex(colorOf(SAIL_PAINTS, look.sail)),
       flag: hex(colorOf(COLORS, look.flagColor)),
-      rig: shipRig === 'lug' ? 'junk' : shipRig,
+      rig: shipLook ?? (shipRig === 'lug' ? 'junk' : shipRig),
     });
-  }, [ready, look.hull, look.sail, look.flagColor, shipRig]);
+  }, [ready, look.hull, look.sail, look.flagColor, shipRig, shipLook]);
 
   // ---- 船與航線
   useEffect(() => {
@@ -563,6 +566,7 @@ export function MapScreen() {
       {showTown && building && <BuildingPanel kind={building} culture={culture} />}
       {stargazing && game.helm && <StarSightModal />}
       {coastSight && game.helm && <CoastSightModal />}
+      {seaSigns && game.helm && <SeaSignsModal />}
 
       {panel === 'codex' && <CodexPanel />}
       {panel === 'captain' && <CaptainPanel />}

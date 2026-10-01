@@ -1,7 +1,7 @@
 import { xpToNext } from '@/game/captain';
 import { Avatar } from './Avatar';
 import { GoldCounter } from './GoldCounter';
-import { SEASON_OF_MONTH } from '@/game/calendar';
+import { seasonAt } from '@/game/calendar';
 import { gameDate } from '@/game/state';
 import { dailyComplete, dueReviews } from '@/game/learning';
 import { ACHIEVEMENT_MAP } from '@/game/achievements';
@@ -21,6 +21,10 @@ export function StatusBar(props: {
   const c = game.captain;
   const now = useNow();
   const d = gameDate(game);
+  const lat = game.helm
+    ? game.ship.position[1]
+    : (world.ports.get(game.dockedAt ?? '')?.location[1] ?? 0);
+  const season = seasonAt(d.month, lat);
   const logBadge =
     dueReviews(game.reviews, now).length +
     (game.daily && !game.daily.claimed && dailyComplete(game.daily) ? 1 : 0);
@@ -32,8 +36,10 @@ export function StatusBar(props: {
       </button>
       <strong className="map-title">{scenario.name}</strong>
       <div className="stats-inline" aria-label="船長狀態">
-        <span title={`航海第 ${Math.floor(game.day) + 1} 天`}>
-          {d.year}/{d.month}/{d.day}（{SEASON_OF_MONTH[d.month]}）
+        <span
+          title={`航海第 ${Math.floor(game.day) + 1} 天${lat < 0 ? '（南半球的季節和北半球相反）' : ''}`}
+        >
+          {d.year}/{d.month}/{d.day}（{season}）
         </span>
         <GoldCounter />
         <span title={`經驗 ${c.xp}/${xpToNext(c.level)}`}>
