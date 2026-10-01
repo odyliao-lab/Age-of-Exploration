@@ -3,7 +3,7 @@
  * 航線由航點組成，每一段在海圖上是直線；規劃時逐段檢查是否穿越陸地。
  */
 import type { LonLat } from '@/data/schema';
-import { distanceKm, legLengthKm, lerpLonLat, screenHeadingDeg } from '@/geo/geo';
+import { distanceKm, legLengthKm, lerpLonLat, lonDelta, screenHeadingDeg } from '@/geo/geo';
 import { isLand } from '@/geo/landmask';
 
 /** 港口的「港區」：港區內允許穿越陸地格（港口常位於河口或海灣深處） */
@@ -21,7 +21,7 @@ export interface LegCheck {
 const SAMPLE_DEG = 0.1;
 
 export function checkLeg(a: LonLat, b: LonLat, harbors: Harbor[]): LegCheck {
-  const steps = Math.max(1, Math.ceil(Math.hypot(b[0] - a[0], b[1] - a[1]) / SAMPLE_DEG));
+  const steps = Math.max(1, Math.ceil(Math.hypot(lonDelta(a[0], b[0]), b[1] - a[1]) / SAMPLE_DEG));
   for (let i = 0; i <= steps; i++) {
     const p = lerpLonLat(a, b, i / steps);
     if (!isLand(p)) continue;

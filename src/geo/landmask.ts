@@ -7,6 +7,7 @@
 import type { LonLat } from '@/data/schema';
 import { getLandRings } from '@/map/land';
 import { DEG_PX } from '@/map/projection';
+import { wrapLon } from './geo';
 
 export const MASK_RES = 0.25;
 export const MASK_COLS = Math.round(360 / MASK_RES);
@@ -57,7 +58,7 @@ function getMask(): Uint8Array {
 }
 
 export function cellOf([lon, lat]: LonLat): [number, number] {
-  const c = Math.min(MASK_COLS - 1, Math.max(0, Math.floor((lon + 180) / MASK_RES)));
+  const c = Math.min(MASK_COLS - 1, Math.max(0, Math.floor((wrapLon(lon) + 180) / MASK_RES)));
   const r = Math.min(MASK_ROWS - 1, Math.max(0, Math.floor((90 - lat) / MASK_RES)));
   return [c, r];
 }

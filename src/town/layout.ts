@@ -171,7 +171,7 @@ export function cultureOf(country: string): Culture {
   if (['葡萄牙', '西班牙', '維德角', '聖多美'].some((c) => country.includes(c))) return 'iberia';
   // 玻里尼西亞的村落：開放式的茅草屋、石砌的祭祀台
   if (
-    ['玻里尼西亞', '庫克群島', '東加', '薩摩亞', '夏威夷', '拉帕努伊'].some((c) =>
+    ['玻里尼西亞', '庫克群島', '東加', '薩摩亞', '夏威夷', '拉帕努伊', '奧特亞羅瓦'].some((c) =>
       country.includes(c),
     )
   )

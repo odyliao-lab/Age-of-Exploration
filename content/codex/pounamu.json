@@ -1,0 +1,10 @@
+{
+  "id": "pounamu",
+  "category": "goods",
+  "name": "綠玉（普納木）",
+  "name_en": "Pounamu (Greenstone)",
+  "domains": ["F", "C"],
+  "body": "產在南島西岸河谷裡的綠色玉石，非常堅硬，磨成的斧頭、鑿子和項鍊墜子是毛利人最珍貴的寶物，會一代傳一代。熱帶的島嶼沒有這種石頭。",
+  "source": "維基百科「綠玉」「普納木」條目",
+  "reviewed": false
+}

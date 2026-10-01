@@ -1,5 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { bearingDeg, compass16, distanceKm, legLengthKm } from './geo';
+import {
+  bearingDeg,
+  compass16,
+  distanceKm,
+  legLengthKm,
+  lerpLonLat,
+  screenHeadingDeg,
+  wrapLon,
+} from './geo';
+import { findSeaPath } from './seaPath';
 import { isLand } from './landmask';
 import { checkLeg, createVoyage, isFinished, positionAt } from '@/game/voyage';
 import {
@@ -132,5 +141,25 @@ describe('fog', () => {
   it('wraps around the antimeridian', () => {
     const fog = createFog();
     expect(revealAround(fog, [179.9, 0], 200).length).toBeGreaterThan(10);
+  });
+});
+
+describe('across the date line', () => {
+  it('interpolates and measures the short way round', () => {
+    expect(lerpLonLat([179, -20], [-179, -20], 0.25)[0]).toBeCloseTo(179.5);
+    expect(lerpLonLat([179, -20], [-179, -20], 0.75)[0]).toBeCloseTo(-179.5);
+    expect(legLengthKm([179, -20], [-179, -20])).toBeLessThan(220);
+    expect(screenHeadingDeg([179, -20], [-179, -20])).toBeCloseTo(90);
+    expect(wrapLon(181)).toBe(-179);
+    expect(wrapLon(-180)).toBe(-180);
+    expect(isLand([-181, 64.5])).toBe(isLand([179, 64.5]));
+  });
+
+  it('finds sea routes that cross longitude 180°', () => {
+    const path = findSeaPath([174.5, -35.5], [-175.2, -21.4], [])!;
+    expect(path).not.toBeNull();
+    const span = path.slice(1).reduce((km, p, i) => km + legLengthKm(path[i], p), 0);
+    // 走換日線那一邊，大約兩千公里，而不是繞地球一圈
+    expect(span).toBeLessThan(2600);
   });
 });

@@ -1,0 +1,55 @@
+{
+  "id": "sp-04b-aotearoa",
+  "title": "長白雲之鄉",
+  "scenario": "star-navigators",
+  "chapter": 4,
+  "tier": 4,
+  "kind": "main",
+  "giver_port": "rarotonga",
+  "objectives": [
+    {
+      "domain": "B",
+      "text": "能在海圖上找到奧特亞羅瓦（紐西蘭）。"
+    },
+    {
+      "domain": "D",
+      "text": "能說明溫帶與熱帶氣候的差別如何影響移民的生活。"
+    }
+  ],
+  "prerequisites": ["sp-04-north"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "拉羅湯加的長老",
+      "lines": [
+        "傳說航海家庫佩追著一條大章魚往西南走，看見海平線上一條長長的白雲，下面是一片好大的土地。",
+        "那裡比我們這裡冷得多。往西南航行，越過換日線——海圖上那條 180° 的經線——就會找到它。"
+      ]
+    },
+    {
+      "type": "navigate",
+      "target": "pewhairangi",
+      "hint_level": 4,
+      "text": "線索：從拉羅湯加往西南，越過 180° 經線，在南緯 35° 附近一個散布著許多小島的海灣。"
+    },
+    {
+      "type": "quiz",
+      "question": "從熱帶島嶼搬到奧特亞羅瓦的人，種甘藷時遇到什麼問題？",
+      "choices": [
+        "冬天會下霜，甘藷要挖地窖保存才能過冬",
+        "太熱了，甘藷會被曬乾",
+        "每天下大雪，什麼都種不了",
+        "土地太小，沒有地方種"
+      ],
+      "answer": 0,
+      "explanation": "奧特亞羅瓦位在南緯 34°～47°，是溫帶氣候，冬天會下霜。熱帶的麵包樹、椰子長不起來，只有甘藷靠著挖地窖保存種薯，才熬過冬天。緯度不同，氣候就不同，移民的生活也必須跟著改變。"
+    }
+  ],
+  "reward": {
+    "xp": 350,
+    "gold": 450,
+    "reputation": 30,
+    "unlock_ports": ["pewhairangi"],
+    "codex": ["aotearoa-name", "moa"]
+  }
+}

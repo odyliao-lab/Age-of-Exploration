@@ -4,7 +4,10 @@ import {
   WORLD_HEIGHT,
   WORLD_WIDTH,
   formatLonLat,
+  lonLatToView,
   lonLatToWorld,
+  setWrapAnchor,
+  viewPath,
   worldProjection,
   worldToLonLat,
 } from './projection';
@@ -58,13 +61,26 @@ describe('viewport', () => {
     expect(clampView({ x: 0, y: 0, scale: 999 }, size).scale).toBe(MAX_SCALE);
   });
 
-  it('keeps the map covering the screen when panned too far', () => {
+  it('keeps the poles on screen but scrolls freely east and west', () => {
     const v = clampView({ x: 500, y: 500, scale: 2 }, size);
-    expect(v.x).toBe(0);
+    expect(v.x).toBe(500);
     expect(v.y).toBe(0);
     const v2 = clampView({ x: -1e6, y: -1e6, scale: 2 }, size);
-    expect(v2.x).toBe(size.width - WORLD_WIDTH * 2);
+    expect(v2.x).toBe(-1e6);
     expect(v2.y).toBe(size.height - WORLD_HEIGHT * 2);
+  });
+
+  it('draws things on the copy of the world nearest the camera', () => {
+    setWrapAnchor(WORLD_WIDTH - 10);
+    // 西經 179° 在海圖最左邊，但鏡頭在最右邊時要畫在右邊那一圈
+    expect(lonLatToView([-179, 0]).x).toBeCloseTo(WORLD_WIDTH + DEG_PX);
+    const path = viewPath([
+      [178, -20],
+      [-178, -20],
+    ]);
+    expect(path[1].x - path[0].x).toBeCloseTo(4 * DEG_PX);
+    expect(worldToLonLat({ x: WORLD_WIDTH + DEG_PX, y: 720 })[0]).toBeCloseTo(-179);
+    setWrapAnchor(WORLD_WIDTH / 2);
   });
 
   it('zooms around the anchor point', () => {

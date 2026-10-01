@@ -103,7 +103,7 @@ function atEdgeOfKnownWorld(s: AchievementInput): boolean {
   for (let b = 0; b < 360; b += 45) {
     const [lon, lat] = destinationPoint(s.ship.position, b, 450);
     const r = Math.floor((90 - lat) / FOG_RES);
-    const c = Math.floor((lon + 180) / FOG_RES);
+    const c = Math.min(FOG_COLS - 1, Math.floor((lon + 180) / FOG_RES));
     if (!s.fog[r * FOG_COLS + c]) unknown++;
   }
   return unknown >= 5;

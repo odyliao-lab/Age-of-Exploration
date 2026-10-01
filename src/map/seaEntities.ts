@@ -4,7 +4,7 @@
  */
 import { Container, Graphics, Text } from 'pixi.js';
 import type { LonLat } from '@/data/schema';
-import { DEG_PX, lonLatToWorld } from './projection';
+import { DEG_PX, lonLatToView, wrapX } from './projection';
 import { ShipSprite } from './shipSprite';
 import type { View } from './viewport';
 
@@ -98,11 +98,14 @@ export class SeaEntities {
     this.view = view;
     const inv = 1 / view.scale;
     for (const f of this.fleets.values()) {
+      f.root.x = wrapX(f.root.x);
       f.root.scale.set(inv * (view.scale >= 4 ? 1.5 : 1));
       f.label.visible = view.scale >= 4;
     }
-    for (const l of this.stormLabels.children) l.scale.set(inv);
-    for (const l of this.mistLabels.children) l.scale.set(inv);
+    for (const l of [...this.stormLabels.children, ...this.mistLabels.children]) {
+      l.x = wrapX(l.x);
+      l.scale.set(inv);
+    }
     this.drawError();
   }
 
@@ -143,7 +146,7 @@ export class SeaEntities {
         s = { ships, group, root, label };
         this.fleets.set(f.id, s);
       }
-      const p = lonLatToWorld(f.position);
+      const p = lonLatToView(f.position);
       s.root.position.set(p.x, p.y);
       s.group.rotation = (f.heading * Math.PI) / 180;
       s.label.text =
@@ -173,7 +176,7 @@ export class SeaEntities {
         resolution: 2,
       });
       t.anchor.set(0.5);
-      const p = lonLatToWorld(s.center);
+      const p = lonLatToView(s.center);
       t.position.set(p.x, p.y);
       this.stormLabels.addChild(t);
     }
@@ -196,7 +199,7 @@ export class SeaEntities {
         resolution: 2,
       });
       t.anchor.set(0.5);
-      const p = lonLatToWorld(m.center);
+      const p = lonLatToView(m.center);
       t.position.set(p.x, p.y);
       this.mistLabels.addChild(t);
     }
@@ -215,7 +218,7 @@ export class SeaEntities {
     const inv = 1 / this.view.scale;
     for (const b of this.bursts) {
       const age = this.time - b.t0;
-      const p = lonLatToWorld(b.center);
+      const p = lonLatToView(b.center);
       for (let k = 0; k < 3; k++) {
         const t = age - k * 0.35;
         if (t < 0 || t > 1.8) continue;
@@ -245,7 +248,7 @@ export class SeaEntities {
     const g = this.errorGfx;
     g.clear();
     if (!this.error) return;
-    const p = lonLatToWorld(this.error.center);
+    const p = lonLatToView(this.error.center);
     const r = (this.error.km / KM_PER_DEG) * DEG_PX;
     const inv = 1 / this.view.scale;
     // 虛線的段數跟著圈在畫面上的大小，放大時才不會變成一道道長刮痕
@@ -270,7 +273,7 @@ export class SeaEntities {
     const mg = this.mistGfx;
     mg.clear();
     for (const m of this.mists) {
-      const p = lonLatToWorld(m.center);
+      const p = lonLatToView(m.center);
       const r = (m.radiusKm / KM_PER_DEG) * DEG_PX;
       mg.circle(p.x, p.y, r).fill({ color: 0xeef1f3, alpha: 0.35 });
       for (let k = 0; k < 18; k++) {
@@ -287,7 +290,7 @@ export class SeaEntities {
     const g = this.stormGfx;
     g.clear();
     for (const s of this.storms) {
-      const p = lonLatToWorld(s.center);
+      const p = lonLatToView(s.center);
       const r = (s.radiusKm / KM_PER_DEG) * DEG_PX;
       g.circle(p.x, p.y, r).fill({ color: 0x3a3f4a, alpha: 0.35 });
       g.circle(p.x, p.y, r * 0.55).fill({ color: 0x2b2f38, alpha: 0.3 });

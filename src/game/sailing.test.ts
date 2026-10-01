@@ -478,3 +478,23 @@ describe('正午量太陽', () => {
     expect(sunSightBlocked({ ...south, day: 0.6 })).not.toBeNull();
   });
 });
+
+describe('the date line', () => {
+  it('lets you sail straight across longitude 180°', () => {
+    const s0 = departPort(world, newGame(world, 'star-navigators', 3).state);
+    let s: GameState = setHelm(
+      { ...s0, ship: { position: [179.6, -20], heading: 45 } },
+      { course: 45, sail: 2, anchored: false },
+    );
+    let crossed = false;
+    for (let i = 0; i < 80 && !crossed; i++) {
+      const r = tick(world, s, 0.1);
+      s = r.state;
+      expect(r.events.some((e) => e.type === 'warning')).toBe(false);
+      crossed = s.ship.position[0] < 0;
+    }
+    expect(crossed).toBe(true);
+    expect(s.ship.position[0]).toBeGreaterThan(-180);
+    expect(s.ship.position[0]).toBeLessThan(-179);
+  });
+});

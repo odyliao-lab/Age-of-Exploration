@@ -4,7 +4,7 @@
  */
 import { Graphics } from 'pixi.js';
 import type { LonLat } from '@/data/schema';
-import { lonLatToWorld, worldToLonLat } from './projection';
+import { worldToLonLat } from './projection';
 import type { View } from './viewport';
 
 export interface FieldSample {
@@ -75,7 +75,7 @@ export function drawWindField(
       if (Math.abs(ll[1]) > 70) continue;
       const s = sampler(ll);
       if (s.land) continue;
-      const p = lonLatToWorld(ll);
+      const p = { x, y };
       if (s.wind.strength > 0.05) {
         arrow(g, p.x, p.y, s.wind.toward, (18 + 30 * s.wind.strength) * px, px, 0x2c4a7a, 2.2);
       }

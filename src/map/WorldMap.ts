@@ -25,11 +25,28 @@ import {
   DEG_PX,
   WORLD_HEIGHT,
   WORLD_WIDTH,
-  lonLatToWorld,
+  lonLatToView,
+  setWrapAnchor,
+  viewPath,
   worldToLonLat,
+  wrapX,
   type Point,
 } from './projection';
 import { centerOn, clampView, screenToWorld, zoomAt, type Size, type View } from './viewport';
+
+/**
+ * 海圖在換日線接起來：靜態的圖層（陸地、經緯線）左右各多畫一圈，共用同一份圖形資料。
+ * 鏡頭中心永遠在中間那一圈，所以三圈就蓋得滿整個畫面。
+ */
+function wrapped(g: Graphics): Container {
+  const layer = new Container();
+  for (const wrap of [-1, 0, 1]) {
+    const copy = wrap === 0 ? g : new Graphics(g.context);
+    copy.x = wrap * WORLD_WIDTH;
+    layer.addChild(copy);
+  }
+  return layer;
+}
 
 /** 船隻配色（Pixi 色碼） */
 export interface ShipStyle {
@@ -134,6 +151,8 @@ export class WorldMap {
   private historyLabels = new Container();
   private history: HistoricRouteView[] = [];
   private historyScale = 0;
+  /** 歷史航線上次重畫時，鏡頭在海圖的哪一段（換日線兩側要重新接） */
+  private historyBucket = 0;
   private marksGfx = new Graphics();
   private places = new PlaceLabels((id) => this.opts.onPlaceTap?.(id));
   private notes = new ChartNotes((id) => this.opts.onNoteTap?.(id));
@@ -217,13 +236,13 @@ export class WorldMap {
     this.app.stage.addChild(this.world);
     this.world.addChild(
       this.fx.under,
-      this.drawLand(),
+      wrapped(this.drawLand()),
       this.fx.over,
       this.fog.container,
       this.entities.container,
       this.seaLife.container,
       this.windGfx,
-      this.drawGraticule(),
+      wrapped(this.drawGraticule()),
       this.historyGfx,
       this.historyLabels,
       this.routeGfx,
@@ -282,7 +301,8 @@ export class WorldMap {
   /** 每 15 度一條經緯線；赤道與本初子午線加強顯示（學習領域 A） */
   private drawGraticule(): Graphics {
     const g = new Graphics();
-    for (let lon = -180; lon <= 180; lon += 15) {
+    // 180° 那條由隔壁一圈的 -180° 畫，免得疊成兩條
+    for (let lon = -180; lon < 180; lon += 15) {
       const x = (lon + 180) * DEG_PX;
       g.moveTo(x, 0).lineTo(x, WORLD_HEIGHT);
     }
@@ -376,7 +396,7 @@ export class WorldMap {
         resolution: 2,
       });
       label.anchor.set(0.5, 1);
-      const mid = lonLatToWorld(r.points[Math.floor(r.points.length / 2)]);
+      const mid = lonLatToView(r.points[Math.floor(r.points.length / 2)]);
       label.position.set(mid.x, mid.y);
       this.historyLabels.addChild(label);
     }
@@ -385,14 +405,19 @@ export class WorldMap {
 
   private drawHistory(force = false) {
     // 只在縮放改變時重畫（平移不用）；跟船航行時鏡頭每幀都在動，但縮放不變
-    if (!force && this.historyScale === this.view.scale) return;
+    const bucket = Math.round(this.wrapCenter() / (WORLD_WIDTH / 8));
+    if (!force && this.historyScale === this.view.scale && this.historyBucket === bucket) return;
     this.historyScale = this.view.scale;
+    this.historyBucket = bucket;
     const g = this.historyGfx;
     g.clear();
     const inv = 1 / this.view.scale;
-    for (const l of this.historyLabels.children) l.scale.set(inv);
+    for (const l of this.historyLabels.children) {
+      l.x = wrapX(l.x);
+      l.scale.set(inv);
+    }
     for (const r of this.history) {
-      const pts = r.points.map((p) => lonLatToWorld(p));
+      const pts = viewPath(r.points);
       // 拉得很近時畫成淡淡的實線，免得虛線段數太多
       if (this.view.scale >= 4) {
         g.moveTo(pts[0].x, pts[0].y);
@@ -531,16 +556,19 @@ export class WorldMap {
     const r = this.route;
     if (!r) return;
     const inv = 1 / this.view.scale;
-    const toXY = (p: LonLat) => lonLatToWorld(p);
+    // 已航行與未航行的部分接成一條連續的線（跨換日線時不會斷開）
+    const all = viewPath([...r.done, ...r.ahead]);
+    const donePts = all.slice(0, r.done.length);
+    const aheadPts = all.slice(r.done.length);
 
     if (r.done.length >= 2) {
-      const pts = r.done.map(toXY);
+      const pts = donePts;
       g.moveTo(pts[0].x, pts[0].y);
       for (const p of pts.slice(1)) g.lineTo(p.x, p.y);
       g.stroke({ width: 3 * inv, color: COLORS.route, alpha: 0.9 });
     }
     if (r.ahead.length >= 2) {
-      const pts = r.ahead.map(toXY);
+      const pts = aheadPts;
       const dash = 8 * inv;
       const gap = 6 * inv;
       for (let i = 1; i < pts.length; i++) {
@@ -564,7 +592,7 @@ export class WorldMap {
       }
     }
     if (r.invalidAt) {
-      const p = toXY(r.invalidAt);
+      const p = lonLatToView(r.invalidAt);
       const s = 7 * inv;
       g.moveTo(p.x - s, p.y - s).lineTo(p.x + s, p.y + s);
       g.moveTo(p.x + s, p.y - s).lineTo(p.x - s, p.y + s);
@@ -577,7 +605,7 @@ export class WorldMap {
     g.clear();
     const inv = 1 / this.view.scale;
     for (const m of this.marks) {
-      const p = lonLatToWorld(m.lonLat);
+      const p = lonLatToView(m.lonLat);
       if (m.kind === 'answer') {
         g.circle(p.x, p.y, 12 * inv).stroke({ width: 3 * inv, color: COLORS.target });
         g.circle(p.x, p.y, 3 * inv).fill({ color: COLORS.target });
@@ -590,8 +618,25 @@ export class WorldMap {
     }
   }
 
+  /** 鏡頭中心的世界 x */
+  private wrapCenter(): number {
+    return (this.size.width / 2 - this.view.x) / this.view.scale;
+  }
+
   private applyView(next: View) {
     this.view = clampView(next, this.size);
+    // 鏡頭中心保持在海圖的 0～WORLD_WIDTH 之間：往東西一直捲動時，整個畫面平移一圈接回來
+    const laps = Math.floor(this.wrapCenter() / WORLD_WIDTH);
+    if (laps) this.view = { ...this.view, x: this.view.x + laps * WORLD_WIDTH * this.view.scale };
+    setWrapAnchor(this.wrapCenter());
+    if (this.shipWorld) {
+      const x = wrapX(this.shipWorld.x);
+      if (x !== this.shipWorld.x) {
+        this.fx.shiftWake(x - this.shipWorld.x);
+        this.shipWorld = { x, y: this.shipWorld.y };
+        this.ship.position.x = x;
+      }
+    }
     this.world.position.set(this.view.x, this.view.y);
     this.world.scale.set(this.view.scale);
     const inv = 1 / this.view.scale;
@@ -602,6 +647,7 @@ export class WorldMap {
       for (const m of this.markers) this.drawMarker(m);
     }
     for (const m of this.markers) {
+      m.root.x = wrapX(m.root.x);
       m.root.scale.set(inv);
       m.label.visible = showLabels || m.data.id === this.selectedId || m.data.target;
     }
@@ -625,12 +671,12 @@ export class WorldMap {
 
   /** 經緯度 → 畫布內的畫面座標（自動化測試用） */
   lonLatToScreen(lonLat: LonLat): Point {
-    const p = lonLatToWorld(lonLat);
+    const p = lonLatToView(lonLat);
     return { x: p.x * this.view.scale + this.view.x, y: p.y * this.view.scale + this.view.y };
   }
 
   centerOn(lonLat: LonLat, scale?: number) {
-    this.applyView(centerOn(lonLatToWorld(lonLat), scale ?? this.view.scale, this.size));
+    this.applyView(centerOn(lonLatToView(lonLat), scale ?? this.view.scale, this.size));
   }
 
   zoomBy(factor: number) {
@@ -643,7 +689,7 @@ export class WorldMap {
     this.markers = [];
     for (const data of ports) {
       const root = new Container();
-      const p = lonLatToWorld(data.location);
+      const p = lonLatToView(data.location);
       root.position.set(p.x, p.y);
       const dot = new Graphics();
       const label = new Text({
@@ -704,7 +750,7 @@ export class WorldMap {
   }
 
   setShip(position: LonLat, heading: number, follow = false) {
-    const p = lonLatToWorld(position);
+    const p = lonLatToView(position);
     this.ship.visible = true;
     this.ship.position.set(p.x, p.y);
     this.shipWorld = p;

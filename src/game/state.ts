@@ -627,17 +627,12 @@ export function tick(world: World, state: GameState, days: number): StepResult {
             }
           }
         }
-        // 海圖的東西兩端（經度 ±180°，換日線）沒有接起來：船不能從邊緣開過去
-        const edge = !!next && Math.abs(next[0] - from[0]) > 180;
-        if (edge) next = null;
         const blocked = step > 0 && next === null;
         if (next) to = next;
         if (blocked && !helm.blocked) {
           events.push({
             type: 'warning',
-            text: edge
-              ? '已經到了海圖的邊緣（經度 180°，換日線）。再過去的海域還沒畫進這張海圖，轉個方向吧。'
-              : '船頭頂到海岸了！轉個方向離開淺灘。',
+            text: '船頭頂到海岸了！轉個方向離開淺灘。',
           });
         }
         if (blocked !== helm.blocked) helm = { ...helm, blocked };
@@ -1189,6 +1184,7 @@ const UNSAILED_SEAS = [
   'east-polynesia',
   'hawaii',
   'rapa-nui',
+  'aotearoa',
 ];
 const NO_PIRATE_SEAS = [...UNSAILED_SEAS, 'gulf-of-guinea', 'iceland', 'greenland'];
 
@@ -1199,6 +1195,7 @@ const ATLANTIC_REGIONS = [
   'east-polynesia',
   'hawaii',
   'rapa-nui',
+  'aotearoa',
   'north-sea',
   'iceland',
   'greenland',
@@ -1601,7 +1598,10 @@ export function starSightBlocked(state: GameState): string | null {
     return '白天看不到星星，等天黑再觀星';
   }
   if (insideMist(state.mists, state.ship.position)) return '霧太濃，看不到星星';
-  if (!canSightPolaris(state.ship.position[1])) return '北極星太低，貼在海平面上量不準';
+  if (!canSightPolaris(state.ship.position[1]))
+    return state.ship.position[1] < 0
+      ? '在赤道南邊，北極星沉到海平面底下了'
+      : '北極星太低，貼在海平面上量不準';
   if (state.starNight === nightIndex(state.day) || state.day - state.starDay < 0.5)
     return '今晚已經觀星定位過了';
   return null;

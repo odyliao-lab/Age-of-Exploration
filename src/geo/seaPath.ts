@@ -9,8 +9,8 @@
 import type { LonLat } from '@/data/schema';
 import type { Harbor } from '@/game/voyage';
 import { checkLeg } from '@/game/voyage';
-import { distanceKm } from './geo';
-import { MASK_RES, isLand } from './landmask';
+import { distanceKm, wrapLon } from './geo';
+import { MASK_COLS, MASK_RES, isLand } from './landmask';
 
 const PAD_DEG = 12;
 const CELL_HALF_DIAG_KM = 20;
@@ -21,11 +21,12 @@ interface Node {
 }
 
 function toLonLat(c: number, r: number): LonLat {
-  return [-180 + (c + 0.5) * MASK_RES, 90 - (r + 0.5) * MASK_RES];
+  // 欄位可以超出海圖的東西兩端：跨換日線搜尋時再換回 -180～180
+  return [wrapLon(-180 + (c + 0.5) * MASK_RES), 90 - (r + 0.5) * MASK_RES];
 }
 
 function toCell([lon, lat]: LonLat): Node {
-  return { c: Math.floor((lon + 180) / MASK_RES), r: Math.floor((90 - lat) / MASK_RES) };
+  return { c: Math.floor((wrapLon(lon) + 180) / MASK_RES), r: Math.floor((90 - lat) / MASK_RES) };
 }
 
 /** 最小堆積 */
@@ -80,6 +81,8 @@ export function findSeaPath(from: LonLat, to: LonLat, harbors: Harbor[]): LonLat
 function searchSeaPath(from: LonLat, to: LonLat, harbors: Harbor[], pad: number): LonLat[] | null {
   const start = toCell(from);
   const goal = toCell(to);
+  // 終點放在離起點最近的那一圈：跨換日線時從近的一邊過去
+  goal.c += Math.round((start.c - goal.c) / MASK_COLS) * MASK_COLS;
   const minC = Math.min(start.c, goal.c) - pad / MASK_RES;
   const maxC = Math.max(start.c, goal.c) + pad / MASK_RES;
   const minR = Math.max(0, Math.min(start.r, goal.r) - pad / MASK_RES);
@@ -171,7 +174,7 @@ export function nearestSea(p: LonLat, maxKm = 400): LonLat | null {
   const steps = Math.ceil(maxKm / 111 / MASK_RES);
   for (let dy = -steps; dy <= steps; dy++) {
     for (let dx = -steps; dx <= steps; dx++) {
-      const q: LonLat = [p[0] + dx * MASK_RES, p[1] + dy * MASK_RES];
+      const q: LonLat = [wrapLon(p[0] + dx * MASK_RES), p[1] + dy * MASK_RES];
       if (isLand(q)) continue;
       const d = distanceKm(p, q);
       if (d < bestD && d <= maxKm) {

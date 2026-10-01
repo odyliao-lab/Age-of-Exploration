@@ -329,10 +329,8 @@ describe('Star Navigators content', () => {
     const sc = world.scenarios.get('star-navigators')!;
     expect(sc.wayfinding).toBe(true);
     expect(sc.currency).toBe('珍寶');
-    // 海圖不跨換日線：所有港口都在西經
-    for (const p of scenarioPorts(world, s)) {
-      expect(p.location[0], p.id).toBeLessThan(0);
-    }
+    // 奧特亞羅瓦在換日線的另一邊（東經）
+    expect(scenarioPorts(world, s).some((p) => p.location[0] > 0)).toBe(true);
     const remaining = new Set(
       world.content.quests.filter((q) => q.scenario === 'star-navigators').map((q) => q.id),
     );
@@ -347,6 +345,8 @@ describe('Star Navigators content', () => {
       }
     }
     expect(remaining.size).toBe(0);
-    expect(s.visitedPorts).toEqual(expect.arrayContaining(['kealakekua', 'rapa-nui', 'nuku-hiva']));
+    expect(s.visitedPorts).toEqual(
+      expect.arrayContaining(['kealakekua', 'rapa-nui', 'nuku-hiva', 'pewhairangi']),
+    );
   });
 });
