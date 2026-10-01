@@ -257,6 +257,9 @@ export const Scenario = z.object({
   star_lesson: z.string().optional(),
   /** 看岸形定位的地理小教室（這個文化怎麼記海岸；沒有則用《鄭和航海圖》） */
   coast_lesson: z.string().optional(),
+  /** 錢的名稱與圖示（玻里尼西亞沒有貨幣，改成交換用的「珍寶」） */
+  currency: z.string().default('金幣'),
+  currency_icon: z.string().default('💰'),
   /** 船長一開始戴的帽子（沒有則戴幞頭） */
   start_hat: z.string().optional(),
   /** 第一次出海時的季風小教室（沒有則用東亞的冬季風說明） */

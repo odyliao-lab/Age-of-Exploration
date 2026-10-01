@@ -56,6 +56,8 @@ const base = (): ContentBundle => ({
       rival: { name: '陸天行', from: '廣州', look: '' },
       text_names: {},
       historic_routes: [],
+      currency: '金幣',
+      currency_icon: '💰',
       port_names: {},
       endings: {},
     },

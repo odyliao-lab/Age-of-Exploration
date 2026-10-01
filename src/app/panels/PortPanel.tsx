@@ -1,4 +1,5 @@
 import { LEARNING_DOMAIN_LABELS } from '@/data/schema';
+import { useMoney } from '../money';
 import { formatLonLat } from '@/map/projection';
 import {
   availableCrew,
@@ -15,6 +16,7 @@ import { ConditionBars } from './Condition';
 import { useGame } from '../store';
 
 export function PortPanel({ portId }: { portId: string }) {
+  const money = useMoney();
   const world = useGame((s) => s.world)!;
   const game = useGame((s) => s.game)!;
   const selectPort = useGame((s) => s.selectPort);
@@ -123,7 +125,7 @@ export function PortPanel({ portId }: { portId: string }) {
                     ))}
                   </ul>
                   <div className="meta">
-                    獎勵：經驗 {q.reward.xp}、金幣 {q.reward.gold}
+                    獎勵：經驗 {q.reward.xp}、{money} {q.reward.gold}
                   </div>
                   <button type="button" className="primary" onClick={() => accept(q.id)}>
                     接下任務
@@ -143,17 +145,19 @@ export function PortPanel({ portId }: { portId: string }) {
               }
               onClick={resupply}
             >
-              補給（{resupplyCost(game.condition, shipType(game.shipTypeId), price)} 金幣）
+              補給（{resupplyCost(game.condition, shipType(game.shipTypeId), price)} {money}）
             </button>
             <button
               type="button"
               disabled={repairCost(game.condition, price) === 0 || game.gold === 0}
               onClick={repair}
             >
-              修船（{repairCost(game.condition, price)} 金幣）
+              修船（{repairCost(game.condition, price)} {money}）
             </button>
           </div>
-          <p className="meta">淡水每天份 1 金幣、糧食每天份 2 金幣；錢不夠時會先補淡水。</p>
+          <p className="meta">
+            淡水每天份 1 {money}、糧食每天份 2 {money}；錢不夠時會先補淡水。
+          </p>
           {recruits.length > 0 && (
             <>
               <h3>酒館</h3>
@@ -171,7 +175,7 @@ export function PortPanel({ portId }: { portId: string }) {
                     disabled={slotsFull || game.gold < c.hire_cost}
                     onClick={() => hire(c.id)}
                   >
-                    招募（{c.hire_cost} 金幣）
+                    招募（{c.hire_cost} {money}）
                   </button>
                 </article>
               ))}
@@ -191,7 +195,7 @@ export function PortPanel({ portId }: { portId: string }) {
                   </div>
                   <p>{o.def.lore}</p>
                   <button type="button" disabled={!!o.reason} onClick={() => buy(o.def.id)}>
-                    {o.reason ?? `購買（舊船折抵後 ${o.cost} 金幣）`}
+                    {o.reason ?? `購買（舊船折抵後 ${o.cost} ${money}）`}
                   </button>
                 </article>
               ))}

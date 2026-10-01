@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useMoney, useMoneyIcon } from '../money';
 import { LEARNING_DOMAIN_LABELS, type Quest } from '@/data/schema';
 import { formatLonLat } from '@/map/projection';
 import { drawPerson, type PersonLook } from '@/town/art';
@@ -273,6 +274,7 @@ export function BuildingPanel({ kind, culture }: { kind: BuildingKind; culture: 
 }
 
 function QuestList({ quests }: { quests: Quest[] }) {
+  const money = useMoney();
   const accept = useGame((s) => s.accept);
   const leave = useGame((s) => s.leaveBuilding);
   if (!quests.length) return <p className="meta">目前沒有新的差事。</p>;
@@ -290,7 +292,7 @@ function QuestList({ quests }: { quests: Quest[] }) {
             ))}
           </ul>
           <div className="meta">
-            獎勵：經驗 {q.reward.xp}、金幣 {q.reward.gold}
+            獎勵：經驗 {q.reward.xp}、{money} {q.reward.gold}
           </div>
           <button
             type="button"
@@ -357,6 +359,7 @@ function Office() {
 
 /** 商人的委託：把這裡缺的貨從別處運來 */
 function Contracts() {
+  const money = useMoney();
   const { world, game, port } = usePort();
   const take = useGame((s) => s.acceptContract);
   const offers = availableContracts(world, game, port.id);
@@ -379,7 +382,7 @@ function Contracts() {
                 </strong>
                 <div className="meta">
                   酬勞 {Math.round(c.reward * (1 + CONTRACT_BONUS_PER_RANK * standing(game)))}{' '}
-                  金幣・期限還有 {Math.max(0, Math.ceil(c.due - game.day))} 天
+                  {money}・期限還有 {Math.max(0, Math.ceil(c.due - game.day))} 天
                   {sources.length > 0 && `・你去過的產地：${sources.join('、')}`}
                 </div>
                 <button type="button" disabled={full} onClick={() => take(c.id)}>
@@ -395,6 +398,7 @@ function Contracts() {
 }
 
 function Academy() {
+  const money = useMoney();
   const { world, game, port } = usePort();
   const report = useGame((s) => s.report);
   const quests = availableQuests(world, game, port.id).filter((q) => q.kind === 'academy');
@@ -409,7 +413,7 @@ function Academy() {
           <ul className="reward-list">
             {finds.map((c) => (
               <li key={c.id}>
-                {c.name}：{reportReward(world, c).gold} 金幣、名聲 +
+                {c.name}：{reportReward(world, c).gold} {money}、名聲 +
                 {reportReward(world, c).reputation}
               </li>
             ))}
@@ -430,6 +434,7 @@ function Academy() {
 
 /** 學者的每日小考：用你知道的港口出題，每天三題 */
 function ScholarQuiz() {
+  const money = useMoney();
   const { world, game } = usePort();
   const answer = useGame((s) => s.answerScholar);
   const [result, setResult] = useState<{
@@ -446,7 +451,7 @@ function ScholarQuiz() {
         <p>{q.prompt}</p>
         <p className={result.correct ? 'quiz-right' : 'quiz-wrong'}>
           {result.correct
-            ? `答對了！經驗 +${SCHOLAR_REWARD.xp}、金幣 +${SCHOLAR_REWARD.gold}`
+            ? `答對了！經驗 +${SCHOLAR_REWARD.xp}、${money} +${SCHOLAR_REWARD.gold}`
             : `答案是「${q.choices[q.answer]}」。這題會排進航海日誌的錯題複習。`}
         </p>
         <p className="lesson">
@@ -541,6 +546,7 @@ function MonsoonCalendar() {
 }
 
 function Temple({ culture }: { culture: Culture }) {
+  const money = useMoney();
   const { game } = usePort();
   const pray = useGame((s) => s.pray);
   const full = game.condition.morale >= 100;
@@ -549,7 +555,7 @@ function Temple({ culture }: { culture: Culture }) {
     <>
       <ConditionBars game={game} compact />
       <button type="button" disabled={full || game.gold < PRAY_COST} onClick={pray}>
-        🙏 {t.action}（{PRAY_COST} 金幣，船員士氣回升）
+        🙏 {t.action}（{PRAY_COST} {money}，船員士氣回升）
       </button>
       {full && <p className="meta">船員士氣正旺，不需要祈福。</p>}
       <p className="lesson">
@@ -561,6 +567,7 @@ function Temple({ culture }: { culture: Culture }) {
 }
 
 function Tavern() {
+  const money = useMoney();
   const { world, game, port } = usePort();
   const hearRumor = useGame((s) => s.hearRumor);
   const hire = useGame((s) => s.hire);
@@ -608,7 +615,7 @@ function Tavern() {
             disabled={slotsFull || game.gold < c.hire_cost}
             onClick={() => hire(c.id)}
           >
-            招募（{c.hire_cost} 金幣）
+            招募（{c.hire_cost} {money}）
           </button>
         </article>
       ))}
@@ -618,6 +625,7 @@ function Tavern() {
 
 /** 客棧：住一晚等天亮，或住到下個月初等季風轉向 */
 function Inn() {
+  const money = useMoney();
   const { game, port } = usePort();
   const wait = useGame((s) => s.waitInPort);
   const night = Math.max(1, Math.round(daysUntilMorning(game)));
@@ -633,14 +641,14 @@ function Inn() {
           disabled={game.gold < night * INN_PRICE_PER_NIGHT}
           onClick={() => wait('morning')}
         >
-          🛏️ 住到明天早上（{night * INN_PRICE_PER_NIGHT} 金幣）
+          🛏️ 住到明天早上（{night * INN_PRICE_PER_NIGHT} {money}）
         </button>
         <button
           type="button"
           disabled={game.gold < toMonth * INN_PRICE_PER_NIGHT}
           onClick={() => wait('month')}
         >
-          📅 住到 {nextMonth} 月初（{toMonth} 晚，{toMonth * INN_PRICE_PER_NIGHT} 金幣）
+          📅 住到 {nextMonth} 月初（{toMonth} 晚，{toMonth * INN_PRICE_PER_NIGHT} {money}）
         </button>
       </div>
       <p className="meta">
@@ -707,6 +715,7 @@ function RivalStatus() {
 }
 
 function Market() {
+  const moneyIcon = useMoneyIcon();
   const { world, game, port } = usePort();
   const buyGood = useGame((s) => s.buyGood);
   const sellGood = useGame((s) => s.sellGood);
@@ -731,7 +740,7 @@ function Market() {
       <div className="cargo-bar" aria-label={`貨艙 ${used}/${cap}`}>
         <div className="cargo-fill" style={{ width: `${(used / cap) * 100}%` }} />
         <span>
-          貨艙 {used} / {cap}・💰 {game.gold}
+          貨艙 {used} / {cap}・{moneyIcon} {game.gold}
         </span>
       </div>
       <table className="market">
@@ -815,6 +824,7 @@ function Market() {
 }
 
 function Shipyard() {
+  const money = useMoney();
   const { world, game } = usePort();
   const repair = useGame((s) => s.repair);
   const buy = useGame((s) => s.buy);
@@ -827,7 +837,7 @@ function Shipyard() {
     <>
       <ConditionBars game={game} compact />
       <button type="button" disabled={cost === 0 || game.gold === 0} onClick={repair}>
-        🔨 修船（{cost} 金幣）
+        🔨 修船（{cost} {money}）
       </button>
       <h3>改裝這艘船</h3>
       {upgrades.map((o) => (
@@ -837,7 +847,7 @@ function Shipyard() {
           </h4>
           <p>{o.upgrade.lore}</p>
           <button type="button" disabled={!!o.reason} onClick={() => upgradeShip(o.upgrade.id)}>
-            {o.done ? '✅ 已經改裝' : (o.reason ?? `改裝（${o.cost} 金幣）`)}
+            {o.done ? '✅ 已經改裝' : (o.reason ?? `改裝（${o.cost} ${money}）`)}
           </button>
         </article>
       ))}
@@ -854,7 +864,7 @@ function Shipyard() {
           </div>
           <p>{o.def.lore}</p>
           <button type="button" disabled={!!o.reason} onClick={() => buy(o.def.id)}>
-            {o.reason ?? `購買（舊船折抵後 ${o.cost} 金幣）`}
+            {o.reason ?? `購買（舊船折抵後 ${o.cost} ${money}）`}
           </button>
         </article>
       ))}
@@ -864,6 +874,7 @@ function Shipyard() {
 }
 
 function Dock() {
+  const money = useMoney();
   const { world, game } = usePort();
   const resupply = useGame((s) => s.resupply);
   const depart = useGame((s) => s.depart);
@@ -876,10 +887,12 @@ function Dock() {
       <ConditionBars game={game} />
       <div className="row">
         <button type="button" disabled={cost === 0 || game.gold === 0} onClick={resupply}>
-          🛢️ 補給淡水與糧食（{cost} 金幣）
+          🛢️ 補給淡水與糧食（{cost} {money}）
         </button>
       </div>
-      <p className="meta">淡水每天份 1 金幣、糧食每天份 2 金幣；錢不夠時會先補淡水。</p>
+      <p className="meta">
+        淡水每天份 1 {money}、糧食每天份 2 {money}；錢不夠時會先補淡水。
+      </p>
       <button type="button" className="primary wide" onClick={depart}>
         ⛵ 出港（親手掌舵）
       </button>

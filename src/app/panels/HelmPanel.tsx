@@ -1,4 +1,5 @@
 import { useMemo, useRef } from 'react';
+import { useMoney, useMoneyIcon } from '../money';
 import { compass16 } from '@/geo/geo';
 import { knots, normDeg, type SailSetting } from '@/game/sailing';
 import {
@@ -49,6 +50,8 @@ const SAIL_LABELS: Record<SailSetting, string> = { 0: '收帆', 1: '半帆', 2: 
 
 /** 親手駕船的操作面板：舵盤、帆、下錨、時間，以及風與船況 */
 export function HelmPanel() {
+  const money = useMoney();
+  const moneyIcon = useMoneyIcon();
   const world = useGame((s) => s.world)!;
   const game = useGame((s) => s.game)!;
   const paused = useGame((s) => s.paused);
@@ -150,11 +153,11 @@ export function HelmPanel() {
                 🤝 向商船打聽消息
               </button>
               <button type="button" onClick={() => greetMerchant(merchant.id, 'supplies')}>
-                🛢️ 向商船買補給（20 金幣）
+                🛢️ 向商船買補給（20 {money}）
               </button>
               {offer && (
                 <button type="button" onClick={() => sellToMerchant(merchant.id)}>
-                  💰 把貨賣給開往{offer.port.name}的商船（{offer.total} 金幣）
+                  {moneyIcon} 把貨賣給開往{offer.port.name}的商船（{offer.total} {money}）
                 </button>
               )}
             </>

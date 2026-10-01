@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from 'react';
+import { useMoney } from '../money';
 import type { QuestStep } from '@/data/schema';
 import { ATTRIBUTE_INFO } from '@/game/captain';
 import { STORM_CHOICES, shipwreckLoss, type StormChoice, type StormEncounter } from '@/game/ship';
@@ -110,6 +111,7 @@ export function QuizModal({
 }
 
 export function RewardModal({ modal }: { modal: Modal }) {
+  const money = useMoney();
   const world = useGame((s) => s.world)!;
   const dismiss = useGame((s) => s.dismissModal);
   const openPanel = useGame((s) => s.openPanel);
@@ -186,7 +188,9 @@ export function RewardModal({ modal }: { modal: Modal }) {
       </p>
       <ul className="reward-list">
         <li>經驗 +{r.xp}</li>
-        <li>金幣 +{r.gold}</li>
+        <li>
+          {money} +{r.gold}
+        </li>
         {r.reputation > 0 && <li>名聲 +{r.reputation}</li>}
         {r.unlockPorts.map((id) => (
           <li key={id}>新港口：{world.ports.get(id)?.name}</li>
@@ -242,6 +246,7 @@ export function StormModal({ encounter }: { encounter: StormEncounter }) {
 }
 
 function ShipwreckModal({ modal }: { modal: Extract<Modal, { type: 'shipwreck' }> }) {
+  const money = useMoney();
   const world = useGame((s) => s.world)!;
   const game = useGame((s) => s.game)!;
   const dismiss = useGame((s) => s.dismissModal);
@@ -257,7 +262,7 @@ function ShipwreckModal({ modal }: { modal: Extract<Modal, { type: 'shipwreck' }
       </p>
       <ul className="reward-list">
         <li>
-          損失金幣 {modal.lostGold}（約 {Math.round(shipwreckLoss(tier) * 100)}%）
+          損失{money} {modal.lostGold}（約 {Math.round(shipwreckLoss(tier) * 100)}%）
         </li>
         <li>船員、圖鑑、任務進度與經驗都保留下來了</li>
       </ul>

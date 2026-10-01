@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+import { useMoney } from '../money';
 import { ACHIEVEMENTS } from '@/game/achievements';
 import { ATTRIBUTE_INFO, ATTRIBUTE_KEYS, xpToNext } from '@/game/captain';
 import { SKILL_PATHS, SKILLS, type SkillPath } from '@/game/progression';
@@ -360,6 +361,7 @@ function DisplaySettings() {
 }
 
 function LooksTab() {
+  const money = useMoney();
   const world = useGame((s) => s.world)!;
   const game = useGame((s) => s.game)!;
   const customize = useGame((s) => s.customize);
@@ -410,7 +412,11 @@ function LooksTab() {
             aria-pressed={o.id === current}
             disabled={owned ? false : !buyable || !atHub || game.gold < PAINT_PRICE}
             title={
-              owned ? o.name : o.achievement ? lockText(o) : `在主港造船廠購買（${PAINT_PRICE} 金）`
+              owned
+                ? o.name
+                : o.achievement
+                  ? lockText(o)
+                  : `在主港造船廠購買（${PAINT_PRICE} ${money}）`
             }
             onClick={() => (owned ? customize({ [kind]: o.id }) : buyPaint(kind, o.id))}
           >
