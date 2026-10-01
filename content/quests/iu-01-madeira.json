@@ -1,0 +1,49 @@
+{
+  "id": "iu-01-madeira",
+  "title": "木頭之島",
+  "scenario": "into-the-unknown",
+  "chapter": 0,
+  "tier": 0,
+  "kind": "main",
+  "giver_port": "lagos",
+  "objectives": [
+    {
+      "domain": "B",
+      "text": "能找到馬德拉群島。"
+    },
+    {
+      "domain": "F",
+      "text": "知道馬德拉島以種甘蔗、製糖聞名。"
+    }
+  ],
+  "prerequisites": ["iu-00-lagos"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "拉哥斯的老船長",
+      "lines": [
+        "要往非洲走，先到外海的馬德拉島補給。島上的甘蔗田開在山坡的梯田上，糖可值錢了。",
+        "往西南大概五六天。夏天吹北風，一路都是順風。"
+      ]
+    },
+    {
+      "type": "navigate",
+      "target": "funchal",
+      "hint_level": 1
+    },
+    {
+      "type": "quiz",
+      "question": "「馬德拉」在葡萄牙語裡是什麼意思？",
+      "choices": ["木頭", "黃金", "火山", "海鳥"],
+      "answer": 0,
+      "explanation": "葡萄牙人剛抵達時，島上長滿茂密的森林，就把它叫做「馬德拉」（木頭）。後來人們開墾森林、在山坡上開梯田種甘蔗，蔗糖成了島上最重要的產品。"
+    }
+  ],
+  "reward": {
+    "xp": 70,
+    "gold": 120,
+    "reputation": 6,
+    "unlock_ports": ["funchal"],
+    "codex": []
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "id": "azores",
+  "category": "island",
+  "name": "亞速群島",
+  "name_en": "Azores",
+  "location": [-27.2, 38.6],
+  "discover_radius_km": 250,
+  "domains": ["B", "D"],
+  "body": "大西洋中央的火山群島，離葡萄牙約 1400 公里。從非洲回航的船，先往西北繞到亞速群島附近，才能遇到往東吹的盛行西風，順風回到里斯本。",
+  "source": "維基百科「亞速群島」條目",
+  "reviewed": false
+}

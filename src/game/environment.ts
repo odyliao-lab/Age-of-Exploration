@@ -58,6 +58,14 @@ export function windAt(p: LonLat, month: number): Wind {
     }
     return { toward: 0, strength: 0.15, name: '季風轉換期（風向不定）', from: '不定' };
   }
+  // 大西洋東側（葡萄牙到加那利群島外海）：副熱帶高壓的東緣吹北風，往南沿非洲走順風，回程就要繞遠路
+  const [lon] = p;
+  if (inRange(lon, -25, -5) && inRange(lat, 28, 44)) {
+    if (month >= 5 && month <= 9) {
+      return { toward: 190, strength: 0.7, name: '葡萄牙北風（夏季）', from: '北' };
+    }
+    if (lat < 35) return { toward: 215, strength: 0.55, name: '東北信風', from: '東北' };
+  }
   const a = Math.abs(lat);
   if (a < 5) return { toward: 270, strength: 0.1, name: '赤道無風帶', from: '不定' };
   if (a < 30) {

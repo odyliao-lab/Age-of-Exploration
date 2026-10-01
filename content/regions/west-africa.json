@@ -1,0 +1,8 @@
+{
+  "id": "west-africa",
+  "name": "西非海岸與維德角",
+  "name_en": "West African Coast & Cape Verde",
+  "description": "撒哈拉沙漠一直延伸到海邊，沿岸吹著東北信風，加那利寒流往南流。過了維德角，海岸轉為熱帶草原與森林，雨季和乾季分明。",
+  "center": [-18, 16],
+  "bbox": [-30, 4, -5, 27]
+}

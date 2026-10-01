@@ -24,6 +24,10 @@ export interface AchievementStats {
   mistsCrossed: number;
   /** 完成的商人委託 */
   contracts: number;
+  /** 正午量太陽的次數 */
+  sunSights: number;
+  /** 上岸取水（找到淡水）的次數 */
+  watering: number;
 }
 
 export const EMPTY_STATS: AchievementStats = {
@@ -37,10 +41,13 @@ export const EMPTY_STATS: AchievementStats = {
   soundings: 0,
   mistsCrossed: 0,
   contracts: 0,
+  sunSights: 0,
+  watering: 0,
 };
 
 /** 判斷成就所需的狀態（state.ts 的 GameState 符合這個介面） */
 export interface AchievementInput {
+  scenarioId: string;
   stats: AchievementStats;
   visitedPorts: string[];
   discovered: string[];
@@ -196,6 +203,59 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     check: (s) => s.quizLog.filter((q) => q.firstTry).length >= 5,
   },
   {
+    id: 'vinland',
+    name: '比哥倫布早五百年',
+    description: '跟著北歐人的傳說抵達文蘭',
+    category: '探索',
+    title: '文蘭的航海者',
+    check: (s) => s.visitedPorts.includes('leifsbudir'),
+  },
+  {
+    id: 'new-world',
+    name: '大洋的另一邊',
+    description: '往西橫渡大西洋，抵達加勒比海的島嶼',
+    category: '探索',
+    title: '信風的水手',
+    check: (s) => s.visitedPorts.some((p) => ['guanahani', 'baracoa', 'marien'].includes(p)),
+  },
+  {
+    id: 'zaytun',
+    name: '刺桐之光',
+    description: '從阿拉伯海一路航行到中國的泉州（刺桐）',
+    category: '探索',
+    check: (s) => s.scenarioId === 'monsoon-merchant' && s.visitedPorts.includes('quanzhou'),
+  },
+  {
+    id: 'arctic',
+    name: '午夜的太陽',
+    description: '航行越過北極圈',
+    category: '探索',
+    check: (s) => s.discovered.includes('arctic-circle'),
+  },
+  {
+    id: 'sun-sights-3',
+    name: '太陽的學徒',
+    description: '正午量太陽定位 3 次',
+    category: '知識',
+    title: '領航員',
+    check: (s) => s.stats.sunSights >= 3,
+  },
+  {
+    id: 'desert-coast',
+    name: '一滴水也沒有',
+    description: '在沙漠海岸上岸找水，才知道那裡為什麼叫沙漠',
+    category: '隱藏',
+    hidden: true,
+    check: (s) => s.hinted.includes('water-desert'),
+  },
+  {
+    id: 'watering-5',
+    name: '水桶總是滿的',
+    description: '上岸取水成功 5 次',
+    category: '技能',
+    check: (s) => s.stats.watering >= 5,
+  },
+  {
     id: 'stargazer',
     name: '觀星者',
     description: '用牽星術準確定位 3 次',
@@ -265,8 +325,8 @@ export const ACHIEVEMENTS: AchievementDef[] = [
   },
   {
     id: 'indian-ocean',
-    name: '橫渡孟加拉灣',
-    description: '抵達錫蘭山',
+    name: '寶石之島',
+    description: '抵達錫蘭島的加勒',
     category: '探索',
     check: (s) => s.visitedPorts.includes('galle'),
   },
@@ -281,7 +341,7 @@ export const ACHIEVEMENTS: AchievementDef[] = [
   {
     id: 'cape',
     name: '海的盡頭',
-    description: '在想像的航程中看見非洲最南端',
+    description: '看見非洲大陸的最南端',
     category: '隱藏',
     hidden: true,
     check: (s) => s.discovered.includes('cape-of-good-hope'),

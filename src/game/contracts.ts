@@ -34,7 +34,7 @@ function seedOf(text: string): number {
  * 而且離這裡夠遠，才值得跑一趟。
  */
 export function contractOffers(
-  ports: Port[],
+  ports: readonly Port[],
   portId: string,
   day: number,
   knownPorts: string[],

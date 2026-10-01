@@ -1,0 +1,51 @@
+{
+  "id": "nl-r2-walrus",
+  "title": "海象牙運回挪威",
+  "scenario": "northern-longship",
+  "chapter": 2,
+  "tier": 2,
+  "kind": "main",
+  "giver_port": "brattahlid",
+  "objectives": [
+    {
+      "domain": "F",
+      "text": "知道海象牙是格陵蘭最重要的商品。"
+    }
+  ],
+  "prerequisites": ["nl-03-greenland"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "布拉塔利德的獵人",
+      "lines": [
+        "往北的獵場有好多海象。我們用海象牙和皮繩，跟挪威換鐵器、木材和穀物。運 5 擔回尼達洛斯吧。"
+      ]
+    },
+    {
+      "type": "deliver",
+      "good": "walrus-ivory",
+      "qty": 5,
+      "target": "nidaros",
+      "text": "在布拉塔利德的市集買海象牙"
+    },
+    {
+      "type": "quiz",
+      "question": "格陵蘭的北歐人為什麼一定要跟挪威做生意？",
+      "choices": [
+        "格陵蘭太冷，長不出穀物和大樹，也缺鐵，只能用海象牙等物產去換",
+        "因為格陵蘭的人不喜歡自己種東西",
+        "因為挪威規定一定要買",
+        "因為格陵蘭的東西太多了"
+      ],
+      "answer": 0,
+      "explanation": "格陵蘭夏天太短，種不了穀物，也沒有大樹和鐵礦。北歐移民靠放牧和打獵生活，再用海象牙、毛皮換取生活必需品。後來天氣變冷、貿易中斷，格陵蘭的北歐聚落在 15 世紀左右消失了。"
+    }
+  ],
+  "reward": {
+    "xp": 200,
+    "gold": 280,
+    "reputation": 14,
+    "unlock_ports": [],
+    "codex": []
+  }
+}

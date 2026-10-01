@@ -1,0 +1,51 @@
+{
+  "id": "mm-r4-ambergris",
+  "title": "龍涎香運到霍爾木茲",
+  "scenario": "monsoon-merchant",
+  "chapter": 2,
+  "tier": 1,
+  "kind": "region",
+  "giver_port": "mogadishu",
+  "objectives": [
+    {
+      "domain": "C",
+      "text": "知道龍涎香來自抹香鯨。"
+    },
+    {
+      "domain": "F",
+      "text": "知道東非海岸出產龍涎香。"
+    }
+  ],
+  "prerequisites": ["mm-05-zanj"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "摩加迪休的商人",
+      "lines": [
+        "海浪偶爾會把一塊塊灰白色、帶著奇特香氣的東西沖上岸，那就是龍涎香，比黃金還貴。",
+        "霍爾木茲的香料商願意出高價，運 5 擔過去吧。"
+      ]
+    },
+    {
+      "type": "deliver",
+      "good": "ambergris",
+      "qty": 5,
+      "target": "hormuz",
+      "text": "在東非的港口買龍涎香"
+    },
+    {
+      "type": "quiz",
+      "question": "龍涎香其實是從哪裡來的？",
+      "choices": ["抹香鯨腸胃裡形成的物質", "海底火山", "樹的汁液", "龍的口水"],
+      "answer": 0,
+      "explanation": "龍涎香是抹香鯨腸胃裡形成的物質，排出後在海上漂流很久，才被沖上岸。古人不知道它的來歷，中國人還以為是龍的口水，所以叫它「龍涎」。它是製作香料的珍貴原料。"
+    }
+  ],
+  "reward": {
+    "xp": 150,
+    "gold": 260,
+    "reputation": 12,
+    "unlock_ports": [],
+    "codex": []
+  }
+}

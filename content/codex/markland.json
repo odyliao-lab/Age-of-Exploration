@@ -1,0 +1,12 @@
+{
+  "id": "markland",
+  "category": "landmark",
+  "name": "馬克蘭（森林之地）",
+  "name_en": "Markland",
+  "location": [-58.0, 54.5],
+  "discover_radius_km": 200,
+  "domains": ["B", "C"],
+  "body": "北歐人對拉布拉多海岸的稱呼，意思是「森林之地」。這裡長著大片針葉林，是缺木頭的格陵蘭人取得木材的地方。",
+  "source": "維基百科「馬克蘭」條目",
+  "reviewed": false
+}

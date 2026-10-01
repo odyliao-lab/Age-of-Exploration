@@ -1,0 +1,57 @@
+{
+  "id": "mm-11-sofala",
+  "title": "索法拉以南（假想航程）",
+  "scenario": "monsoon-merchant",
+  "chapter": 5,
+  "tier": 4,
+  "kind": "main",
+  "giver_port": "kilwa",
+  "objectives": [
+    {
+      "domain": "B",
+      "text": "能找到莫三比克海峽與非洲南端。"
+    },
+    {
+      "domain": "D",
+      "text": "能說明非洲南端為什麼風浪險惡。"
+    }
+  ],
+  "prerequisites": ["mm-06-kilwa"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "基盧瓦的老水手",
+      "lines": [
+        "索法拉再往南，季風就吹不到了，海流又急又冷。我們的船很少往那裡去。",
+        "（這是一段假想的航程：歷史上阿拉伯商船很少越過索法拉以南。我們就用學到的地理知識，想像一下吧！）"
+      ]
+    },
+    {
+      "type": "discover",
+      "target": "mozambique-channel"
+    },
+    {
+      "type": "discover",
+      "target": "cape-of-good-hope"
+    },
+    {
+      "type": "quiz",
+      "question": "為什麼阿拉伯商船很少航行到索法拉以南？",
+      "choices": [
+        "那裡已經在季風帶之外，南下容易、北返困難，洋流又強",
+        "那裡的海水是淡水",
+        "那裡終年結冰",
+        "那裡沒有星星可以導航"
+      ],
+      "answer": 0,
+      "explanation": "印度洋的季風大致只到南緯十幾度；再往南，強勁的莫三比克洋流與厄加勒斯洋流往南流，加上南方的西風帶，船容易下去、很難回來。阿拉伯航海者的貿易網，因此大致以索法拉為南界。"
+    }
+  ],
+  "reward": {
+    "xp": 400,
+    "gold": 600,
+    "reputation": 40,
+    "unlock_ports": [],
+    "codex": []
+  }
+}

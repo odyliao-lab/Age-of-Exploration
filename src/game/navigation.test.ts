@@ -292,9 +292,10 @@ describe('envoy ships', () => {
     expect(greetEnvoy(world, r.state, 7)).toBeNull();
   });
 
-  it('come from every named sea except the imagined far south', () => {
+  it('come from every named sea of the Treasure Fleet except the imagined far south', () => {
+    const tiers = world.scenarios.get('treasure-fleet')!.region_tiers;
     for (const r of world.content.regions) {
-      if (r.id === 'southern-africa') continue;
+      if (r.id === 'southern-africa' || tiers[r.id] === undefined) continue;
       expect(ENVOYS[r.id], r.id).toBeDefined();
     }
   });
@@ -392,5 +393,37 @@ describe('海霧', () => {
     const misty = stepFleet(pirate, [120, 20], ne, 0.01, 0, () => 0.5, sea, MIST_PIRATE_SPOT_KM);
     expect(clear.fleet?.mode).toBe('chase');
     expect(misty.fleet?.mode).toBe('roam');
+  });
+});
+
+describe('treasure fleet era', () => {
+  it('only sails Asian waters during the Ming voyages', async () => {
+    const { treasureFleetSeas } = await import('./state');
+    const tf = newGame(world, 'treasure-fleet', 1).state;
+    const iu = newGame(world, 'into-the-unknown', 1).state;
+    expect(treasureFleetSeas(tf, 'arabian-sea')).toBe(true);
+    expect(treasureFleetSeas(tf, 'west-africa')).toBe(false);
+    expect(treasureFleetSeas(tf, null)).toBe(false);
+    // 1487 年，鄭和下西洋已經結束半個多世紀
+    expect(treasureFleetSeas(iu, 'arabian-sea')).toBe(false);
+  });
+});
+
+describe('日出日落依緯度與季節', () => {
+  it('has white nights in the far north in summer and polar night in winter', async () => {
+    const { daylightHours, isNight, darkness, solarDeclination } = await import('./navigation');
+    const june = solarDeclination(6, 21);
+    const dec = solarDeclination(12, 21);
+    // 赤道附近一年到頭白天約 12 小時
+    expect(daylightHours(0, june)).toBeCloseTo(12, 0);
+    // 北極圈以北：夏至永晝、冬至永夜
+    expect(daylightHours(70, june)).toBe(24);
+    expect(daylightHours(70, dec)).toBe(0);
+    // 北緯 63° 的初夏半夜：白夜，看不到星星
+    const midnight = (24 - 6) / 24;
+    expect(isNight(midnight, { lat: 63, decl: june })).toBe(false);
+    expect(darkness(midnight, { lat: 63, decl: june })).toBeLessThan(0.6);
+    // 同一時間在低緯度就是黑夜
+    expect(isNight(midnight, { lat: 20, decl: june })).toBe(true);
   });
 });

@@ -1,0 +1,19 @@
+{
+  "id": "elmina",
+  "name": "艾爾米納",
+  "name_en": "Elmina",
+  "historical_names": ["聖喬治堡（São Jorge da Mina）"],
+  "country": "迦納",
+  "country_en": "Ghana",
+  "region": "gulf-of-guinea",
+  "location": [-1.35, 5.08],
+  "kind": "hub",
+  "goods": ["gold-dust", "malagueta"],
+  "climate": "熱帶莽原氣候",
+  "blurb": "幾內亞灣「黃金海岸」上的港口。1482 年葡萄牙人在這裡蓋了聖喬治堡，用布、銅器交換當地阿坎人從內陸運來的金砂。後來這座城堡也成了大西洋奴隸貿易的據點，是一段沉重的歷史。",
+  "sights": [],
+  "gossip": [
+    "城堡的石頭是從葡萄牙一塊塊用船運來的。",
+    "內陸的河邊淘得到金砂，阿坎人的王國靠黃金貿易興盛。"
+  ]
+}

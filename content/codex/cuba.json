@@ -1,0 +1,12 @@
+{
+  "id": "cuba",
+  "category": "island",
+  "name": "古巴島",
+  "name_en": "Cuba",
+  "location": [-78.5, 21.6],
+  "discover_radius_km": 250,
+  "domains": ["B", "A"],
+  "body": "加勒比海最大的島，東西長約 1200 公里。1492 年抵達這裡的歐洲人以為它是亞洲大陸的一部分，還派人上岸去找中國的皇帝。",
+  "source": "維基百科「古巴島」條目",
+  "reviewed": false
+}

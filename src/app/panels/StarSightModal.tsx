@@ -27,6 +27,7 @@ function zhiText(zhi: number) {
  */
 export function StarSightModal() {
   const game = useGame((s) => s.game)!;
+  const starLesson = useGame((s) => s.world?.scenarios.get(game.scenarioId)?.star_lesson);
   const close = () => useGame.getState().openStargazing(false);
   const sight = useGame((s) => s.sightStars);
   const [zhi, setZhi] = useState(8);
@@ -192,9 +193,10 @@ export function StarSightModal() {
             </p>
             <p className="lesson">
               <strong>地理小教室：</strong>
-              在北半球，北極星離海平面的高度（仰角）約等於所在地的緯度。鄭和船隊用十二塊大小不同的牽星板量星高，
-              以「指」為單位，一指約 {DEG_PER_ZHI}
-              °。這個方法只能量出南北位置（緯度），東西位置（經度）還是要靠航位推算。
+              在北半球，北極星離海平面的高度（仰角）約等於所在地的緯度。
+              {starLesson ??
+                `鄭和船隊用十二塊大小不同的牽星板量星高，以「指」為單位，一指約 ${DEG_PER_ZHI}°。`}
+              這個方法只能量出南北位置（緯度），東西位置（經度）還是要靠航位推算。
             </p>
             <div className="row end">
               <button type="button" className="primary" onClick={close}>

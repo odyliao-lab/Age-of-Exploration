@@ -1,0 +1,49 @@
+{
+  "id": "nl-r3-timber",
+  "title": "森林之地的木材",
+  "scenario": "northern-longship",
+  "chapter": 3,
+  "tier": 3,
+  "kind": "main",
+  "giver_port": "leifsbudir",
+  "objectives": [
+    {
+      "domain": "C",
+      "text": "能說明格陵蘭為什麼缺木材。"
+    }
+  ],
+  "prerequisites": ["nl-05-vinland"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "萊夫營地的木匠",
+      "lines": ["這裡的樹又高又直！砍 8 擔木材運回格陵蘭，大家可以修船、蓋房子了。"]
+    },
+    {
+      "type": "deliver",
+      "good": "timber",
+      "qty": 8,
+      "target": "brattahlid",
+      "text": "在萊夫營地的市集買木材"
+    },
+    {
+      "type": "quiz",
+      "question": "格陵蘭為什麼幾乎沒有大樹？",
+      "choices": [
+        "夏天太短太冷，樹木長不起來",
+        "因為樹都被海象吃光了",
+        "因為那裡的土壤是鹽",
+        "因為那裡太熱了"
+      ],
+      "answer": 0,
+      "explanation": "樹木要有夠長、夠暖的生長季節。格陵蘭大部分地區在「樹木線」以北，只長得出苔蘚、草和矮小的灌木，所以木材必須從挪威或北美洲運來。"
+    }
+  ],
+  "reward": {
+    "xp": 220,
+    "gold": 320,
+    "reputation": 16,
+    "unlock_ports": [],
+    "codex": []
+  }
+}

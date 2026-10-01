@@ -1,0 +1,39 @@
+{
+  "id": "iu-a2-mediterranean",
+  "title": "製圖師的考驗：乾燥的夏天",
+  "scenario": "into-the-unknown",
+  "chapter": 0,
+  "tier": 0,
+  "kind": "academy",
+  "giver_port": "lisbon",
+  "objectives": [
+    {
+      "domain": "D",
+      "text": "能說明地中海型氣候夏乾冬雨的特色。"
+    }
+  ],
+  "prerequisites": ["iu-00-lagos"],
+  "steps": [
+    {
+      "type": "quiz",
+      "question": "里斯本的夏天炎熱乾燥、冬天溫和多雨，這種氣候叫什麼？",
+      "choices": ["地中海型氣候", "熱帶雨林氣候", "沙漠氣候", "寒帶氣候"],
+      "answer": 0,
+      "explanation": "地中海型氣候的特色是夏乾冬雨：夏天副熱帶高壓北移，天氣晴朗乾燥；冬天西風帶南移，帶來雨水。葡萄、橄欖、軟木橡樹都很適應這種氣候。"
+    },
+    {
+      "type": "quiz",
+      "question": "下列哪一種作物最適合地中海型氣候？",
+      "choices": ["葡萄和橄欖", "稻米", "甘蔗", "胡椒"],
+      "answer": 0,
+      "explanation": "葡萄和橄欖根扎得深、葉子小又厚，耐得住乾燥的夏天，是地中海沿岸最常見的作物。"
+    }
+  ],
+  "reward": {
+    "xp": 60,
+    "gold": 60,
+    "reputation": 3,
+    "unlock_ports": [],
+    "codex": []
+  }
+}

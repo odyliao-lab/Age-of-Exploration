@@ -1,0 +1,44 @@
+{
+  "id": "wg-a2-hurricane",
+  "title": "長老的考驗：胡拉坎",
+  "scenario": "westward-gamble",
+  "chapter": 2,
+  "tier": 2,
+  "kind": "academy",
+  "giver_port": "marien",
+  "objectives": [
+    {
+      "domain": "D",
+      "text": "能說明加勒比海颶風的季節與成因。"
+    }
+  ],
+  "prerequisites": ["wg-03-hispaniola"],
+  "steps": [
+    {
+      "type": "quiz",
+      "question": "加勒比海的颶風（胡拉坎）最常在什麼季節出現？",
+      "choices": ["夏末到秋天（約 8～10 月）", "冬天", "春天", "一年到頭都一樣多"],
+      "answer": 0,
+      "explanation": "颶風需要非常溫暖的海水（約 26.5°C 以上）提供能量。夏天過後，熱帶大西洋與加勒比海的海水最熱，所以 8～10 月是颶風最多的季節。"
+    },
+    {
+      "type": "quiz",
+      "question": "颶風和我們在太平洋說的「颱風」、印度洋的「氣旋」有什麼關係？",
+      "choices": [
+        "都是熱帶氣旋，只是在不同的海洋有不同的名字",
+        "完全不一樣的東西",
+        "颶風只在陸地上出現",
+        "颱風比較冷"
+      ],
+      "answer": 0,
+      "explanation": "它們都是在溫暖海面上形成的強烈熱帶氣旋，中心有「眼」，四周是旋轉的暴風雨。在大西洋和加勒比海叫颶風，在西北太平洋叫颱風，在印度洋叫氣旋。"
+    }
+  ],
+  "reward": {
+    "xp": 120,
+    "gold": 100,
+    "reputation": 6,
+    "unlock_ports": [],
+    "codex": []
+  }
+}

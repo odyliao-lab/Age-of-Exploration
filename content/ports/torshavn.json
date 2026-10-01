@@ -1,0 +1,19 @@
+{
+  "id": "torshavn",
+  "name": "托爾斯港（法羅群島）",
+  "name_en": "Tórshavn (Faroe Islands)",
+  "historical_names": [],
+  "country": "法羅群島",
+  "country_en": "Faroe Islands",
+  "region": "north-sea",
+  "location": [-6.77, 62.01],
+  "kind": "port",
+  "goods": ["wool-cloth"],
+  "climate": "溫帶海洋性氣候",
+  "blurb": "法羅群島上的小港，島民在這裡的岩石岬角上開會議事。群島位在挪威與冰島之間，是橫渡北大西洋的中途站。",
+  "sights": [],
+  "gossip": [
+    "「法羅」的意思是「羊之島」，島上的羊比人還多。",
+    "島上沒有樹，蓋房子的木頭都要從挪威運來。"
+  ]
+}

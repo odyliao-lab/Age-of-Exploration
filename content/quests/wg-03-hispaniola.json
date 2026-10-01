@@ -1,0 +1,59 @@
+{
+  "id": "wg-03-hispaniola",
+  "title": "獨木舟與吊床",
+  "scenario": "westward-gamble",
+  "chapter": 2,
+  "tier": 2,
+  "kind": "main",
+  "giver_port": "baracoa",
+  "objectives": [
+    {
+      "domain": "E",
+      "text": "知道泰諾人的生活與留下的字彙。"
+    },
+    {
+      "domain": "B",
+      "text": "能找到伊斯帕尼奧拉島。"
+    }
+  ],
+  "prerequisites": ["wg-02-cuba"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "巴拉科阿的泰諾人",
+      "lines": [
+        "我們划「卡諾阿」到東邊的大島，那裡的酋長瓜卡納加利是我們的朋友。",
+        "晚上你們可以睡我們的「哈瑪卡」，比睡在船板上舒服多了。"
+      ]
+    },
+    {
+      "type": "discover",
+      "target": "hispaniola"
+    },
+    {
+      "type": "navigate",
+      "target": "marien",
+      "hint_level": 2,
+      "text": "線索：古巴東邊的大島北岸，一位友善酋長的土地。"
+    },
+    {
+      "type": "quiz",
+      "question": "下列哪一個英文字，是從泰諾語來的？",
+      "choices": [
+        "hurricane（颶風）",
+        "computer（電腦）",
+        "telescope（望遠鏡）",
+        "volcano（火山）"
+      ],
+      "answer": 0,
+      "explanation": "泰諾語的 huracán 是暴風之神的名字，後來變成西班牙語的 huracán、英文的 hurricane。獨木舟（canoe）、吊床（hammock）也都來自泰諾語。"
+    }
+  ],
+  "reward": {
+    "xp": 200,
+    "gold": 260,
+    "reputation": 16,
+    "unlock_ports": ["marien"],
+    "codex": ["taino-words"]
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "id": "baracoa",
+  "name": "巴拉科阿（古巴）",
+  "name_en": "Baracoa (Cuba)",
+  "historical_names": [],
+  "country": "古巴",
+  "country_en": "Cuba",
+  "region": "caribbean",
+  "location": [-74.5, 20.35],
+  "kind": "port",
+  "goods": ["cassava"],
+  "climate": "熱帶雨林氣候",
+  "blurb": "古巴島東北岸的泰諾人村落，四周是茂密的森林與高山。古巴是加勒比海最大的島，歐洲人剛到時還以為它是亞洲的一部分。",
+  "sights": [],
+  "gossip": [
+    "這座島大得走不完，有人說它一直連到大陸。",
+    "我們的獨木舟用一整根大樹挖成，最大的能坐五十個人。"
+  ]
+}

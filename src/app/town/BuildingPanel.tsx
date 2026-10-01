@@ -5,7 +5,8 @@ import { drawPerson, type PersonLook } from '@/town/art';
 import { BUILDING_NAMES, type BuildingKind, type Culture } from '@/town/layout';
 import {
   PRAY_COST,
-  RIVAL_NAME,
+  rivalOf,
+  scenarioPorts,
   availableCrew,
   availableQuests,
   cargoCapacity,
@@ -45,33 +46,93 @@ interface Npc {
   greeting: string;
 }
 
+/** 伊斯蘭文化圈的港口（阿拉伯與斯瓦希里） */
+const islamic = (c: Culture) => c === 'arabia' || c === 'swahili';
+/** 白袍纏頭巾（阿拉伯、斯瓦希里、南亞） */
+const robed = (c: Culture, coat: string, skin: string): PersonLook | null => {
+  if (islamic(c) || c === 'southasia')
+    return { skin, coat, hat: '#f4ecd8', hair: '#2b2118', hatStyle: 'turban', robe: true };
+  // 葡萄牙：深色外衣、小圓帽
+  if (c === 'iberia')
+    return { skin: '#e8c4a0', coat, hat: '#2b2118', hair: '#3a2414', hatStyle: 'cap' };
+  // 西非：寬大的長袍、不戴帽
+  if (c === 'westafrica') return { skin: '#5a3a24', coat, hat: null, hair: '#1c1410', robe: true };
+  // 北歐人：羊毛外衣與羊毛帽
+  if (c === 'norse')
+    return { skin: '#efd2b8', coat, hat: '#6b5a3a', hair: '#c9a86a', hatStyle: 'cap' };
+  // 泰諾人：棉布短裙與羽飾
+  if (c === 'taino')
+    return { skin: '#a8714a', coat, hat: '#e0b94a', hair: '#1c1410', hatStyle: 'cap' };
+  return null;
+};
+
 const NPCS: Record<BuildingKind, (c: Culture) => Npc> = {
   office: (c) => ({
-    name: c === 'nanyang' ? '宮廷書記官' : '港口官員',
-    look: { skin: '#e0b18a', coat: '#34507e', hat: '#2b2118', hair: '#2b2118' },
+    name:
+      c === 'nanyang'
+        ? '宮廷書記官'
+        : islamic(c)
+          ? '書記官'
+          : c === 'iberia'
+            ? '商館書記'
+            : c === 'westafrica'
+              ? '首領的傳令人'
+              : '港口官員',
+    look: robed(c, '#34507e', '#c68f63') ?? {
+      skin: '#e0b18a',
+      coat: '#34507e',
+      hat: '#2b2118',
+      hair: '#2b2118',
+    },
     greeting: '歡迎。這是本港的概況，還有需要人手的差事。',
   }),
-  academy: () => ({
+  academy: (c) => ({
     name: '學者',
-    look: { skin: '#f3d2b3', coat: '#7a7a6a', hat: '#2b2118', hair: '#5a5a5a' },
+    look: robed(c, '#7a7a6a', '#c68f63') ?? {
+      skin: '#f3d2b3',
+      coat: '#7a7a6a',
+      hat: '#2b2118',
+      hair: '#5a5a5a',
+    },
     greeting: '讀萬卷書，行萬里路。想挑戰看看你對海洋與地理的了解嗎？',
   }),
   temple: (c) => ({
-    name: c === 'nanyang' ? '廟祝' : '天妃宮廟公',
-    look: { skin: '#c68f63', coat: '#e0b94a', hat: null, hair: '#e8e8e8' },
-    greeting:
-      c === 'nanyang'
-        ? '遠來的船長，願神明保佑你一路平安。'
-        : '天妃娘娘（媽祖）是討海人的守護神。出海前上炷香，求個平安吧。',
+    name: TEMPLE[c].keeper,
+    look: robed(c, '#e8e2d0', '#8d5a3b') ?? {
+      skin: '#c68f63',
+      coat: '#e0b94a',
+      hat: null,
+      hair: '#e8e8e8',
+    },
+    greeting: TEMPLE[c].greeting,
   }),
   tavern: (c) => ({
-    name: c === 'nanyang' ? '茶棚老闆' : '酒館老闆娘',
-    look: { skin: '#e0b18a', coat: '#b5482b', hat: null, hair: '#2b2118' },
-    greeting: '坐下來歇歇腳吧！這裡什麼消息都聽得到，也有人在找船上的差事。',
+    name:
+      c === 'nanyang'
+        ? '茶棚老闆'
+        : islamic(c) || c === 'southasia' || c === 'westafrica' || c === 'taino'
+          ? '客棧老闆'
+          : c === 'norse'
+            ? '宴會廳的主人'
+            : '酒館老闆娘',
+    look: robed(c, '#b5482b', '#c68f63') ?? {
+      skin: '#e0b18a',
+      coat: '#b5482b',
+      hat: null,
+      hair: '#2b2118',
+    },
+    greeting: islamic(c)
+      ? '坐下來歇歇腳，吃幾顆椰棗吧！這裡什麼消息都聽得到，也有人在找船上的差事。'
+      : '坐下來歇歇腳吧！這裡什麼消息都聽得到，也有人在找船上的差事。',
   }),
-  market: () => ({
+  market: (c) => ({
     name: '商人',
-    look: { skin: '#c68f63', coat: '#c79a3a', hat: '#c9a86a', hair: '#2b2118' },
+    look: robed(c, '#c79a3a', '#c68f63') ?? {
+      skin: '#c68f63',
+      coat: '#c79a3a',
+      hat: '#c9a86a',
+      hair: '#2b2118',
+    },
     greeting: '本地的特產最便宜，外地的貨我都收。記住哪裡產什麼，就能賺大錢！',
   }),
   shipyard: () => ({
@@ -84,6 +145,83 @@ const NPCS: Record<BuildingKind, (c: Culture) => Npc> = {
     look: { skin: '#e0b18a', coat: '#4a6b7a', hat: '#c9a86a', hair: '#2b2118' },
     greeting: '淡水和糧食補足了嗎？海上可沒地方買。',
   }),
+};
+
+/** 各文化圈的信仰場所：誰在那裡、怎麼祈福、地理小教室 */
+const TEMPLE: Record<
+  Culture,
+  { keeper: string; greeting: string; action: string; lesson: string }
+> = {
+  iberia: {
+    keeper: '神父',
+    greeting: '願主保佑遠航的人。出海前，水手們都會來這裡祈禱。',
+    action: '點蠟燭祈福',
+    lesson:
+      '伊比利半島的遠航船隊出發前，水手們會在港邊的教堂守夜祈禱，家人在岸邊送行——里斯本的船隊從西邊的貝倫出發，西班牙的船隊則從帕洛斯、塞維亞出航。一趟遠航常常要一兩年，不一定回得來。',
+  },
+  norse: {
+    keeper: '聖所的守護人',
+    greeting: '這裡供奉著奧丁、索爾，也有人開始蓋小教堂了。出海前，大家都來求一路平安。',
+    action: '獻上祭品祈福',
+    lesson:
+      '西元 1000 年前後，北歐正處在信仰改變的時代：許多人還信奉奧丁、索爾等古老的神，也有越來越多人改信基督教。就在西元 1000 年，冰島的全民大會決定全島改信基督教。',
+  },
+  taino: {
+    keeper: '貝希克（巫醫）',
+    greeting: '這些石頭和木頭刻的是「澤米」，祖先與大自然的精靈。遠來的客人，請安靜地走進來。',
+    action: '向澤米獻上樹薯餅',
+    lesson:
+      '泰諾人是加勒比海島嶼上的原住民，相信祖先與自然精靈「澤米」守護著村落、作物和天氣。他們的語言留下了許多今天還在用的字：獨木舟（canoa）、吊床（hamaca）、颶風（huracán）。',
+  },
+  westafrica: {
+    keeper: '祭司',
+    greeting: '祖先的靈看顧著這片土地和海。遠來的客人，請先向他們致意。',
+    action: '獻上祭品祈福',
+    lesson:
+      '西非許多民族相信祖先的靈與自然的力量守護著村落，森林裡保留著不能砍伐的「聖林」。這些聖林也因此保存了許多原生的樹木和動物，像是天然的保護區。',
+  },
+  minnan: {
+    keeper: '天妃宮廟公',
+    greeting: '天妃娘娘（媽祖）是討海人的守護神。出海前上炷香，求個平安吧。',
+    action: '上香祈福',
+    lesson:
+      '媽祖信仰起源於福建湄洲島，隨著閩南人航海與移民傳到台灣、琉球與東南亞。鄭和出使前後都曾祭拜天妃，並在長樂立碑記錄。',
+  },
+  ryukyu: {
+    keeper: '天妃宮廟公',
+    greeting: '天妃娘娘（媽祖）是討海人的守護神。出海前上炷香，求個平安吧。',
+    action: '上香祈福',
+    lesson:
+      '從福建移居琉球的「閩人三十六姓」把媽祖信仰帶到那霸，琉球往來中國的進貢船出海前，都會到天妃宮祈求平安。',
+  },
+  nanyang: {
+    keeper: '廟祝',
+    greeting: '遠來的船長，願神明保佑你一路平安。',
+    action: '獻花祈福',
+    lesson:
+      '東南亞是各種信仰交會的地方：有印度傳來的佛教與印度教，十五世紀起許多港口城邦改信伊斯蘭教，華人移民也帶來了媽祖信仰。信仰跟著商人的船，沿著海路傳播。',
+  },
+  southasia: {
+    keeper: '祭司',
+    greeting: '遠來的船長，獻上一串花，祝你航程平安。',
+    action: '獻花祈福',
+    lesson:
+      '印度西南岸的港口裡，印度教神廟、清真寺、猶太會堂和基督教堂並存，因為幾千年來各地的商人都到這裡買胡椒；錫蘭島上則以佛教為主。',
+  },
+  arabia: {
+    keeper: '伊瑪目',
+    greeting: '平安與你同在，遠方來的旅人。清真寺也照顧過路的商人與水手。',
+    action: '捐獻給清真寺，照顧旅人',
+    lesson:
+      '穆斯林每天禮拜五次，都要面向麥加的方向，叫做「基卜拉」。在陌生的港口，要知道麥加在哪個方位，就得懂地理和天文——所以阿拉伯的學者很早就發展出計算方位的方法。',
+  },
+  swahili: {
+    keeper: '伊瑪目',
+    greeting: '平安與你同在，遠方來的旅人。清真寺也照顧過路的商人與水手。',
+    action: '捐獻給清真寺，照顧旅人',
+    lesson:
+      '伊斯蘭教隨著阿拉伯與波斯商人的船傳到東非海岸。基盧瓦、摩加迪休等城邦的清真寺用珊瑚石建造，禮拜時面向北方的麥加。',
+  },
 };
 
 /** 像素人物頭像：把 16×16 的人物放大 */
@@ -118,7 +256,7 @@ export function BuildingPanel({ kind, culture }: { kind: BuildingKind; culture: 
         <div className="building-body">
           {kind === 'office' && <Office />}
           {kind === 'academy' && <Academy />}
-          {kind === 'temple' && <Temple />}
+          {kind === 'temple' && <Temple culture={culture} />}
           {kind === 'tavern' && <Tavern />}
           {kind === 'market' && <Market />}
           {kind === 'shipyard' && <Shipyard />}
@@ -231,7 +369,7 @@ function Contracts() {
       ) : (
         <ul className="quest-list">
           {offers.map((c) => {
-            const sources = world.content.ports
+            const sources = scenarioPorts(world, game)
               .filter((p) => p.goods.includes(c.good) && game.visitedPorts.includes(p.id))
               .map((p) => p.name);
             return (
@@ -402,20 +540,21 @@ function MonsoonCalendar() {
   );
 }
 
-function Temple() {
+function Temple({ culture }: { culture: Culture }) {
   const { game } = usePort();
   const pray = useGame((s) => s.pray);
   const full = game.condition.morale >= 100;
+  const t = TEMPLE[culture];
   return (
     <>
       <ConditionBars game={game} compact />
       <button type="button" disabled={full || game.gold < PRAY_COST} onClick={pray}>
-        🙏 上香祈福（{PRAY_COST} 金幣，船員士氣回升）
+        🙏 {t.action}（{PRAY_COST} 金幣，船員士氣回升）
       </button>
       {full && <p className="meta">船員士氣正旺，不需要祈福。</p>}
       <p className="lesson">
         <strong>地理小教室：</strong>
-        媽祖信仰起源於福建湄洲島，隨著閩南人航海與移民傳到台灣、琉球與東南亞。鄭和出使前後都曾祭拜天妃，並在長樂立碑記錄。
+        {t.lesson}
       </p>
     </>
   );
@@ -517,9 +656,10 @@ function Inn() {
 function MarketNews() {
   const { world, game, port } = usePort();
   const known = [...new Set([...game.visitedPorts, ...game.unlockedPorts])];
-  const news = world.content.ports
+  const ports = scenarioPorts(world, game);
+  const news = ports
     .filter((p) => p.id !== port.id && known.includes(p.id))
-    .map((p) => ({ p, good: shortageAt(world.content.ports, p, game.day) }))
+    .map((p) => ({ p, good: shortageAt(ports, p, game.day) }))
     .filter((x) => x.good)
     .sort(
       (a, b) => distanceKm(a.p.location, port.location) - distanceKm(b.p.location, port.location),
@@ -550,7 +690,7 @@ function RivalStatus() {
   const left = Math.max(0, Math.ceil(r.due - game.day));
   return (
     <>
-      <h3>對手船長{RIVAL_NAME}</h3>
+      <h3>對手船長{rivalOf(world, game).name}</h3>
       {c ? (
         <p>
           他也在找{c.rumor?.from ?? '傳聞'}說的那個地方，大約還有 <strong>{left}</strong>{' '}
@@ -571,14 +711,15 @@ function Market() {
   const buyGood = useGame((s) => s.buyGood);
   const sellGood = useGame((s) => s.sellGood);
   const quotes = marketQuotes(world, game, port.id);
-  const short = shortageAt(world.content.ports, port, game.day);
+  const ports = scenarioPorts(world, game);
+  const short = shortageAt(ports, port, game.day);
   const cap = cargoCapacity(game);
   const used = cargoUsed(game.cargo);
   // 本地特產在前，再來是船上有的貨，最後是其他收購行情
   const order = (g: string) => (port.goods.includes(g) ? 0 : game.cargo[g] ? 1 : 2);
   const rows = [...quotes].sort((a, b) => order(a.good) - order(b.good));
   const origin = (g: string) => {
-    const producers = world.content.ports.filter((p) => p.goods.includes(g));
+    const producers = ports.filter((p) => p.goods.includes(g));
     if (!producers.length) return '—';
     const nearest = producers.reduce((a, b) =>
       distanceKm(a.location, port.location) <= distanceKm(b.location, port.location) ? a : b,

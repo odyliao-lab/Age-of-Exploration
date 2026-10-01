@@ -1,0 +1,17 @@
+{
+  "id": "canary-islands",
+  "category": "island",
+  "name": "加那利群島",
+  "name_en": "Canary Islands",
+  "location": [-16.05, 28.25],
+  "domains": ["B", "D"],
+  "body": "非洲西北外海的火山群島，最高峰泰德峰海拔 3715 公尺，冬天山頂還會積雪。島上原本住著關切人，十五世紀被卡斯提亞王國征服。",
+  "source": "維基百科「加那利群島」「泰德峰」條目",
+  "rumor": {
+    "port": "lisbon",
+    "from": "碼頭邊的老水手",
+    "text": "往南航行好幾天，在非洲外海會看見一座高得嚇人的山，山頂白白的——那是雪！明明那裡熱得要命。島上的人說那座山會噴火。",
+    "investigate_km": 50
+  },
+  "reviewed": false
+}

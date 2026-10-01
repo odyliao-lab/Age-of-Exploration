@@ -1,0 +1,19 @@
+{
+  "id": "nidaros",
+  "name": "尼達洛斯",
+  "name_en": "Nidaros (Trondheim)",
+  "historical_names": ["特倫汗"],
+  "country": "挪威",
+  "country_en": "Norway",
+  "region": "north-sea",
+  "location": [10.4, 63.43],
+  "kind": "hub",
+  "goods": ["stockfish"],
+  "climate": "溫帶海洋性氣候",
+  "blurb": "挪威中部峽灣深處的港口，西元 997 年由國王奧拉夫建立，就是今天的特倫汗。從這裡出發的船，沿著海岸往南，或往西橫渡大海到冰島。",
+  "sights": [],
+  "gossip": [
+    "峽灣是冰河在很久以前挖出來的深谷，後來被海水淹沒。",
+    "我們這裡的緯度比格陵蘭南部還北，港口卻不結冰——都是溫暖的海流帶來的。"
+  ]
+}

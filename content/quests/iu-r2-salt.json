@@ -1,0 +1,56 @@
+{
+  "id": "iu-r2-salt",
+  "title": "鹽換黃金",
+  "scenario": "into-the-unknown",
+  "chapter": 2,
+  "tier": 2,
+  "kind": "region",
+  "giver_port": "lisbon",
+  "objectives": [
+    {
+      "domain": "F",
+      "text": "知道鹽在西非內陸非常珍貴。"
+    },
+    {
+      "domain": "D",
+      "text": "能說明炎熱乾燥的海岸適合曬鹽。"
+    }
+  ],
+  "prerequisites": ["iu-05-mina"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "里斯本的商人",
+      "lines": [
+        "在米納，鹽的價錢好得很——內陸離海遠，天氣又熱，人和牲口都需要鹽。",
+        "運 12 擔鹽過去吧，維德角或拉哥斯的鹽田都曬得出好鹽。"
+      ]
+    },
+    {
+      "type": "deliver",
+      "good": "salt",
+      "qty": 12,
+      "target": "elmina",
+      "text": "在拉哥斯或聖地牙哥島的市集買鹽"
+    },
+    {
+      "type": "quiz",
+      "question": "為什麼維德角的島嶼適合曬鹽？",
+      "choices": [
+        "天氣炎熱乾燥、蒸發快，平坦的海岸能開鹽田",
+        "因為那裡的海水特別淡",
+        "因為那裡常下雪",
+        "因為那裡有很多河流"
+      ],
+      "answer": 0,
+      "explanation": "曬鹽靠太陽和風把海水蒸發。維德角群島炎熱少雨，有平坦的海岸窪地，是天然的鹽田。在炎熱的西非內陸，鹽是人和牲口都不可缺少的東西。"
+    }
+  ],
+  "reward": {
+    "xp": 180,
+    "gold": 260,
+    "reputation": 12,
+    "unlock_ports": [],
+    "codex": []
+  }
+}

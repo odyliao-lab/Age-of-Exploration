@@ -1,0 +1,19 @@
+{
+  "id": "mozambique",
+  "name": "莫三比克島",
+  "name_en": "Island of Mozambique",
+  "historical_names": [],
+  "country": "莫三比克",
+  "country_en": "Mozambique",
+  "region": "southern-africa",
+  "location": [40.73, -15.03],
+  "kind": "port",
+  "goods": ["ivory"],
+  "climate": "熱帶莽原氣候",
+  "blurb": "莫三比克海峽邊的小島，是斯瓦希里商人的貿易城鎮，也是從南方來的船進入印度洋季風區前的最後一站。",
+  "sights": [],
+  "gossip": [
+    "這裡已經是季風吹得到的地方，阿拉伯的船會一路南下到這裡。",
+    "內陸運來的象牙和黃金，在這裡裝上往北的船。"
+  ]
+}

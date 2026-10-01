@@ -1,0 +1,58 @@
+{
+  "id": "wg-04-return",
+  "title": "借西風回家",
+  "scenario": "westward-gamble",
+  "chapter": 3,
+  "tier": 1,
+  "kind": "main",
+  "giver_port": "marien",
+  "objectives": [
+    {
+      "domain": "D",
+      "text": "能說明回程要往北找盛行西風。"
+    },
+    {
+      "domain": "B",
+      "text": "能找到亞速群島。"
+    }
+  ],
+  "prerequisites": ["wg-03-hispaniola"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "瓜卡納加利酋長",
+      "lines": [
+        "你們的大船在聖誕夜撞上了礁石，我的族人幫你們把東西搬上岸。留下來的人，我們會照顧。",
+        "（船長）我們得回去向女王報告。往東頂著信風走不動，先往北開，找往東吹的西風。"
+      ]
+    },
+    {
+      "type": "discover",
+      "target": "azores"
+    },
+    {
+      "type": "navigate",
+      "target": "palos",
+      "hint_level": 1
+    },
+    {
+      "type": "quiz",
+      "question": "從加勒比海回歐洲，為什麼要先往北開？",
+      "choices": [
+        "北緯 30° 以南吹東北信風是頂風；往北到西風帶，就能順風往東",
+        "因為北邊比較溫暖",
+        "因為南邊有冰山",
+        "因為羅盤只能指北"
+      ],
+      "answer": 0,
+      "explanation": "去程借東北信風往西、回程借盛行西風往東，形成一個大圓圈。這條利用風帶的航線，後來成了歐洲與美洲之間幾百年來的標準航路。"
+    }
+  ],
+  "reward": {
+    "xp": 220,
+    "gold": 300,
+    "reputation": 18,
+    "unlock_ports": [],
+    "codex": ["volta-do-mar"]
+  }
+}

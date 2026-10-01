@@ -1,0 +1,55 @@
+{
+  "id": "nl-05-vinland",
+  "title": "文蘭",
+  "scenario": "northern-longship",
+  "chapter": 3,
+  "tier": 3,
+  "kind": "main",
+  "giver_port": "brattahlid",
+  "objectives": [
+    {
+      "domain": "A",
+      "text": "能找到紐芬蘭。"
+    },
+    {
+      "domain": "E",
+      "text": "知道北歐人比哥倫布早約 500 年抵達北美洲。"
+    }
+  ],
+  "prerequisites": ["nl-04-westward"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "艾瑞克的兒子萊夫",
+      "lines": [
+        "森林之地再往南，有一片牧草豐美、長著野生葡萄的土地，我要叫它「文蘭」。",
+        "我們在北端的海灣蓋幾座長屋，砍些木頭運回格陵蘭。"
+      ]
+    },
+    {
+      "type": "navigate",
+      "target": "leifsbudir",
+      "hint_level": 4,
+      "text": "線索：森林之地再往南，一座大島的北端，面向海峽的草地。"
+    },
+    {
+      "type": "quiz",
+      "question": "考古學家在紐芬蘭找到的北歐人遺址，證明了什麼？",
+      "choices": [
+        "北歐人在西元 1000 年前後就到過北美洲，比哥倫布早約 500 年",
+        "北歐人是第一批住在美洲的人",
+        "哥倫布是北歐人",
+        "北歐人在美洲建立了大帝國"
+      ],
+      "answer": 0,
+      "explanation": "1960 年代，考古學家在紐芬蘭北端的蘭塞奧克斯牧草地挖出草皮長屋與鐵器，年代約在西元 1000 年，證明北歐傳說中的文蘭是真的。當然，美洲早就住著原住民；北歐人只停留了很短的時間。"
+    }
+  ],
+  "reward": {
+    "xp": 300,
+    "gold": 450,
+    "reputation": 30,
+    "unlock_ports": ["leifsbudir"],
+    "codex": []
+  }
+}

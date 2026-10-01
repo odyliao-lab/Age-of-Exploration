@@ -1,0 +1,51 @@
+{
+  "id": "wg-r3-cotton",
+  "title": "盧卡亞人的棉線",
+  "scenario": "westward-gamble",
+  "chapter": 2,
+  "tier": 2,
+  "kind": "region",
+  "giver_port": "guanahani",
+  "objectives": [
+    {
+      "domain": "F",
+      "text": "知道加勒比海的島民種棉花、織棉布。"
+    }
+  ],
+  "prerequisites": ["wg-02-cuba"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "瓜納哈尼的盧卡亞人",
+      "lines": [
+        "我們用棉線織吊床和衣服。你們的船長說，西班牙人也喜歡棉布——帶 8 匹回去給他們看看吧。"
+      ]
+    },
+    {
+      "type": "deliver",
+      "good": "cotton-cloth",
+      "qty": 8,
+      "target": "palos",
+      "text": "在瓜納哈尼島的市集買棉布"
+    },
+    {
+      "type": "quiz",
+      "question": "為什麼加勒比海的島嶼適合種棉花？",
+      "choices": [
+        "氣候溫暖、陽光充足，有雨季也有乾季",
+        "因為島上很冷",
+        "因為島上常下雪",
+        "因為棉花長在海裡"
+      ],
+      "answer": 0,
+      "explanation": "棉花喜歡溫暖、陽光充足的氣候，生長期要水、成熟時要乾燥。加勒比海的熱帶氣候有明顯的雨季與乾季，正適合種棉花；美洲的原住民很早就開始種植與紡織棉花。"
+    }
+  ],
+  "reward": {
+    "xp": 180,
+    "gold": 260,
+    "reputation": 12,
+    "unlock_ports": [],
+    "codex": []
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "id": "north-sea",
+  "name": "北海與挪威海岸",
+  "name_en": "North Sea & Norwegian Coast",
+  "description": "北歐人的家鄉海域。挪威的海岸被冰河切出一道道深深的峽灣；雖然緯度很高，墨西哥灣流帶來的溫暖海水讓港口冬天也不結冰。",
+  "center": [4, 60],
+  "bbox": [-11, 50, 32, 72]
+}

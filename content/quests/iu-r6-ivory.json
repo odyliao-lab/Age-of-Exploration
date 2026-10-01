@@ -1,0 +1,56 @@
+{
+  "id": "iu-r6-ivory",
+  "title": "剛果王國的象牙",
+  "scenario": "into-the-unknown",
+  "chapter": 3,
+  "tier": 2,
+  "kind": "region",
+  "giver_port": "mpinda",
+  "objectives": [
+    {
+      "domain": "F",
+      "text": "知道剛果王國與葡萄牙的往來。"
+    },
+    {
+      "domain": "C",
+      "text": "知道今天為了保護大象而禁止象牙貿易。"
+    }
+  ],
+  "prerequisites": ["iu-06-equator"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "剛果王國的使者",
+      "lines": [
+        "曼尼剛果（剛果國王）派我們到里斯本，想向葡萄牙國王學習，也想買他們的貨。",
+        "請幫忙把 5 擔象牙運到里斯本，作為我們國王的禮物。"
+      ]
+    },
+    {
+      "type": "deliver",
+      "good": "ivory",
+      "qty": 5,
+      "target": "lisbon",
+      "text": "在姆平達的市集買象牙"
+    },
+    {
+      "type": "quiz",
+      "question": "為什麼今天世界上大多數國家都禁止象牙買賣？",
+      "choices": [
+        "過度獵殺讓非洲象數量大減，禁止買賣才能保護大象",
+        "因為象牙已經不值錢了",
+        "因為象牙會自己消失",
+        "因為大象已經住到海裡了"
+      ],
+      "answer": 0,
+      "explanation": "象牙雕刻在古代是珍貴的工藝品，大量需求讓非洲象被過度獵殺。1989 年起國際公約禁止象牙貿易，許多國家也關閉了國內的象牙市場，保護大象的族群。"
+    }
+  ],
+  "reward": {
+    "xp": 220,
+    "gold": 320,
+    "reputation": 15,
+    "unlock_ports": [],
+    "codex": []
+  }
+}

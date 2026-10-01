@@ -50,9 +50,11 @@ function ScenarioMenu() {
       <CloudAccount />
 
       <section className="scenario-grid">
-        {content.scenarios.map((s) => (
-          <ScenarioCard key={s.id} scenario={s} />
-        ))}
+        {[...content.scenarios]
+          .sort((a, b) => a.order - b.order)
+          .map((s) => (
+            <ScenarioCard key={s.id} scenario={s} />
+          ))}
       </section>
 
       <section className="howto">
@@ -104,8 +106,13 @@ function ScenarioCard({ scenario: s }: { scenario: Scenario }) {
         {s.culture} · {s.era} · 約 {s.estimated_hours} 小時
       </div>
       <p>{s.tagline}</p>
+      <details className="scenario-more">
+        <summary>劇本介紹</summary>
+        <p>{s.description}</p>
+        <p className="meta">歷史靈感：{s.inspiration}</p>
+      </details>
       <div className="meta">
-        家鄉：{home?.name}（{home?.name_en}）
+        家鄉：{s.port_names[s.home_port] ?? home?.name}（{home?.name_en}）
       </div>
       <div className="meta">
         學習領域：{s.domains.map((d) => LEARNING_DOMAIN_LABELS[d]).join('、')}

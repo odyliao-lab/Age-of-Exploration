@@ -1,0 +1,59 @@
+{
+  "id": "wg-02-cuba",
+  "title": "這是亞洲嗎？",
+  "scenario": "westward-gamble",
+  "chapter": 2,
+  "tier": 2,
+  "kind": "main",
+  "giver_port": "guanahani",
+  "objectives": [
+    {
+      "domain": "A",
+      "text": "能找到古巴島。"
+    },
+    {
+      "domain": "B",
+      "text": "知道美洲大陸與太平洋位在歐洲與亞洲之間。"
+    }
+  ],
+  "prerequisites": ["wg-01-trade-winds"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "瓜納哈尼的盧卡亞人",
+      "lines": [
+        "（比著手勢）往南，有一座很大很大的島，叫做「古巴」。那裡的人有金子。",
+        "（船長興奮地說）古巴？一定是日本！或是中國的大陸！"
+      ]
+    },
+    {
+      "type": "discover",
+      "target": "cuba"
+    },
+    {
+      "type": "navigate",
+      "target": "baracoa",
+      "hint_level": 2,
+      "text": "線索：往南越過一片淺海，一座大得走不完的島的東北岸。"
+    },
+    {
+      "type": "quiz",
+      "question": "船長以為自己到了亞洲。實際上，加勒比海和亞洲之間還隔著什麼？",
+      "choices": [
+        "美洲大陸和廣大的太平洋",
+        "什麼都沒有，已經到亞洲了",
+        "只隔著一條小河",
+        "只隔著地中海"
+      ],
+      "answer": 0,
+      "explanation": "加勒比海的西邊是美洲大陸，再往西是地球上最大的太平洋。哥倫布一直到過世都相信自己到了亞洲，所以把這裡的人叫做「印地安人」（Indios）、這片群島叫做「西印度群島」。"
+    }
+  ],
+  "reward": {
+    "xp": 180,
+    "gold": 220,
+    "reputation": 14,
+    "unlock_ports": ["baracoa"],
+    "codex": []
+  }
+}

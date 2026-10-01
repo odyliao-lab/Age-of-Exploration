@@ -1,0 +1,10 @@
+{
+  "id": "southern-cross",
+  "category": "phenomenon",
+  "name": "南十字星",
+  "name_en": "Southern Cross",
+  "domains": ["A", "D"],
+  "body": "越過赤道往南航行，北極星會沉到海平面下看不見。南半球的航海者改看南十字星：它的長軸大約指向南天極。葡萄牙的領航員也改量正午太陽的高度，再查表算出緯度。",
+  "source": "維基百科「南十字座」「天體導航」條目",
+  "reviewed": false
+}

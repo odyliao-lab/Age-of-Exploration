@@ -1,0 +1,55 @@
+{
+  "id": "iu-09-calicut",
+  "title": "通往印度的海路",
+  "scenario": "into-the-unknown",
+  "chapter": 4,
+  "tier": 4,
+  "kind": "main",
+  "giver_port": "malindi",
+  "objectives": [
+    {
+      "domain": "A",
+      "text": "能找到印度西南岸的卡利卡特。"
+    },
+    {
+      "domain": "D",
+      "text": "能說明橫渡阿拉伯海要乘西南季風。"
+    }
+  ],
+  "prerequisites": ["iu-08-malindi"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "馬林迪的領航員",
+      "lines": [
+        "等到西南季風吹起來，我們往東北方向橫渡大海，二十多天就能看到印度的山。",
+        "卡利卡特是胡椒海岸最大的港口，那裡的國王叫扎莫林。"
+      ]
+    },
+    {
+      "type": "navigate",
+      "target": "calicut",
+      "hint_level": 4,
+      "text": "線索：橫渡阿拉伯海往東北，印度西南岸的胡椒大港。"
+    },
+    {
+      "type": "quiz",
+      "question": "從東非的馬林迪橫渡到印度，最好在什麼季節出發？",
+      "choices": [
+        "夏天，吹西南季風的時候",
+        "冬天，吹東北季風的時候",
+        "什麼時候都一樣",
+        "只能在沒有風的日子划槳"
+      ],
+      "answer": 0,
+      "explanation": "夏天的西南季風從東非吹向印度，正好把船送往東北方的印度西岸；冬天東北季風吹起，則適合從印度回到東非或阿拉伯。"
+    }
+  ],
+  "reward": {
+    "xp": 450,
+    "gold": 700,
+    "reputation": 40,
+    "unlock_ports": ["calicut"],
+    "codex": []
+  }
+}

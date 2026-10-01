@@ -224,6 +224,8 @@ export const Scenario = z.object({
   /** 劇本開始日期（西曆 YYYY-MM-DD），決定出發時的季節與季風 */
   start_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, '日期格式為 YYYY-MM-DD'),
   recommended: z.boolean().default(false),
+  /** 主選單的排列順序（企畫書 3.3 的開發順序） */
+  order: z.number().int().default(99),
   /** 涵蓋的學習領域 */
   domains: z.array(LearningDomain).min(1),
   estimated_hours: z.number().positive(),
@@ -237,6 +239,42 @@ export const Scenario = z.object({
       }),
     )
     .min(1),
+  /** 酒館裡的對手船長（虛構人物） */
+  rival: z
+    .object({
+      name: z.string(),
+      /** 從哪裡來 */
+      from: z.string(),
+      /** 第一次見面的樣子 */
+      look: z.string(),
+    })
+    .default({ name: '陸天行', from: '廣州', look: '一位穿著綢緞長袍的年輕船長' }),
+  /** 從這個劇本的文化視角怎麼稱呼各港口（沒列的用港口資料的名字） */
+  port_names: z.record(Id, z.string()).default({}),
+  /** 共用文字（知識卡、船員、路人、事件）裡的地名換成這個劇本的叫法：舊名 → 新名 */
+  text_names: z.record(z.string(), z.string()).default({}),
+  /** 觀星定位的地理小教室（這個文化怎麼量星星；沒有則用鄭和船隊的牽星板） */
+  star_lesson: z.string().optional(),
+  /** 看岸形定位的地理小教室（這個文化怎麼記海岸；沒有則用《鄭和航海圖》） */
+  coast_lesson: z.string().optional(),
+  /** 船長一開始戴的帽子（沒有則戴幞頭） */
+  start_hat: z.string().optional(),
+  /** 第一次出海時的季風小教室（沒有則用東亞的冬季風說明） */
+  first_voyage_lesson: z.string().optional(),
+  /** 海圖上可以打開的歷史航線（依港口順序連成海上航線） */
+  historic_routes: z
+    .array(
+      z.object({
+        name: z.string(),
+        /** 依序經過的港口 id，或海上的經緯度（例如繞過海角的轉折點） */
+        ports: z.array(z.union([Id, LonLat])).min(2),
+      }),
+    )
+    .default([]),
+  /** 歷史航線的說明與資料來源 */
+  historic_note: z.string().optional(),
+  /** 完成某個主線任務時的結局文字 */
+  endings: z.record(Id, z.object({ title: z.string(), text: z.string() })).default({}),
 });
 export type Scenario = z.infer<typeof Scenario>;
 

@@ -1,0 +1,49 @@
+{
+  "id": "mm-a2-mawsim",
+  "title": "學者的考驗：季風的名字",
+  "scenario": "monsoon-merchant",
+  "chapter": 1,
+  "tier": 1,
+  "kind": "academy",
+  "giver_port": "aden",
+  "objectives": [
+    {
+      "domain": "D",
+      "text": "知道季風的名稱與成因。"
+    }
+  ],
+  "prerequisites": ["mm-03-monsoon"],
+  "steps": [
+    {
+      "type": "quiz",
+      "question": "英文的「季風」（monsoon）這個字，最早可能來自哪一種語言？",
+      "choices": [
+        "阿拉伯文，意思是「季節」",
+        "拉丁文，意思是「月亮」",
+        "中文，意思是「大風」",
+        "希臘文，意思是「海」"
+      ],
+      "answer": 0,
+      "explanation": "一般認為 monsoon 來自阿拉伯文 mawsim，意思是「季節」、特定的時節。對阿拉伯商人來說，季風就是一年中可以出航的「季節」。"
+    },
+    {
+      "type": "quiz",
+      "question": "夏天印度洋北部吹西南季風，最主要的原因是什麼？",
+      "choices": [
+        "夏天陸地比海洋熱得快，亞洲大陸形成低氣壓，風從海洋吹向陸地",
+        "夏天海洋比陸地熱",
+        "因為地球停止自轉",
+        "因為月亮的引力"
+      ],
+      "answer": 0,
+      "explanation": "陸地比海洋升溫快。夏天亞洲大陸很熱，空氣上升形成低氣壓，海上的空氣就往陸地流，形成西南季風；冬天反過來，陸地冷、形成高氣壓，風從陸地吹向海洋，就是東北季風。"
+    }
+  ],
+  "reward": {
+    "xp": 90,
+    "gold": 80,
+    "reputation": 5,
+    "unlock_ports": [],
+    "codex": []
+  }
+}

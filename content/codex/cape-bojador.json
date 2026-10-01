@@ -1,0 +1,12 @@
+{
+  "id": "cape-bojador",
+  "category": "landmark",
+  "name": "博哈多爾角",
+  "name_en": "Cape Bojador",
+  "location": [-14.5, 26.13],
+  "discover_radius_km": 90,
+  "domains": ["B", "D"],
+  "body": "撒哈拉海岸上的一個低矮海角，外海有淺灘與洶湧的浪。中世紀的歐洲水手害怕越過這裡，傳說過了海角海水會沸騰、再也回不來。1434 年葡萄牙船長吉爾·伊恩斯先往外海繞行，才成功越過。",
+  "source": "維基百科「博哈多爾角」條目",
+  "reviewed": false
+}

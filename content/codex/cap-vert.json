@@ -1,0 +1,12 @@
+{
+  "id": "cap-vert",
+  "category": "landmark",
+  "name": "維德角（非洲最西端）",
+  "name_en": "Cap-Vert",
+  "location": [-17.5, 14.73],
+  "discover_radius_km": 90,
+  "domains": ["A", "B"],
+  "body": "非洲大陸最西端的海角，在今天塞內加爾的達卡。葡萄牙航海者在 1444 年抵達這裡，看到撒哈拉的黃沙之後終於出現綠色的草木，就叫它「綠角」（維德角）。",
+  "source": "維基百科「維德角半島」條目",
+  "reviewed": false
+}

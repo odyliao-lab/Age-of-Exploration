@@ -37,9 +37,88 @@ interface Palette {
   makuti?: boolean;
   /** 樹林裡夾雜猴麵包樹 */
   baobab?: boolean;
+  /** 全部建築都是茅草屋頂（西非） */
+  thatchAll?: boolean;
+  /** 教堂：鐘樓與十字架（伊比利半島） */
+  church?: boolean;
+  /** 草皮屋頂：屋頂長滿青草（北歐） */
+  turf?: boolean;
 }
 
 export const PALETTES: Record<Culture, Palette> = {
+  iberia: {
+    ground: '#d9c7a0',
+    groundDot: '#c4b087',
+    road: '#cfc6b5',
+    roadLine: '#a89f8d',
+    wall: '#f6f2ea',
+    wallShade: '#cfc7b6',
+    roof: '#c0603a',
+    roofLine: '#9a4428',
+    ridge: '#7a3420',
+    temple: '#b8573a',
+    office: '#a84e33',
+    leaf: '#6f8a4a',
+    leafDark: '#526b34',
+    trunk: '#6b5a3a',
+    palm: false,
+    church: true,
+  },
+  norse: {
+    ground: '#9fae7a',
+    groundDot: '#8a9a66',
+    road: '#a8a08a',
+    roadLine: '#8a826c',
+    wall: '#7a5a3a',
+    wallShade: '#5e4127',
+    roof: '#6f8f4a',
+    roofLine: '#56733a',
+    ridge: '#445c2c',
+    temple: '#6f8f4a',
+    office: '#6f8f4a',
+    leaf: '#3f6b4a',
+    leafDark: '#2c5238',
+    trunk: '#5e4127',
+    palm: false,
+    turf: true,
+  },
+  taino: {
+    ground: '#dcc494',
+    groundDot: '#c7ad7a',
+    road: '#d2bd90',
+    roadLine: '#b59f72',
+    wall: '#b08a5a',
+    wallShade: '#8a6a40',
+    roof: '#c2a15e',
+    roofLine: '#957637',
+    ridge: '#6f5226',
+    temple: '#b8944f',
+    office: '#c2a15e',
+    leaf: '#3f8a4a',
+    leafDark: '#2c6a36',
+    trunk: '#8a6a3a',
+    palm: true,
+    thatchAll: true,
+  },
+  westafrica: {
+    ground: '#c99a64',
+    groundDot: '#b3844f',
+    road: '#bf9564',
+    roadLine: '#a37a4b',
+    wall: '#b9794a',
+    wallShade: '#94592f',
+    roof: '#b89455',
+    roofLine: '#8f6c33',
+    ridge: '#6f5226',
+    temple: '#a8834c',
+    office: '#b89455',
+    leaf: '#3f8a4a',
+    leafDark: '#2c6a36',
+    trunk: '#8a6a3a',
+    palm: true,
+    baobab: true,
+    thatchAll: true,
+  },
   southasia: {
     ground: '#d4b37a',
     groundDot: '#bf9a5e',
@@ -267,7 +346,7 @@ function drawBuilding(ctx: Ctx, b: Building, p: Palette, culture: Culture) {
   const y = b.y * TILE;
   const w = b.w * TILE;
   const h = b.h * TILE;
-  const thatched = p.makuti && ['tavern', 'market', 'shipyard'].includes(b.kind);
+  const thatched = p.thatchAll || (p.makuti && ['tavern', 'market', 'shipyard'].includes(b.kind));
   const roofColor = thatched
     ? '#a8834c'
     : b.kind === 'temple'
@@ -279,11 +358,15 @@ function drawBuilding(ctx: Ctx, b: Building, p: Palette, culture: Culture) {
   const roofH = h - wallH + 4;
 
   // 牆面（正面）
-  const wall = b.kind === 'office' || b.kind === 'academy' ? '#eee4d2' : p.wall;
+  const wall =
+    (b.kind === 'office' || b.kind === 'academy') && !p.thatchAll && !p.turf ? '#eee4d2' : p.wall;
   px(ctx, x + 1, y + h - wallH, w - 2, wallH, wall);
   px(ctx, x + 1, y + h - 2, w - 2, 2, p.wallShade);
   // 柱子
-  const pillar = b.kind === 'temple' || b.kind === 'office' ? '#a8322a' : p.wallShade;
+  const pillar =
+    (b.kind === 'temple' || b.kind === 'office') && !p.thatchAll && !p.turf
+      ? '#a8322a'
+      : p.wallShade;
   for (let c = x + 3; c < x + w - 3; c += 16) px(ctx, c, y + h - wallH, 2, wallH - 2, pillar);
   // 窗戶
   for (let c = x + 8; c < x + w - 8; c += 16) {
@@ -326,7 +409,11 @@ function drawBuilding(ctx: Ctx, b: Building, p: Palette, culture: Culture) {
     // 屋頂
     const ry = y;
     px(ctx, x, ry, w, roofH, roofColor);
-    if ((culture === 'nanyang' && b.kind !== 'temple') || thatched) {
+    if (p.turf) {
+      // 草皮屋頂：一塊塊草皮疊在木屋頂上，邊緣冒出小草
+      for (let k = 0; k < w; k += 2) px(ctx, x + k, ry + ((k * 5) % roofH), 1, 2, p.roofLine);
+      for (let k = 1; k < w; k += 5) px(ctx, x + k, ry - 1, 1, 2, '#8fb05a');
+    } else if ((culture === 'nanyang' && b.kind !== 'temple') || thatched) {
       // 茅草屋頂：斜線紋
       for (let k = 0; k < w; k += 3) px(ctx, x + k, ry + ((k * 7) % roofH), 1, 4, p.roofLine);
       for (let r = ry + 3; r < ry + roofH; r += 4) px(ctx, x, r, w, 1, p.roofLine);
@@ -347,8 +434,17 @@ function drawBuilding(ctx: Ctx, b: Building, p: Palette, culture: Culture) {
       px(ctx, x + w - 1, ridgeY - 3, 3, 2, p.ridge);
       px(ctx, x + w + 1, ridgeY - 5, 2, 2, p.ridge);
     }
-    // 廟宇屋脊上的金色裝飾
-    if (b.kind === 'temple') {
+    // 教堂：屋頂一側的鐘樓，塔頂有十字架
+    if (b.kind === 'temple' && p.church) {
+      const tx0 = x + w - 22;
+      px(ctx, tx0, ry - 20, 14, roofH + 20, p.wall);
+      px(ctx, tx0, ry - 20, 14, 2, p.wallShade);
+      px(ctx, tx0 + 4, ry - 14, 6, 7, '#3a2a1c');
+      px(ctx, tx0 + 6, ry - 12, 2, 3, '#c9a13a');
+      px(ctx, tx0 - 1, ry - 24, 16, 4, p.roof);
+      px(ctx, tx0 + 6, ry - 33, 2, 9, '#3a2414');
+      px(ctx, tx0 + 3, ry - 30, 8, 2, '#3a2414');
+    } else if (b.kind === 'temple' && !thatched && !p.turf) {
       const ridgeY = ry + Math.floor(roofH / 2) - 1;
       px(ctx, x + w / 2 - 3, ridgeY - 4, 6, 4, '#e0b94a');
       px(ctx, x + w / 2 - 1, ridgeY - 6, 2, 2, '#e0b94a');
@@ -448,10 +544,40 @@ export function drawPerson(
   }
 }
 
-/** 停在棧橋盡頭的戎克船（俯視，船頭朝下） */
-export function drawMooredShip(ctx: Ctx, hull: string, sail: string, flag: string, time: number) {
+/** 停在棧橋盡頭的船（俯視，船頭朝下）：戎克船或三角帆船 */
+export function drawMooredShip(
+  ctx: Ctx,
+  hull: string,
+  sail: string,
+  flag: string,
+  time: number,
+  lateen = false,
+) {
   const x = DOCK_SPOT.x * TILE + 20;
   const y = 14 * TILE + 2 + Math.round(Math.sin(time * 1.6));
+  if (lateen) {
+    // 三角帆船：尖首尖尾，兩根斜桁上的三角帆
+    px(ctx, x + 2, y + 2, 14, 44, 'rgba(0,0,0,0.2)');
+    px(ctx, x + 6, y - 2, 4, 3, hull);
+    px(ctx, x + 3, y + 1, 10, 3, hull);
+    px(ctx, x + 1, y + 4, 14, 34, hull);
+    px(ctx, x + 3, y + 38, 10, 4, hull);
+    px(ctx, x + 6, y + 42, 4, 3, hull);
+    px(ctx, x + 3, y + 30, 10, 7, '#8a5a33');
+    for (const [my, len] of [
+      [10, 13],
+      [24, 9],
+    ] as const) {
+      px(ctx, x + 7, my + y - 1, 2, 3, '#3a2414');
+      for (let k = 0; k < len; k++) {
+        px(ctx, x - 4 + k * 2, y + my - 5 + k, 2, 1, '#5e3c1c');
+        px(ctx, x - 2 + k * 2, y + my - 4 + k, Math.max(1, len - k), 1, sail);
+      }
+    }
+    px(ctx, x + 14, y + 38, 6, 4, flag);
+    px(ctx, x + 13, y + 38, 1, 8, '#3a2414');
+    return;
+  }
   px(ctx, x + 2, y + 2, 16, 44, 'rgba(0,0,0,0.2)');
   px(ctx, x, y, 16, 42, hull);
   px(ctx, x + 2, y + 40, 12, 3, hull);
@@ -482,7 +608,34 @@ export function drawLocalBoat(ctx: Ctx, culture: Culture, x: number, y0: number,
     px(ctx, x + 16, y + 1, 10, 10, '#e0c080');
     return;
   }
-  const arab = culture === 'arabia' || culture === 'swahili' || culture === 'southasia';
+  if (culture === 'westafrica' || culture === 'taino') {
+    // 獨木舟：一整根樹幹挖成的細長小船，幾個人一起划槳
+    px(ctx, x + 2, y + 6, 36, 5, '#6b4426');
+    px(ctx, x + 38, y + 7, 3, 3, '#6b4426');
+    px(ctx, x + 4, y + 7, 32, 2, '#3a2414');
+    for (let k = 0; k < 3; k++) {
+      const rx = x + 9 + k * 10;
+      px(ctx, rx, y + 2, 3, 4, '#4e321f');
+      px(ctx, rx - 2, y + 10, 1, 5, '#8a6a3a');
+    }
+    return;
+  }
+  if (culture === 'norse') {
+    // 維京小船：兩頭翹起的細長船身，一面紅白條紋的方帆
+    px(ctx, x + 2, y + 5, 36, 6, '#6b4426');
+    px(ctx, x, y + 2, 3, 5, '#6b4426');
+    px(ctx, x + 38, y + 2, 3, 5, '#6b4426');
+    px(ctx, x + 2, y + 5, 36, 1, '#3a2414');
+    px(ctx, x + 19, y - 8, 2, 14, '#3a2414');
+    for (let k = 0; k < 4; k++) px(ctx, x + 12 + k * 4, y - 7, 4, 9, k % 2 ? '#f1e6d6' : '#b5302a');
+    return;
+  }
+  // 阿拉伯、斯瓦希里、南亞的三角帆船；葡萄牙的卡拉維爾帆船也掛三角帆
+  const arab =
+    culture === 'arabia' ||
+    culture === 'swahili' ||
+    culture === 'southasia' ||
+    culture === 'iberia';
   const hull = arab ? '#9a6a3a' : '#6b3f1f';
   px(ctx, x, y + 2, 36, 12, hull);
   // 尖尖的船頭

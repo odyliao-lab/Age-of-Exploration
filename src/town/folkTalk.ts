@@ -19,6 +19,8 @@ const ARABIC: Greeting = {
   meaning: '願平安與你同在',
 };
 const SWAHILI: Greeting = { phrase: 'Jambo！', lang: '斯瓦希里語', meaning: '你好' };
+const NORSE: Greeting = { phrase: 'Heill ok sæll！', lang: '古諾斯語', meaning: '祝你健康、幸福' };
+const PORTUGUESE: Greeting = { phrase: 'Bom dia！', lang: '葡萄牙語', meaning: '早安、日安' };
 const MALAYALAM: Greeting = {
   phrase: 'Namaskaram！',
   lang: '馬拉雅拉姆語',
@@ -53,9 +55,54 @@ const GREETINGS: Record<string, Greeting> = {
   brava: ARABIC,
   malindi: SWAHILI,
   kilwa: SWAHILI,
+  lisbon: PORTUGUESE,
+  palos: { phrase: '¡Buenos días!', lang: '西班牙語', meaning: '早安、日安' },
+  'las-palmas': { phrase: '¡Buenos días!', lang: '西班牙語', meaning: '早安、日安' },
+  nidaros: NORSE,
+  torshavn: NORSE,
+  reykjavik: NORSE,
+  brattahlid: NORSE,
+  orkney: NORSE,
+  dublin: NORSE,
+  lagos: PORTUGUESE,
+  funchal: PORTUGUESE,
+  santiago: PORTUGUESE,
+  'sao-tome': PORTUGUESE,
+  arguin: ARABIC,
+  elmina: { phrase: 'Akwaaba！', lang: '芳蒂語（阿坎語）', meaning: '歡迎' },
+  mpinda: { phrase: 'Mbote！', lang: '剛果語', meaning: '你好' },
+  mozambique: SWAHILI,
 };
 
 const CULTURE_LINES: Record<Culture, string[]> = {
+  iberia: [
+    '葡萄牙和西班牙的國王都想找到通往印度的海路：葡萄牙人沿著非洲往南找，也有人說往西直接橫渡大海就到了。',
+    '往南航行的船先順著北風走；回程一路頂風，得往西北繞一個大圈，才遇得到往東吹的西風。',
+    '夏天幾乎不下雨，天空藍得發亮；雨都集中在冬天。',
+    '製圖師把每一艘船帶回來的消息畫進海圖，海圖上的海岸線一年比一年長。',
+    '水手出海前都會到教堂祈禱，一趟遠航常常一兩年才回得來。',
+  ],
+  norse: [
+    '夏天太陽幾乎不下山，半夜天還是亮的；到了冬天，白天只有短短幾個小時。',
+    '冬天的夜裡，天上會出現綠色的光帶，像簾子一樣飄動。',
+    '我們的房子用石頭和草皮蓋牆和屋頂，又厚又保暖，屋頂上還長著草。',
+    '往西航行時，只要讓北極星一直保持同樣的高度，就不會偏離航線。',
+    '魚曬乾了可以放好幾年，是我們最好的商品，也是航海時的乾糧。',
+  ],
+  taino: [
+    '我們用樹幹挖成獨木舟，大的可以坐幾十個人，在島和島之間划來划去。',
+    '晚上睡在「哈瑪卡」上——用棉線編的吊床，掛在兩根柱子之間，涼快又不怕地上的蟲。',
+    '我們種樹薯，把有毒的汁擠掉以後烤成薄薄的餅，可以放很久。',
+    '夏末秋初要小心「胡拉坎」，那是會把房子和獨木舟都捲走的大風。',
+    '村子中間的廣場可以玩球賽，也在那裡跳舞、祭祀祖先和精靈。',
+  ],
+  westafrica: [
+    '我們用黃金砂換外國人的布、銅盆和鹽。黃金是從內陸的河邊淘出來的。',
+    '雨季一來，雨下得又大又急；乾季時，從北方沙漠吹來的風帶著滿天的沙塵。',
+    '海浪很大，港外沒有能停大船的地方，要靠獨木舟把貨一趟趟划上岸。',
+    '森林裡有油棕、可樂果和各種藥草，市集上什麼都買得到。',
+    '外國人的船從北方來，他們說要找通往印度的路，可是海岸好像永遠走不完。',
+  ],
   minnan: [
     '冬天吹東北風，船往南洋去；夏天吹西南風，船就回來了。',
     '港裡停滿了福船，尖尖的船底最適合在深海乘風破浪。',

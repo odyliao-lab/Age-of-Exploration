@@ -1,0 +1,54 @@
+{
+  "id": "nl-01-trade",
+  "title": "北歐人的貿易網",
+  "scenario": "northern-longship",
+  "chapter": 0,
+  "tier": 0,
+  "kind": "main",
+  "giver_port": "torshavn",
+  "objectives": [
+    {
+      "domain": "F",
+      "text": "知道北歐人的貿易城鎮與商品。"
+    },
+    {
+      "domain": "D",
+      "text": "知道墨西哥灣流讓北歐溫暖。"
+    }
+  ],
+  "prerequisites": ["nl-00-fjord"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "托爾斯港的商人",
+      "lines": [
+        "我們北歐人不只會打仗，更會做生意：乾鱈魚、羊毛布、海象牙往南運，換回銀子、葡萄酒和小麥。",
+        "去都柏林看看吧，那是我們在愛爾蘭建的貿易城。"
+      ]
+    },
+    {
+      "type": "navigate",
+      "target": "dublin",
+      "hint_level": 1
+    },
+    {
+      "type": "quiz",
+      "question": "挪威和冰島的緯度跟格陵蘭差不多，冬天卻溫和得多，港口也不結冰。主要原因是什麼？",
+      "choices": [
+        "墨西哥灣流與北大西洋暖流把溫暖的海水帶到北歐外海",
+        "因為那裡有很多火山",
+        "因為那裡離太陽比較近",
+        "因為那裡的人燒很多柴火"
+      ],
+      "answer": 0,
+      "explanation": "從墨西哥灣一路往東北流的暖流，把熱帶的溫暖海水帶到北大西洋東側，讓英國、挪威、冰島南岸的冬天比同緯度的其他地方溫暖許多。"
+    }
+  ],
+  "reward": {
+    "xp": 80,
+    "gold": 120,
+    "reputation": 6,
+    "unlock_ports": ["dublin", "orkney"],
+    "codex": []
+  }
+}

@@ -143,7 +143,17 @@ export function destinationFor(
 }
 
 /** 文化圈：決定建築顏色、屋頂、樹與招牌文字 */
-export type Culture = 'minnan' | 'nanyang' | 'ryukyu' | 'southasia' | 'arabia' | 'swahili';
+export type Culture =
+  | 'minnan'
+  | 'nanyang'
+  | 'ryukyu'
+  | 'southasia'
+  | 'arabia'
+  | 'swahili'
+  | 'iberia'
+  | 'westafrica'
+  | 'taino'
+  | 'norse';
 
 export function cultureOf(country: string): Culture {
   // 琉球王國在今日本沖繩
@@ -152,8 +162,24 @@ export function cultureOf(country: string): Culture {
   if (['印度', '斯里蘭卡', '孟加拉', '馬爾地夫'].some((c) => country.includes(c)))
     return 'southasia';
   // 東非斯瓦希里海岸：珊瑚石屋、椰葉屋頂、猴麵包樹
-  if (['索馬利亞', '肯亞', '坦尚尼亞'].some((c) => country.includes(c))) return 'swahili';
-  if (['伊朗', '阿曼', '葉門', '沙烏地'].some((c) => country.includes(c))) return 'arabia';
+  if (['索馬利亞', '肯亞', '坦尚尼亞', '莫三比克'].some((c) => country.includes(c)))
+    return 'swahili';
+  if (['伊朗', '阿曼', '葉門', '沙烏地', '茅利塔尼亞'].some((c) => country.includes(c)))
+    return 'arabia';
+  // 伊比利半島（葡萄牙、西班牙）與大西洋島嶼上的殖民港口：白牆紅瓦、教堂鐘樓
+  if (['葡萄牙', '西班牙', '維德角', '聖多美'].some((c) => country.includes(c))) return 'iberia';
+  // 北歐人（維京人）的聚落：木牆與長滿青草的草皮屋頂
+  if (
+    ['挪威', '冰島', '格陵蘭', '法羅', '愛爾蘭', '蘇格蘭', '紐芬蘭'].some((c) =>
+      country.includes(c),
+    )
+  )
+    return 'norse';
+  // 加勒比海的泰諾人村落：圓形茅草屋、獨木舟
+  if (['巴哈馬', '古巴', '海地', '多明尼加'].some((c) => country.includes(c))) return 'taino';
+  // 西非與中非的王國：土牆、茅草屋頂
+  if (['迦納', '剛果', '安哥拉', '塞內加爾', '甘比亞'].some((c) => country.includes(c)))
+    return 'westafrica';
   return 'nanyang';
 }
 
@@ -162,7 +188,7 @@ export const BUILDING_NAMES: Record<Culture, Record<BuildingKind, string>> = {
     office: '王宮',
     academy: '學者之家',
     temple: '神廟',
-    tavern: '茶館',
+    tavern: '客棧',
     market: '市集',
     shipyard: '造船廠',
     dock: '碼頭',
@@ -210,6 +236,42 @@ export const BUILDING_NAMES: Record<Culture, Record<BuildingKind, string>> = {
     tavern: '茶棚',
     market: '市集',
     shipyard: '造船廠',
+    dock: '碼頭',
+  },
+  iberia: {
+    office: '王室商館',
+    academy: '製圖工坊',
+    temple: '教堂',
+    tavern: '酒館',
+    market: '市集',
+    shipyard: '造船廠',
+    dock: '碼頭',
+  },
+  norse: {
+    office: '首領的長屋',
+    academy: '說書人之家',
+    temple: '聖所',
+    tavern: '宴會廳',
+    market: '集市',
+    shipyard: '船棚',
+    dock: '碼頭',
+  },
+  taino: {
+    office: '酋長的大屋',
+    academy: '長老之家',
+    temple: '祭祀之屋',
+    tavern: '歇腳處',
+    market: '交換的廣場',
+    shipyard: '獨木舟工坊',
+    dock: '碼頭',
+  },
+  westafrica: {
+    office: '首領的庭院',
+    academy: '長老之家',
+    temple: '聖林',
+    tavern: '歇腳處',
+    market: '市集',
+    shipyard: '獨木舟工坊',
     dock: '碼頭',
   },
 };

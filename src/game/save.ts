@@ -71,8 +71,11 @@ export function deserialize(data: SerializedSave): GameState {
     market: data.market ?? {},
     nav: data.nav ?? { day: data.day ?? 0, errorKm: 2 },
     starNight: data.starNight ?? -1,
+    starDay: data.starDay ?? -99,
+    sunDay: data.sunDay ?? -1,
     coastDay: data.coastDay ?? -1,
     fishDay: data.fishDay ?? -1,
+    waterDay: data.waterDay ?? -99,
     fleets: data.fleets ?? [],
     storms: data.storms ?? [],
     mists: data.mists ?? [],
@@ -118,7 +121,12 @@ export async function loadSave(scenarioId: string): Promise<GameState | null> {
 }
 
 export async function listSaves(): Promise<
-  (Pick<SaveRecord, 'scenarioId' | 'updatedAt'> & { completedQuests: string[] })[]
+  (Pick<SaveRecord, 'scenarioId' | 'updatedAt'> & {
+    completedQuests: string[];
+    discovered: string[];
+    achievements: string[];
+    quiz: { domains: string[]; firstTry: boolean }[];
+  })[]
 > {
   try {
     const all = (await getDb()?.saves.toArray()) ?? [];
@@ -128,6 +136,9 @@ export async function listSaves(): Promise<
       completedQuests: Object.entries(data.quests ?? {})
         .filter(([, q]) => q.status === 'completed')
         .map(([id]) => id),
+      discovered: data.discovered ?? [],
+      achievements: data.achievements ?? [],
+      quiz: (data.quizLog ?? []).map((q) => ({ domains: q.domains, firstTry: q.firstTry })),
     }));
   } catch {
     return [];

@@ -48,6 +48,8 @@ const HAT_COLORS: Record<string, string | null> = {
   futou: '#2b2118',
   douli: '#c9a86a',
   turban: '#f4ecd8',
+  barrete: '#9b2f1f',
+  woolcap: '#6b5a3a',
   captain: '#2c4a7a',
   feather: '#6b3f1f',
 };
@@ -58,11 +60,45 @@ function playerLook(a: Appearance): PersonLook {
     coat: colorOf(COLORS, a.coat),
     hat: HAT_COLORS[a.hat] ?? null,
     hair: '#2b2118',
+    hatStyle:
+      a.hat === 'turban'
+        ? 'turban'
+        : a.hat === 'barrete' || a.hat === 'woolcap'
+          ? 'cap'
+          : undefined,
   };
 }
 
 /** 各文化圈路人的穿著：衣服顏色、帽子與長袍（服飾也是文化地理） */
 const TOWNSFOLK: Record<Culture, PersonLook[]> = {
+  iberia: [
+    { skin: '#e8c4a0', coat: '#2b2b3a', hat: '#2b2118', hair: '#3a2414', hatStyle: 'cap' },
+    { skin: '#e0b58f', coat: '#7a2e2a', hat: null, hair: '#2b2118', robe: true },
+    { skin: '#e8c4a0', coat: '#4a5a3a', hat: '#6b3f1f', hair: '#3a2414' },
+    { skin: '#d9a57c', coat: '#5a4a7a', hat: null, hair: '#1c1410', robe: true },
+    { skin: '#e8c4a0', coat: '#8a6a3a', hat: '#2b2118', hair: '#3a2414', hatStyle: 'cap' },
+  ],
+  norse: [
+    { skin: '#efd2b8', coat: '#6b5a3a', hat: '#8a6a3a', hair: '#c9a86a', hatStyle: 'cap' },
+    { skin: '#f3d2b3', coat: '#3f5a7a', hat: null, hair: '#b5482b', robe: true },
+    { skin: '#efd2b8', coat: '#7a3a2a', hat: null, hair: '#e0c080' },
+    { skin: '#f3d2b3', coat: '#4a6b4a', hat: null, hair: '#8a6a3a', robe: true },
+    { skin: '#efd2b8', coat: '#8a8a7a', hat: '#5e4127', hair: '#c9a86a', hatStyle: 'cap' },
+  ],
+  taino: [
+    { skin: '#a8714a', coat: '#c9a86a', hat: null, hair: '#1c1410' },
+    { skin: '#9e6a44', coat: '#e0c080', hat: null, hair: '#1c1410', robe: true },
+    { skin: '#a8714a', coat: '#b5482b', hat: '#e0b94a', hair: '#1c1410', hatStyle: 'cap' },
+    { skin: '#94603f', coat: '#d9c9a0', hat: null, hair: '#1c1410' },
+    { skin: '#a8714a', coat: '#3f7a4a', hat: null, hair: '#1c1410', robe: true },
+  ],
+  westafrica: [
+    { skin: '#5a3a24', coat: '#c9402c', hat: null, hair: '#1c1410', robe: true },
+    { skin: '#4e321f', coat: '#e0b94a', hat: null, hair: '#1c1410' },
+    { skin: '#5a3a24', coat: '#2f6f5a', hat: '#e0b94a', hair: '#1c1410', hatStyle: 'cap' },
+    { skin: '#63402a', coat: '#6b3f6f', hat: null, hair: '#1c1410', robe: true },
+    { skin: '#4e321f', coat: '#f4ecd8', hat: null, hair: '#1c1410' },
+  ],
   minnan: [
     { skin: '#e0b18a', coat: '#34507e', hat: null, hair: '#2b2118' },
     { skin: '#d9a57c', coat: '#7a5a3a', hat: '#c9a86a', hair: '#2b2118' },
@@ -154,7 +190,7 @@ function randomWalkable(): Point {
 interface Props {
   culture: Culture;
   appearance: Appearance;
-  ship: { hull: string; sail: string; flag: string };
+  ship: { hull: string; sail: string; flag: string; lateen?: boolean };
   /** 走進建築物或走到船邊 */
   onEnter: (kind: BuildingKind) => void;
   /** 回到城裡時，玩家站在哪棟建築的門口 */
@@ -319,7 +355,7 @@ export function TownView({
       fctx.drawImage(base, 0, 0);
       drawWater(fctx, time);
       const s = shipRef.current;
-      drawMooredShip(fctx, s.hull, s.sail, s.flag, time);
+      drawMooredShip(fctx, s.hull, s.sail, s.flag, time, s.lateen);
       // 港裡還停著幾艘當地的船
       drawLocalBoat(fctx, culture, 3 * TILE, 14 * TILE + 4, time);
       drawLocalBoat(fctx, culture, 21 * TILE, 15 * TILE, time);

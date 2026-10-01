@@ -1,0 +1,49 @@
+{
+  "id": "wg-r1-sugar",
+  "title": "加那利的蔗糖",
+  "scenario": "westward-gamble",
+  "chapter": 0,
+  "tier": 0,
+  "kind": "region",
+  "giver_port": "las-palmas",
+  "objectives": [
+    {
+      "domain": "F",
+      "text": "知道甘蔗園從地中海擴展到大西洋島嶼。"
+    }
+  ],
+  "prerequisites": ["wg-00-palos"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "拉斯帕爾馬斯的糖商",
+      "lines": ["島上的甘蔗園才開墾沒幾年，糖已經運到歐洲各地。幫我運 8 擔回帕洛斯吧。"]
+    },
+    {
+      "type": "deliver",
+      "good": "sugar",
+      "qty": 8,
+      "target": "palos",
+      "text": "在拉斯帕爾馬斯或豐沙爾的市集買蔗糖"
+    },
+    {
+      "type": "quiz",
+      "question": "甘蔗園為什麼一路從地中海搬到大西洋的島嶼，後來又到了美洲？",
+      "choices": [
+        "甘蔗需要溫暖與充足的水，越往南、往熱帶越適合種",
+        "因為甘蔗怕熱",
+        "因為甘蔗要種在沙漠",
+        "因為島上沒有人"
+      ],
+      "answer": 0,
+      "explanation": "甘蔗喜歡高溫與大量的水。從地中海到馬德拉、加那利，再到加勒比海的熱帶島嶼，甘蔗園越搬越往熱帶；可是它也帶來了奴隸制度與強迫勞動，是蔗糖背後的黑暗歷史。"
+    }
+  ],
+  "reward": {
+    "xp": 80,
+    "gold": 140,
+    "reputation": 6,
+    "unlock_ports": [],
+    "codex": []
+  }
+}

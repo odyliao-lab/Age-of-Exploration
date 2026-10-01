@@ -23,6 +23,7 @@ import {
 } from './state';
 import { contentForTests } from './testContent';
 import { buildWorld } from './world';
+import { distanceKm } from '@/geo/geo';
 
 const world = buildWorld(contentForTests());
 const allHarbors = [...world.harbors.values()];
@@ -104,7 +105,13 @@ function playQuest(s: GameState, questId: string): GameState {
       s = sailTo(s, step.target);
     } else if (step?.type === 'deliver') {
       // 到產地買貨，再運到目的港
-      const source = world.content.ports.find((p) => p.goods.includes(step.good))!;
+      // 到最近的產地買（例如加勒比海的棉布就在身邊，不必跑去印度）
+      const source = world.content.ports
+        .filter((p) => p.goods.includes(step.good))
+        .sort(
+          (a, b) =>
+            distanceKm(a.location, s.ship.position) - distanceKm(b.location, s.ship.position),
+        )[0];
       s = sailTo(s, source.id);
       s = { ...s, gold: Math.max(s.gold, 5000), cargo: {} };
       s = tradeBuy(world, s, step.good, step.qty).state;
@@ -139,9 +146,12 @@ describe('Treasure Fleet MVP content', () => {
     expect(world.content.codex.length).toBeGreaterThanOrEqual(40);
   });
 
-  it('can reach every port by sea from home', () => {
-    const home = world.ports.get('quanzhou')!;
+  it('can reach every port by sea from the nearest scenario home', () => {
+    const homes = world.content.scenarios.map((sc) => world.ports.get(sc.home_port)!);
     for (const p of world.content.ports) {
+      const home = homes.reduce((a, b) =>
+        distanceKm(a.location, p.location) <= distanceKm(b.location, p.location) ? a : b,
+      );
       const path = route(home.location, p.location);
       for (let i = 1; i < path.length; i++) {
         expect(checkLeg(path[i - 1], path[i], allHarbors).ok, `${p.id} 第 ${i} 段`).toBe(true);
@@ -189,5 +199,123 @@ describe('Treasure Fleet MVP content', () => {
       expect.arrayContaining(['equator', 'strait-of-malacca', 'kuroshio']),
     );
     expect(s.captain.level).toBeGreaterThanOrEqual(5);
+  });
+});
+
+describe('Monsoon Merchant content', () => {
+  it('plays every quest from start to finish', () => {
+    let s = newGame(world, 'monsoon-merchant', 2025).state;
+    expect(s.dockedAt).toBe('aden');
+    expect(s.shipTypeId).toBe('sewn-dhow');
+    expect(s.appearance.hat).toBe('turban');
+    expect(world.scenarios.get('monsoon-merchant')!.first_voyage_lesson).toContain('西南季風');
+    const remaining = new Set(
+      world.content.quests.filter((q) => q.scenario === 'monsoon-merchant').map((q) => q.id),
+    );
+    for (let round = 0; round < 30 && remaining.size; round++) {
+      const ready = [...remaining].filter((id) =>
+        world.quests.get(id)!.prerequisites.every((p) => s.quests[p]?.status === 'completed'),
+      );
+      expect(ready.length, `卡住的任務：${[...remaining].join(', ')}`).toBeGreaterThan(0);
+      for (const id of ready) {
+        s = playQuest(s, id);
+        remaining.delete(id);
+      }
+    }
+    expect(remaining.size).toBe(0);
+    expect(s.visitedPorts).toEqual(
+      expect.arrayContaining(['aden', 'calicut', 'kilwa', 'quanzhou']),
+    );
+  });
+});
+
+describe('historic routes', () => {
+  it('every leg of every scenario route has a sea path', () => {
+    for (const sc of world.content.scenarios) {
+      for (const r of sc.historic_routes) {
+        for (let k = 1; k < r.ports.length; k++) {
+          const at = (x: string | LonLat) =>
+            typeof x === 'string' ? world.ports.get(x)!.location : x;
+          const a = at(r.ports[k - 1]);
+          const b = at(r.ports[k]);
+          expect(findSeaPath(a, b, allHarbors), `${sc.id} ${r.name} 第 ${k} 段`).not.toBeNull();
+        }
+      }
+    }
+  });
+});
+
+describe('Into the Unknown content', () => {
+  it('plays every quest from start to finish', () => {
+    let s = newGame(world, 'into-the-unknown', 2026).state;
+    expect(s.dockedAt).toBe('lisbon');
+    expect(s.shipTypeId).toBe('caravel');
+    expect(s.appearance.hat).toBe('barrete');
+    const remaining = new Set(
+      world.content.quests.filter((q) => q.scenario === 'into-the-unknown').map((q) => q.id),
+    );
+    for (let round = 0; round < 30 && remaining.size; round++) {
+      const ready = [...remaining].filter((id) =>
+        world.quests.get(id)!.prerequisites.every((p) => s.quests[p]?.status === 'completed'),
+      );
+      expect(ready.length, `卡住的任務：${[...remaining].join(', ')}`).toBeGreaterThan(0);
+      for (const id of ready) {
+        s = playQuest(s, id);
+        remaining.delete(id);
+      }
+    }
+    expect(remaining.size).toBe(0);
+    expect(s.visitedPorts).toEqual(
+      expect.arrayContaining(['lisbon', 'elmina', 'malindi', 'calicut']),
+    );
+    expect(s.discovered).toEqual(expect.arrayContaining(['equator', 'cape-of-good-hope']));
+  });
+});
+
+describe('Westward Gamble content', () => {
+  it('plays every quest from start to finish', () => {
+    let s = newGame(world, 'westward-gamble', 1492).state;
+    expect(s.dockedAt).toBe('palos');
+    const remaining = new Set(
+      world.content.quests.filter((q) => q.scenario === 'westward-gamble').map((q) => q.id),
+    );
+    for (let round = 0; round < 30 && remaining.size; round++) {
+      const ready = [...remaining].filter((id) =>
+        world.quests.get(id)!.prerequisites.every((p) => s.quests[p]?.status === 'completed'),
+      );
+      expect(ready.length, `卡住的任務：${[...remaining].join(', ')}`).toBeGreaterThan(0);
+      for (const id of ready) {
+        s = playQuest(s, id);
+        remaining.delete(id);
+      }
+    }
+    expect(remaining.size).toBe(0);
+    expect(s.visitedPorts).toEqual(expect.arrayContaining(['palos', 'guanahani', 'marien']));
+    expect(s.discovered).toEqual(expect.arrayContaining(['sargasso-sea', 'columbian-exchange']));
+  });
+});
+
+describe('Northern Longship content', () => {
+  it('plays every quest from start to finish', () => {
+    let s = newGame(world, 'northern-longship', 1000).state;
+    expect(s.dockedAt).toBe('nidaros');
+    expect(s.shipTypeId).toBe('knarr');
+    const remaining = new Set(
+      world.content.quests.filter((q) => q.scenario === 'northern-longship').map((q) => q.id),
+    );
+    for (let round = 0; round < 30 && remaining.size; round++) {
+      const ready = [...remaining].filter((id) =>
+        world.quests.get(id)!.prerequisites.every((p) => s.quests[p]?.status === 'completed'),
+      );
+      expect(ready.length, `卡住的任務：${[...remaining].join(', ')}`).toBeGreaterThan(0);
+      for (const id of ready) {
+        s = playQuest(s, id);
+        remaining.delete(id);
+      }
+    }
+    expect(remaining.size).toBe(0);
+    expect(s.visitedPorts).toEqual(
+      expect.arrayContaining(['reykjavik', 'brattahlid', 'leifsbudir']),
+    );
   });
 });

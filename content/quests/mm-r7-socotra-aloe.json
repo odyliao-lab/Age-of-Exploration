@@ -1,0 +1,49 @@
+{
+  "id": "mm-r7-socotra-aloe",
+  "title": "非洲之角與龍血樹之島",
+  "scenario": "monsoon-merchant",
+  "chapter": 0,
+  "tier": 0,
+  "kind": "region",
+  "giver_port": "aden",
+  "objectives": [
+    {
+      "domain": "C",
+      "text": "知道索科特拉島有許多特有植物。"
+    }
+  ],
+  "prerequisites": ["mm-02-hormuz"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "亞丁的藥材商",
+      "lines": [
+        "往東南走，非洲之角外海有一座大島，島上長著割開會流出紅色汁液的「龍血樹」。",
+        "先去非洲之角的海角看看，那裡是亞丁灣通往大洋的出口。"
+      ]
+    },
+    {
+      "type": "discover",
+      "target": "horn-of-africa"
+    },
+    {
+      "type": "quiz",
+      "question": "為什麼索科特拉島上有很多世界上其他地方沒有的植物？",
+      "choices": [
+        "島嶼長期和大陸隔絕，生物各自演化出獨特的種類",
+        "因為島上很冷",
+        "因為島上有很多人種樹",
+        "因為島上沒有陽光"
+      ],
+      "answer": 0,
+      "explanation": "索科特拉島和大陸分開了很久，島上的動植物各自演化，出現許多只有這裡才有的特有種，像是龍血樹。島嶼常常是研究演化的好地方。"
+    }
+  ],
+  "reward": {
+    "xp": 90,
+    "gold": 100,
+    "reputation": 6,
+    "unlock_ports": [],
+    "codex": []
+  }
+}

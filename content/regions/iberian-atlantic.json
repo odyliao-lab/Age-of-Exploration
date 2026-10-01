@@ -1,0 +1,8 @@
+{
+  "id": "iberian-atlantic",
+  "name": "伊比利半島與大西洋群島",
+  "name_en": "Iberia & the Atlantic Islands",
+  "description": "從葡萄牙的海岸往西南，散布著馬德拉、加那利與亞速群島。夏天沿岸吹北風，往南容易、回程難；葡萄牙的航海者在這片海上學會了繞大圈借西風回家。",
+  "center": [-16, 36],
+  "bbox": [-32, 27, -5, 44]
+}

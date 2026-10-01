@@ -1,0 +1,61 @@
+{
+  "id": "wg-00-palos",
+  "title": "往西的船隊",
+  "scenario": "westward-gamble",
+  "chapter": 0,
+  "tier": 0,
+  "kind": "main",
+  "giver_port": "palos",
+  "objectives": [
+    {
+      "domain": "A",
+      "text": "能在海圖上找到加那利群島。"
+    },
+    {
+      "domain": "D",
+      "text": "知道往西航行前要先往南找東北信風。"
+    }
+  ],
+  "prerequisites": [],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "熱那亞來的船長",
+      "lines": [
+        "年輕人，你想跟我們往西航行嗎？我相信只要一直往西，就能到達印度和中國。",
+        "可是我們不直接往西開：先往南到加那利群島，那裡的風一年到頭都從東北吹，會把船推向西方。"
+      ]
+    },
+    {
+      "type": "locate",
+      "prompt": "出發前先找找看：加那利群島在非洲西北外海，大約北緯 28°、西經 15°。請在海圖上點出它的位置（滑過海圖時左下角會顯示經緯度）。",
+      "target": [-15.5, 28.1],
+      "tolerance_km": 200,
+      "explanation": "加那利群島在非洲西北外海、北緯 28° 附近。從這裡往西，正好進入東北信風帶。"
+    },
+    {
+      "type": "navigate",
+      "target": "las-palmas",
+      "hint_level": 1
+    },
+    {
+      "type": "quiz",
+      "question": "1492 年的學者對地球的看法，下列哪一個正確？",
+      "choices": [
+        "大家都知道地球是圓的，爭論的是地球有多大",
+        "大家都以為地球是平的",
+        "大家都知道美洲在大西洋的另一邊",
+        "大家都以為地球是方的"
+      ],
+      "answer": 0,
+      "explanation": "古希臘人早就知道地球是圓的，也量出了地球的大小。哥倫布的問題是把地球估計得太小，以為往西幾千公里就是亞洲。"
+    }
+  ],
+  "reward": {
+    "xp": 60,
+    "gold": 100,
+    "reputation": 5,
+    "unlock_ports": ["las-palmas"],
+    "codex": ["earth-size"]
+  }
+}

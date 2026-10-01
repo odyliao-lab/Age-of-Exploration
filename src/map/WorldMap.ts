@@ -36,6 +36,14 @@ export interface ShipStyle {
   hull: number;
   sail: number;
   flag: number;
+  rig?: 'junk' | 'lateen' | 'square';
+}
+
+/** 歷史航線（參考用的虛線與名稱） */
+export interface HistoricRouteView {
+  name: string;
+  points: LonLat[];
+  color: number;
 }
 
 export interface PortMarker {
@@ -122,6 +130,10 @@ export class WorldMap {
   private world = new Container();
   private portLayer = new Container();
   private routeGfx = new Graphics();
+  private historyGfx = new Graphics();
+  private historyLabels = new Container();
+  private history: HistoricRouteView[] = [];
+  private historyScale = 0;
   private marksGfx = new Graphics();
   private places = new PlaceLabels((id) => this.opts.onPlaceTap?.(id));
   private notes = new ChartNotes((id) => this.opts.onNoteTap?.(id));
@@ -212,6 +224,8 @@ export class WorldMap {
       this.seaLife.container,
       this.windGfx,
       this.drawGraticule(),
+      this.historyGfx,
+      this.historyLabels,
       this.routeGfx,
       this.courseGfx,
       this.marksGfx,
@@ -343,6 +357,64 @@ export class WorldMap {
   setWindField(sampler: FieldSampler | null) {
     this.windSampler = sampler;
     drawWindField(this.windGfx, sampler, this.view, this.size);
+  }
+
+  /** 歷史航線：空陣列表示關閉 */
+  setHistoricRoutes(routes: HistoricRouteView[]) {
+    this.history = routes;
+    this.historyLabels.removeChildren().forEach((c) => c.destroy());
+    for (const r of routes) {
+      const label = new Text({
+        text: r.name,
+        style: {
+          fontFamily: 'Noto Sans TC, PingFang TC, Microsoft JhengHei, sans-serif',
+          fontSize: 12,
+          fontWeight: '700',
+          fill: r.color,
+          stroke: { color: 0xfbf6ea, width: 3 },
+        },
+        resolution: 2,
+      });
+      label.anchor.set(0.5, 1);
+      const mid = lonLatToWorld(r.points[Math.floor(r.points.length / 2)]);
+      label.position.set(mid.x, mid.y);
+      this.historyLabels.addChild(label);
+    }
+    this.drawHistory(true);
+  }
+
+  private drawHistory(force = false) {
+    // 只在縮放改變時重畫（平移不用）；跟船航行時鏡頭每幀都在動，但縮放不變
+    if (!force && this.historyScale === this.view.scale) return;
+    this.historyScale = this.view.scale;
+    const g = this.historyGfx;
+    g.clear();
+    const inv = 1 / this.view.scale;
+    for (const l of this.historyLabels.children) l.scale.set(inv);
+    for (const r of this.history) {
+      const pts = r.points.map((p) => lonLatToWorld(p));
+      // 拉得很近時畫成淡淡的實線，免得虛線段數太多
+      if (this.view.scale >= 4) {
+        g.moveTo(pts[0].x, pts[0].y);
+        for (const p of pts.slice(1)) g.lineTo(p.x, p.y);
+        g.stroke({ width: 2 * inv, color: r.color, alpha: 0.45 });
+        continue;
+      }
+      const dash = 3 * inv;
+      const gap = 4 * inv;
+      for (let i = 1; i < pts.length; i++) {
+        const a = pts[i - 1];
+        const b = pts[i];
+        const len = Math.hypot(b.x - a.x, b.y - a.y);
+        const ux = (b.x - a.x) / (len || 1);
+        const uy = (b.y - a.y) / (len || 1);
+        for (let d = 0; d < len; d += dash + gap) {
+          const e = Math.min(len, d + dash);
+          g.moveTo(a.x + ux * d, a.y + uy * d).lineTo(a.x + ux * e, a.y + uy * e);
+        }
+      }
+      g.stroke({ width: 2.2 * inv, color: r.color, alpha: 0.8 });
+    }
   }
 
   /** 船員看到的海洋生物與景象，畫在船邊 */
@@ -544,6 +616,7 @@ export class WorldMap {
     this.places.setScale(this.view.scale);
     this.notes.setScale(this.view.scale);
     this.drawRoute();
+    this.drawHistory();
     this.drawMarks();
     this.drawCourse();
   }

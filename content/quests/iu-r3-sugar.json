@@ -1,0 +1,44 @@
+{
+  "id": "iu-r3-sugar",
+  "title": "馬德拉的糖",
+  "scenario": "into-the-unknown",
+  "chapter": 0,
+  "tier": 0,
+  "kind": "region",
+  "giver_port": "funchal",
+  "objectives": [
+    {
+      "domain": "F",
+      "text": "知道甘蔗需要溫暖與充足的水。"
+    }
+  ],
+  "prerequisites": ["iu-01-madeira"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "豐沙爾的糖商",
+      "lines": ["里斯本的商人等著這批糖，運 8 擔回去吧。回程記得往西北繞，借西風。"]
+    },
+    {
+      "type": "deliver",
+      "good": "sugar",
+      "qty": 8,
+      "target": "lisbon",
+      "text": "在豐沙爾的市集買蔗糖"
+    },
+    {
+      "type": "quiz",
+      "question": "馬德拉島在陡峭的山坡上種甘蔗，最需要什麼設施？",
+      "choices": ["把山上的水引下來灌溉的水圳", "防雪的屋頂", "運河", "風車"],
+      "answer": 0,
+      "explanation": "甘蔗需要大量的水。馬德拉島的人在山壁上開鑿長長的水圳（levadas），把山上的雨水引到梯田灌溉，有些水圳到今天還在使用。"
+    }
+  ],
+  "reward": {
+    "xp": 80,
+    "gold": 140,
+    "reputation": 6,
+    "unlock_ports": [],
+    "codex": []
+  }
+}

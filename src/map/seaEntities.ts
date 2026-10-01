@@ -44,7 +44,7 @@ const FLEET_NAMES = {
   merchant: '商船',
   envoy: '使節船',
   armada: '鄭和的寶船艦隊',
-  rival: '陸天行的船',
+  rival: '對手船長的船',
 };
 
 /** 寶船艦隊的隊形：旗艦在前，後面的船排成兩列（船頭朝上的座標） */
@@ -116,7 +116,9 @@ export class SeaEntities {
         const formation: [number, number, number][] =
           f.kind === 'armada' ? ARMADA_FORMATION : [[0, 0, 1]];
         const ships = formation.map(([x, y, k]) => {
-          const ship = new ShipSprite(LOOKS[f.kind]);
+          // 印度洋西側的海盜船與商船是三角帆船（dhow），東側是中式帆船
+          const lateen = (f.kind === 'pirate' || f.kind === 'merchant') && f.position[0] < 80;
+          const ship = new ShipSprite({ ...LOOKS[f.kind], rig: lateen ? 'lateen' : 'junk' });
           ship.root.position.set(x, y);
           ship.root.scale.set(k);
           group.addChild(ship.root);

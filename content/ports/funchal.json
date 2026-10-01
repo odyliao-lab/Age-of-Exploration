@@ -1,0 +1,19 @@
+{
+  "id": "funchal",
+  "name": "豐沙爾",
+  "name_en": "Funchal",
+  "historical_names": [],
+  "country": "葡萄牙（馬德拉群島）",
+  "country_en": "Portugal (Madeira)",
+  "region": "iberian-atlantic",
+  "location": [-16.91, 32.65],
+  "kind": "port",
+  "goods": ["sugar", "wine"],
+  "climate": "副熱帶海洋性氣候",
+  "blurb": "馬德拉島的主要港口。葡萄牙人在 1420 年前後開始在這座無人島上定居，山坡上開出梯田種甘蔗，蔗糖成了島上最賺錢的產品。",
+  "sights": [],
+  "gossip": [
+    "「馬德拉」在葡萄牙語裡是「木頭」的意思，當初島上長滿了森林。",
+    "島上的山又高又陡，大家在山坡上開水圳，把山上的水引到甘蔗田。"
+  ]
+}

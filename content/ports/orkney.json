@@ -1,0 +1,16 @@
+{
+  "id": "orkney",
+  "name": "奧克尼群島",
+  "name_en": "Orkney",
+  "historical_names": ["伯塞"],
+  "country": "英國（蘇格蘭）",
+  "country_en": "United Kingdom (Scotland)",
+  "region": "north-sea",
+  "location": [-3.1, 59.0],
+  "kind": "port",
+  "goods": ["wool-cloth"],
+  "climate": "溫帶海洋性氣候",
+  "blurb": "蘇格蘭北邊外海的群島，北歐人在這裡建立了伯爵領地，島上處處是更古老的石器時代遺跡。",
+  "sights": [],
+  "gossip": ["島上幾乎沒有樹，風太大了。", "這些石圈比我們北歐人來得還早好幾千年。"]
+}

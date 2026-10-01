@@ -420,3 +420,61 @@ describe('waiting in port', () => {
     expect(waitInPort(world, { ...s, gold: 0 }, 1).state.day).toBe(s.day);
   });
 });
+
+describe('上岸取水', () => {
+  it('fills the water casks near a green coast but finds nothing on a desert coast', async () => {
+    const { fetchWater, fetchWaterBlocked, WATER_FETCH_DAYS } = await import('./state');
+    const s0 = departPort(world, newGame(world, 'into-the-unknown', 3).state);
+    const low = { ...s0.condition, supplies: { water: 5, food: 5 } };
+    // 幾內亞灣的海岸：雨量多，找得到河流
+    const green: GameState = {
+      ...s0,
+      ship: { position: [-1.3, 4.95], heading: 90 },
+      condition: low,
+    };
+    expect(fetchWaterBlocked(world, green)).toBeNull();
+    const r = fetchWater(world, green)!;
+    expect(r.found).toBe(true);
+    expect(r.state.condition.supplies.water).toBe(5 + WATER_FETCH_DAYS);
+    expect(fetchWaterBlocked(world, r.state)).not.toBeNull();
+    // 納米比沙漠的海岸：找不到淡水
+    const desert: GameState = {
+      ...s0,
+      ship: { position: [14.3, -22.9], heading: 180 },
+      condition: low,
+    };
+    expect(fetchWaterBlocked(world, desert)).toBeNull();
+    const d = fetchWater(world, desert)!;
+    expect(d.found).toBe(false);
+    expect(d.state.condition.supplies.water).toBe(5);
+    // 大洋中央看不到岸
+    const ocean: GameState = { ...s0, ship: { position: [-30, 0], heading: 180 } };
+    expect(fetchWaterBlocked(world, ocean)).toBe('離岸太遠了');
+  });
+});
+
+describe('正午量太陽', () => {
+  it('works south of the equator where Polaris is gone', async () => {
+    const { sightSun, sunSightBlocked, starSightBlocked } = await import('./state');
+    const { solarDeclination, noonSunAltitude } = await import('./navigation');
+    // 夏至太陽直射北回歸線附近、冬至直射南回歸線附近
+    expect(solarDeclination(6, 21)).toBeGreaterThan(23);
+    expect(solarDeclination(12, 21)).toBeLessThan(-23);
+    expect(noonSunAltitude(23.4, 23.4)).toBeCloseTo(90);
+    const s0 = departPort(world, newGame(world, 'into-the-unknown', 4).state);
+    // 第 0.25 天是正午（遊戲從早上 6 點開始）
+    const south: GameState = {
+      ...s0,
+      day: 0.25,
+      ship: { position: [5, -20], heading: 180 },
+      nav: { day: -20, errorKm: 300 },
+    };
+    expect(starSightBlocked({ ...south, day: 0.6 })).not.toBeNull();
+    expect(sunSightBlocked(south)).toBeNull();
+    const r = sightSun(world, south)!;
+    expect(r.text).toContain('南緯 20°');
+    expect(r.state.nav.errorKm).toBeLessThanOrEqual(45);
+    expect(sunSightBlocked(r.state)).not.toBeNull();
+    expect(sunSightBlocked({ ...south, day: 0.6 })).not.toBeNull();
+  });
+});

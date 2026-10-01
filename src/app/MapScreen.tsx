@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { COLORS, HULL_PAINTS, SAIL_PAINTS, colorOf } from '@/game/cosmetics';
 import type { LonLat } from '@/data/schema';
+import type { World } from '@/game/world';
 import { formatLonLat } from '@/map/projection';
 import { WorldMap, type PortMarker, type RouteView } from '@/map/WorldMap';
 import {
@@ -12,11 +13,14 @@ import {
   visiblePortIds,
   gameDate,
   landAt,
+  myShip,
+  sunOf,
 } from '@/game/state';
 import { currentAt, windAt } from '@/game/environment';
 import { darkness } from '@/game/navigation';
 import { insideMist, insideStorm } from '@/game/encounters';
 import { bearingDeg } from '@/geo/geo';
+import { findSeaPath } from '@/geo/seaPath';
 import { positionAt } from '@/game/voyage';
 import { isDebug } from './debug';
 import { onFogChange, useGame } from './store';
@@ -55,6 +59,14 @@ import { StatusBar } from './panels/StatusBar';
 const HOME_ZOOM = 5;
 /** 親手駕船時的鏡頭：約 4–6 度見方 */
 const SAIL_ZOOM = 30;
+
+/** 歷史航線的一站：港口或海上的一點 */
+function stopAt(world: World, stop: string | LonLat): LonLat {
+  return typeof stop === 'string' ? world.ports.get(stop)!.location : stop;
+}
+
+/** 歷史航線的顏色：朱紅、紫、青、赭 */
+const HISTORY_COLORS = [0x9b2f1f, 0x5b3f8a, 0x1f6b6b, 0x9a6a1a];
 
 export function MapScreen() {
   const world = useGame((s) => s.world)!;
@@ -187,6 +199,7 @@ export function MapScreen() {
 
   // ---- 船隻配色
   const look = game.appearance;
+  const shipRig = myShip(game).rig;
   useEffect(() => {
     if (!ready) return;
     const hex = (c: string) => parseInt(c.slice(1), 16);
@@ -194,8 +207,9 @@ export function MapScreen() {
       hull: hex(colorOf(HULL_PAINTS, look.hull)),
       sail: hex(colorOf(SAIL_PAINTS, look.sail)),
       flag: hex(colorOf(COLORS, look.flagColor)),
+      rig: shipRig === 'lug' ? 'junk' : shipRig,
     });
-  }, [ready, look.hull, look.sail, look.flagColor]);
+  }, [ready, look.hull, look.sail, look.flagColor, shipRig]);
 
   // ---- 船與航線
   useEffect(() => {
@@ -263,7 +277,7 @@ export function MapScreen() {
     );
     m.setPositionError(g.helm ? g.ship.position : null, g.helm ? positionErrorKm(world, g) : 0);
     m.setSky(
-      g.helm ? darkness(g.day) : 0,
+      g.helm ? darkness(g.day, sunOf(g)) : 0,
       !!g.helm && !!insideStorm(g.storms, g.ship.position),
       !!g.helm && !!insideMist(g.mists, g.ship.position),
     );
@@ -318,6 +332,26 @@ export function MapScreen() {
     );
   }, [ready, windField, month, world]);
 
+  // ---- 歷史航線：依港口順序在海上連成虛線
+  const historyRoutes = useGame((s) => s.historyRoutes);
+  const historic = useMemo(() => {
+    if (!historyRoutes) return [];
+    const harbors = [...world.harbors.values()];
+    return scenario.historic_routes.map((r, i) => {
+      const points: LonLat[] = [];
+      for (let k = 1; k < r.ports.length; k++) {
+        const a = stopAt(world, r.ports[k - 1]);
+        const b = stopAt(world, r.ports[k]);
+        const leg = findSeaPath(a, b, harbors) ?? [a, b];
+        points.push(...(points.length ? leg.slice(1) : leg));
+      }
+      return { name: r.name, points, color: HISTORY_COLORS[i % HISTORY_COLORS.length] };
+    });
+  }, [historyRoutes, scenario, world]);
+  useEffect(() => {
+    if (ready) mapRef.current?.setHistoricRoutes(historic);
+  }, [ready, historic]);
+
   // ---- 從圖鑑跳到海圖上的地點：移過去並放光圈標出位置
   const mapFocus = useGame((s) => s.mapFocus);
   useEffect(() => {
@@ -371,6 +405,7 @@ export function MapScreen() {
     hull: colorOf(HULL_PAINTS, look.hull),
     sail: colorOf(SAIL_PAINTS, look.sail),
     flag: colorOf(COLORS, look.flagColor),
+    lateen: shipRig === 'lateen',
   };
 
   return (
@@ -395,9 +430,11 @@ export function MapScreen() {
               appearance={game.appearance}
               ship={shipColors}
               returnFrom={lastBuilding}
-              talk={folkLines(dockedPort!.id, culture, dockedPort!.gossip, festival?.text)}
+              talk={folkLines(dockedPort!.id, culture, dockedPort!.gossip, festival?.text).map(
+                world.rename,
+              )}
               festival={festival?.decor ?? null}
-              darkness={darkness(game.day)}
+              darkness={darkness(game.day, sunOf(game))}
               onEnter={(kind) => useGame.getState().enterBuilding(kind)}
             />
             {festival && (
@@ -443,6 +480,18 @@ export function MapScreen() {
             >
               🌬️ <span className="tool-label">{windField ? '關閉風與洋流圖' : '風與洋流圖'}</span>
             </button>
+            {scenario.historic_routes.length > 0 && (
+              <button
+                type="button"
+                className={historyRoutes ? 'on' : ''}
+                aria-pressed={historyRoutes}
+                aria-label="歷史航線"
+                title="歷史航線"
+                onClick={() => useGame.getState().toggleHistoryRoutes()}
+              >
+                📜 <span className="tool-label">{historyRoutes ? '關閉歷史航線' : '歷史航線'}</span>
+              </button>
+            )}
           </div>
         )}
         {noteEdit && <NoteEditor key={`${noteEdit.id}-${noteEdit.at.join(',')}`} />}
@@ -450,6 +499,18 @@ export function MapScreen() {
           <div className={`wind-legend ${atSea ? 'at-sea' : ''}`}>
             <span className="w">➜</span> 風（{month} 月）{'  '}
             <span className="c">➜</span> 洋流
+          </div>
+        )}
+
+        {historyRoutes && !showTown && historic.length > 0 && (
+          <div className="history-legend">
+            {historic.map((r) => (
+              <div key={r.name}>
+                <i style={{ borderColor: `#${r.color.toString(16).padStart(6, '0')}` }} />
+                {r.name}
+              </div>
+            ))}
+            {scenario.historic_note && <p className="meta">{scenario.historic_note}</p>}
           </div>
         )}
 

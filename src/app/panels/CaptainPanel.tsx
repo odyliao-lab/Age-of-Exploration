@@ -3,8 +3,8 @@ import { ACHIEVEMENTS } from '@/game/achievements';
 import { ATTRIBUTE_INFO, ATTRIBUTE_KEYS, xpToNext } from '@/game/captain';
 import { SKILL_PATHS, SKILLS, type SkillPath } from '@/game/progression';
 import { exportSaveJson, importSaveJson } from '@/game/save';
-import { chartedArea, skillStatus } from '@/game/state';
-import { useGame } from '../store';
+import { chartedArea, isMainPort, mainPortNames, portsProgress, skillStatus } from '@/game/state';
+import { sharedProgress, useGame } from '../store';
 import { getSoundSettings, setSoundSettings } from '../sound';
 import { getLargeText, setLargeText } from '../display';
 import { reputationRank } from '@/game/reputation';
@@ -154,7 +154,7 @@ function CaptainTab() {
         <li>完成航行：{game.stats.voyages} 次</li>
         <li>海圖面積：約 {chartedArea(game)} 萬平方公里</li>
         <li>
-          造訪港口：{game.visitedPorts.length} / {world.content.ports.length}
+          造訪港口：{portsProgress(world, game).visited} / {portsProgress(world, game).total}
         </li>
         <li>
           圖鑑：{game.discovered.length} / {world.content.codex.length}
@@ -256,7 +256,13 @@ function SkillsTab() {
 
 function AchievementsTab() {
   const game = useGame((s) => s.game)!;
+  const world = useGame((s) => s.world)!;
+  const saves = useGame((s) => s.saves);
   const chooseTitle = useGame((s) => s.chooseTitle);
+  const shared = sharedProgress(world, saves, game.scenarioId).achievements;
+  const elsewhere = ACHIEVEMENTS.filter(
+    (a) => !game.achievements.includes(a.id) && shared.has(a.id),
+  ).length;
   const titles = ACHIEVEMENTS.filter((a) => a.title && game.achievements.includes(a.id));
   return (
     <>
@@ -273,10 +279,12 @@ function AchievementsTab() {
       </label>
       <p className="meta">
         已解鎖 {game.achievements.length} / {ACHIEVEMENTS.length}
+        {elsewhere > 0 && `（其他劇本另外解鎖 ${elsewhere} 個）`}
       </p>
       <div className="achievement-grid">
         {ACHIEVEMENTS.map((a) => {
-          const done = game.achievements.includes(a.id);
+          const from = game.achievements.includes(a.id) ? undefined : shared.get(a.id);
+          const done = game.achievements.includes(a.id) || !!from;
           const secret = a.hidden && !done;
           return (
             <div key={a.id} className={done ? 'achievement done' : 'achievement'}>
@@ -287,6 +295,7 @@ function AchievementsTab() {
                 <strong>{secret ? '隱藏成就' : a.name}</strong>
                 <div className="meta">{secret ? '繼續探索就會發現…' : a.description}</div>
                 {a.title && !secret && <div className="meta">稱號：{a.title}</div>}
+                {from && <div className="meta">在「{from}」劇本解鎖</div>}
               </div>
             </div>
           );
@@ -357,7 +366,7 @@ function LooksTab() {
   const buyPaint = useGame((s) => s.buyPaint);
   const look = game.appearance;
   const ach = game.achievements;
-  const atHub = !!game.dockedAt && world.ports.get(game.dockedAt)?.kind === 'hub';
+  const atHub = isMainPort(world, game, game.dockedAt);
   const lockText = (o: StyleOption) => (o.achievement ? achievementHint(o.achievement, ach) : '');
 
   const choices = (
@@ -477,7 +486,7 @@ function LooksTab() {
       <p className="meta">
         {atHub
           ? `新塗裝每種 ${PAINT_PRICE} 金，買過就能隨時換回。`
-          : '新塗裝要停靠主港（泉州、麻六甲）時才能在造船廠購買。'}
+          : `新塗裝要停靠主港（${mainPortNames(world, game).join('、')}）時才能在造船廠購買。`}
       </p>
     </>
   );

@@ -1,0 +1,8 @@
+{
+  "id": "caribbean",
+  "name": "加勒比海與安地列斯群島",
+  "name_en": "Caribbean & the Antilles",
+  "description": "一串串熱帶島嶼圍成的海，島上住著泰諾人。天氣溫暖潮濕，夏末到秋天是颶風季節。",
+  "center": [-75, 20],
+  "bbox": [-90, 8, -62, 28]
+}

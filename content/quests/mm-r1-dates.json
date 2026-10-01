@@ -1,0 +1,51 @@
+{
+  "id": "mm-r1-dates",
+  "title": "椰棗運到卡利卡特",
+  "scenario": "monsoon-merchant",
+  "chapter": 1,
+  "tier": 1,
+  "kind": "region",
+  "giver_port": "jeddah",
+  "objectives": [
+    {
+      "domain": "F",
+      "text": "知道椰棗是乾燥地區綠洲的重要作物。"
+    },
+    {
+      "domain": "D",
+      "text": "能說明綠洲為什麼能在沙漠中種作物。"
+    }
+  ],
+  "prerequisites": ["mm-03-monsoon"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "吉達的椰棗商",
+      "lines": [
+        "印度的商人最喜歡阿拉伯的椰棗，又甜又耐放，航海時也能當乾糧。",
+        "運 10 擔椰棗到卡利卡特吧。"
+      ]
+    },
+    {
+      "type": "deliver",
+      "good": "dates",
+      "qty": 10,
+      "target": "calicut",
+      "text": "在吉達的市集買椰棗"
+    },
+    {
+      "type": "quiz",
+      "question": "椰棗樹能在阿拉伯的沙漠裡長得很好，主要靠什麼？",
+      "choices": ["綠洲的地下水，加上耐熱耐旱的特性", "每天都下大雨", "沙漠裡很冷", "種在海水裡"],
+      "answer": 0,
+      "explanation": "椰棗樹耐熱又耐乾，只要根部能碰到綠洲的地下水就能結果。所以沙漠裡的綠洲常常種滿椰棗樹，椰棗也成了阿拉伯人重要的食物與貿易品。"
+    }
+  ],
+  "reward": {
+    "xp": 120,
+    "gold": 150,
+    "reputation": 8,
+    "unlock_ports": [],
+    "codex": []
+  }
+}

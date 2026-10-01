@@ -36,6 +36,18 @@ export const GOODS_PRICE: Record<string, number> = {
   myrrh: 42,
   dates: 10,
   ambergris: 95,
+  wine: 20,
+  sugar: 34,
+  salt: 8,
+  'gold-dust': 110,
+  ivory: 70,
+  'gum-arabic': 24,
+  malagueta: 28,
+  cassava: 10,
+  stockfish: 14,
+  'walrus-ivory': 80,
+  'wool-cloth': 18,
+  timber: 16,
 };
 
 const PRODUCER_FACTOR = 0.55;
@@ -72,7 +84,7 @@ export function pressureNow(market: Market, portId: string, good: string, day: n
 }
 
 /** 不含波動的港口價格：產地便宜，離產地越遠越貴 */
-export function basePrice(ports: Port[], port: Port, good: string): number {
+export function basePrice(ports: readonly Port[], port: Port, good: string): number {
   const base = GOODS_PRICE[good];
   if (base === undefined) return 0;
   if (port.goods.includes(good)) return base * PRODUCER_FACTOR;
@@ -82,6 +94,9 @@ export function basePrice(ports: Port[], port: Port, good: string): number {
     : DISTANCE_FULL_KM;
   return base * (1 + DISTANCE_PREMIUM * Math.min(1, nearest / DISTANCE_FULL_KM));
 }
+
+/** 缺貨的貨物要在這個距離內買得到 */
+const SHORTAGE_RANGE_KM = 6000;
 
 /** 缺貨時收購價提高的倍數 */
 export const SHORTAGE_FACTOR = 1.4;
@@ -96,11 +111,33 @@ function hashText(text: string): number {
  * 市場缺貨：每週大約一半的港口缺某一種外地貨，收購價提高。
  * 依港口與週數決定，同一週都一樣，酒館裡聽得到消息。
  */
-export function shortageAt(ports: Port[], port: Port, day: number): string | null {
+const shortageCache = new WeakMap<readonly Port[], Map<string, string | null>>();
+
+export function shortageAt(ports: readonly Port[], port: Port, day: number): string | null {
+  // 同一週、同一個港口的結果都一樣；買賣時每一單位都會查一次，先記下來
+  const key = `${port.id}#${Math.floor(day / 7)}`;
+  let cache = shortageCache.get(ports);
+  if (!cache) shortageCache.set(ports, (cache = new Map()));
+  if (cache.has(key)) return cache.get(key)!;
+  const result = computeShortage(ports, port, day);
+  // 只留最近的結果，免得玩很久以後越積越多
+  if (cache.size > 400) cache.clear();
+  cache.set(key, result);
+  return result;
+}
+
+function computeShortage(ports: readonly Port[], port: Port, day: number): string | null {
   const h = hashText(`${port.id}#${Math.floor(day / 7)}`);
   if (h % 2) return null;
+  // 只缺附近海域買得到的貨（例如印度洋的港口不會缺只產在大西洋的葡萄酒）
   const candidates = Object.keys(GOODS_PRICE)
-    .filter((g) => !port.goods.includes(g) && ports.some((p) => p.goods.includes(g)))
+    .filter(
+      (g) =>
+        !port.goods.includes(g) &&
+        ports.some(
+          (p) => p.goods.includes(g) && distanceKm(p.location, port.location) <= SHORTAGE_RANGE_KM,
+        ),
+    )
     .sort();
   return candidates.length ? candidates[(h >>> 1) % candidates.length] : null;
 }
@@ -114,7 +151,7 @@ export interface Quote {
 }
 
 export function quote(
-  ports: Port[],
+  ports: readonly Port[],
   port: Port,
   good: string,
   market: Market,
@@ -151,7 +188,7 @@ export interface TradeState {
 
 /** 買進（一單位一單位計價，價格隨買進上漲）；錢或貨艙不夠時買到能買的量為止 */
 export function buyGoods(
-  ports: Port[],
+  ports: readonly Port[],
   port: Port,
   t: TradeState,
   good: string,
@@ -186,7 +223,7 @@ export function buyGoods(
 
 /** 賣出（價格隨賣出下跌）；回傳收入與這批貨的利潤 */
 export function sellGoods(
-  ports: Port[],
+  ports: readonly Port[],
   port: Port,
   t: TradeState,
   good: string,

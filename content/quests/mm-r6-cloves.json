@@ -1,0 +1,52 @@
+{
+  "id": "mm-r6-cloves",
+  "title": "丁香運回亞丁",
+  "scenario": "monsoon-merchant",
+  "chapter": 3,
+  "tier": 2,
+  "kind": "region",
+  "giver_port": "malacca",
+  "objectives": [
+    {
+      "domain": "F",
+      "text": "知道丁香產在東南亞的香料群島，經麻六甲轉運。"
+    }
+  ],
+  "prerequisites": ["mm-08-below-the-winds"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "麻六甲的香料商",
+      "lines": [
+        "丁香和肉豆蔻產在更東邊的香料群島，全世界只有那幾個小島長得出來，都要先運到麻六甲。",
+        "運 8 擔丁香回亞丁吧——在開羅和威尼斯，它的價錢可以翻好幾倍。"
+      ]
+    },
+    {
+      "type": "deliver",
+      "good": "cloves",
+      "qty": 8,
+      "target": "aden",
+      "text": "在麻六甲或三寶壟的市集買丁香"
+    },
+    {
+      "type": "quiz",
+      "question": "丁香從香料群島到地中海，價錢為什麼越來越貴？",
+      "choices": [
+        "路途遙遠，每經過一個轉運港都要加上運費、稅金和商人的利潤",
+        "因為丁香在路上會長大",
+        "因為地中海也產丁香",
+        "因為只能用駱駝運"
+      ],
+      "answer": 0,
+      "explanation": "香料從產地經麻六甲、印度、亞丁或霍爾木茲，再轉運到開羅、威尼斯，每一段都要付運費、關稅，每一手商人也要賺錢。產地便宜、離產地越遠越貴，這就是貿易的利潤來源。"
+    }
+  ],
+  "reward": {
+    "xp": 240,
+    "gold": 350,
+    "reputation": 18,
+    "unlock_ports": [],
+    "codex": []
+  }
+}

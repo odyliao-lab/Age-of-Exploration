@@ -1,0 +1,19 @@
+{
+  "id": "reykjavik",
+  "name": "雷克雅維克",
+  "name_en": "Reykjavík",
+  "historical_names": [],
+  "country": "冰島",
+  "country_en": "Iceland",
+  "region": "iceland",
+  "location": [-21.94, 64.15],
+  "kind": "hub",
+  "goods": ["stockfish", "wool-cloth"],
+  "climate": "寒帶苔原氣候（沿海較溫和）",
+  "blurb": "冰島西南岸的海灣，第一位定居冰島的北歐人就住在這裡。名字的意思是「冒煙的海灣」——地底冒出的溫泉蒸氣，遠遠看像煙一樣。",
+  "sights": [],
+  "gossip": [
+    "地底下的熱水會從地面噴出來，高得跟屋頂一樣。",
+    "今年夏天大家在全民大會上決定，全島都要改信基督教。"
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "id": "walrus-ivory",
+  "category": "goods",
+  "name": "海象牙",
+  "name_en": "Walrus Ivory",
+  "domains": ["F", "C"],
+  "body": "海象的長牙，是格陵蘭北歐人最重要的出口商品。中世紀歐洲的工匠用它雕刻棋子和裝飾品，著名的「路易斯西洋棋」就是用海象牙雕成的。今天海象受到保護。",
+  "source": "維基百科「海象」「路易斯西洋棋」條目",
+  "reviewed": false
+}

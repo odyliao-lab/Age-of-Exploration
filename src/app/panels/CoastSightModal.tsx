@@ -104,7 +104,8 @@ export function CoastSightModal() {
                 </p>
                 <p className="lesson">
                   <strong>地理小教室：</strong>
-                  《鄭和航海圖》上畫滿了沿岸的山形、島嶼與港口，航海者靠著比對眼前的海岸與航海圖來判斷位置。
+                  {world.scenarios.get(game.scenarioId)?.coast_lesson ??
+                    '《鄭和航海圖》上畫滿了沿岸的山形、島嶼與港口，航海者靠著比對眼前的海岸與航海圖來判斷位置。'}
                   記住海岸線的形狀——半島、海灣、海峽——就是認識地理的第一步。
                 </p>
                 <div className="row end">

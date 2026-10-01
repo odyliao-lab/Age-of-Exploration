@@ -37,6 +37,22 @@ function Hat({ id }: { id: string }) {
           <circle cx="32" cy="16" r="2.5" fill="#b5482b" />
         </g>
       );
+    case 'barrete':
+      // 葡萄牙水手的軟帽：垂向一側的紅色布帽
+      return (
+        <g {...line}>
+          <path d="M20 23 Q20 12 32 12 Q44 12 46 18 Q48 22 44 23 Z" fill="#9b2f1f" />
+          <path d="M20 23 L44 23" strokeWidth={2.5} />
+        </g>
+      );
+    case 'woolcap':
+      // 北歐人的羊毛圓帽
+      return (
+        <g {...line}>
+          <path d="M20 23 Q20 11 32 11 Q44 11 44 23 Z" fill="#6b5a3a" />
+          <path d="M20 23 L44 23" strokeWidth={3} stroke="#8a6a3a" />
+        </g>
+      );
     case 'captain':
       return (
         <g {...line}>

@@ -1,0 +1,47 @@
+{
+  "id": "iu-r4-malagueta",
+  "title": "天堂椒",
+  "scenario": "into-the-unknown",
+  "chapter": 2,
+  "tier": 2,
+  "kind": "region",
+  "giver_port": "elmina",
+  "objectives": [
+    {
+      "domain": "F",
+      "text": "知道天堂椒是西非出產的辛香料。"
+    }
+  ],
+  "prerequisites": ["iu-05-mina"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "艾爾米納的商人",
+      "lines": [
+        "在印度的胡椒運到歐洲之前，這種辛辣的種子在里斯本可是搶手貨，大家叫它「天堂椒」。",
+        "運 8 擔回里斯本吧。"
+      ]
+    },
+    {
+      "type": "deliver",
+      "good": "malagueta",
+      "qty": 8,
+      "target": "lisbon",
+      "text": "在艾爾米納的市集買天堂椒"
+    },
+    {
+      "type": "quiz",
+      "question": "天堂椒適合生長在什麼樣的地方？",
+      "choices": ["炎熱多雨的熱帶森林", "寒冷的高山", "乾燥的沙漠", "終年結冰的海岸"],
+      "answer": 0,
+      "explanation": "天堂椒是薑科植物，生長在西非沿海炎熱多雨的森林裡。產地附近的海岸因此被歐洲人叫做「胡椒海岸」（今天的賴比瑞亞一帶）。"
+    }
+  ],
+  "reward": {
+    "xp": 180,
+    "gold": 260,
+    "reputation": 12,
+    "unlock_ports": [],
+    "codex": []
+  }
+}

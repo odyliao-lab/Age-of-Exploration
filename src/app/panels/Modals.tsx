@@ -119,23 +119,24 @@ export function RewardModal({ modal }: { modal: Modal }) {
   }
 
   if (modal.type === 'info') {
+    const r = world.rename;
     return (
-      <ModalFrame title={modal.title}>
-        <p>{modal.text}</p>
+      <ModalFrame title={r(modal.title)}>
+        <p>{r(modal.text)}</p>
         {modal.stats && modal.stats.length > 0 && (
           <ul className="reward-list">
             {modal.stats.map((t) => (
-              <li key={t}>{t}</li>
+              <li key={t}>{r(t)}</li>
             ))}
           </ul>
         )}
         {modal.lesson && (
           <p className="lesson">
             <strong>地理小教室：</strong>
-            {modal.lesson}
+            {r(modal.lesson)}
           </p>
         )}
-        {modal.note && <p className="meta">{modal.note}</p>}
+        {modal.note && <p className="meta">{r(modal.note)}</p>}
         <div className="row end">
           <button type="button" className="primary" autoFocus onClick={dismiss}>
             繼續
@@ -281,15 +282,16 @@ function ShipwreckModal({ modal }: { modal: Extract<Modal, { type: 'shipwreck' }
 
 export function EventModal({ event }: { event: VoyageEvent }) {
   const respond = useGame((s) => s.respondEvent);
+  const r = useGame((s) => s.world?.rename ?? ((t: string) => t));
   // 海盜的「知識挑戰」選項會切換到問答畫面
   const [asking, setAsking] = useState(!event.choices && !!event.question);
   const q = event.question;
   return (
-    <ModalFrame title={event.title} label={event.title}>
-      <p>{event.text}</p>
+    <ModalFrame title={r(event.title)} label={event.title}>
+      <p>{r(event.text)}</p>
       {asking && q ? (
         <>
-          <p className="question">{q.prompt}</p>
+          <p className="question">{r(q.prompt)}</p>
           <div className="choices">
             {q.choices.map((c, i) => (
               <button
@@ -308,7 +310,7 @@ export function EventModal({ event }: { event: VoyageEvent }) {
           {event.lesson && event.id !== 'pirates' && (
             <p className="lesson">
               <strong>地理小教室：</strong>
-              {event.lesson}
+              {r(event.lesson)}
             </p>
           )}
           <div className="choices">
@@ -324,8 +326,8 @@ export function EventModal({ event }: { event: VoyageEvent }) {
                       c.id === 'quiz' ? setAsking(true) : respond({ choiceId: c.id })
                     }
                   >
-                    <strong>{c.label}</strong>
-                    <span className="meta"> — {c.hint}</span>
+                    <strong>{r(c.label)}</strong>
+                    <span className="meta"> — {r(c.hint)}</span>
                   </button>
                 ))
             ) : (

@@ -1,0 +1,46 @@
+{
+  "id": "iu-a1-astrolabe",
+  "title": "製圖師的考驗：正午的太陽",
+  "scenario": "into-the-unknown",
+  "chapter": 0,
+  "tier": 0,
+  "kind": "academy",
+  "giver_port": "lisbon",
+  "objectives": [
+    {
+      "domain": "A",
+      "text": "能說明用正午太陽高度推算緯度的原理。"
+    }
+  ],
+  "prerequisites": ["iu-00-lagos"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "王室製圖師",
+      "lines": [
+        "北極星在南方看不到，我們就量正午太陽的高度。領航員用星盤或四分儀量角度，再查一本記著太陽每天位置的表，就能算出緯度。"
+      ]
+    },
+    {
+      "type": "quiz",
+      "question": "同一天的正午，越往北走，太陽的高度會怎樣？",
+      "choices": ["越低", "越高", "不會變", "太陽會從北邊升起"],
+      "answer": 0,
+      "explanation": "在北回歸線以北，正午太陽都在南方天空。越往北走，太陽離天頂越遠、高度越低；越接近赤道，正午太陽越高。領航員就是利用這個規律推算緯度。"
+    },
+    {
+      "type": "locate",
+      "prompt": "請在海圖上點出赤道與本初子午線交會的地方（北緯 0°、東經 0°）。",
+      "target": [0, 0],
+      "tolerance_km": 200,
+      "explanation": "那是在幾內亞灣的海面上。赤道是緯度 0°，本初子午線是經度 0°，兩條線在大西洋的幾內亞灣裡交會。"
+    }
+  ],
+  "reward": {
+    "xp": 60,
+    "gold": 60,
+    "reputation": 3,
+    "unlock_ports": [],
+    "codex": []
+  }
+}

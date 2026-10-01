@@ -1,0 +1,59 @@
+{
+  "id": "iu-02-bojador",
+  "title": "越過博哈多爾角",
+  "scenario": "into-the-unknown",
+  "chapter": 0,
+  "tier": 0,
+  "kind": "main",
+  "giver_port": "funchal",
+  "objectives": [
+    {
+      "domain": "B",
+      "text": "能找到撒哈拉海岸與博哈多爾角。"
+    },
+    {
+      "domain": "D",
+      "text": "能說明撒哈拉沿岸乾燥的原因。"
+    }
+  ],
+  "prerequisites": ["iu-01-madeira"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "豐沙爾的領航員",
+      "lines": [
+        "再往南就是非洲的海岸了。那裡有個叫博哈多爾的海角，以前的水手都不敢越過，說過了那裡海水會沸騰。",
+        "五十多年前，吉爾·伊恩斯船長先往外海繞開淺灘，才平安越過。現在的船會一路走到阿爾金島的貿易站。"
+      ]
+    },
+    {
+      "type": "discover",
+      "target": "cape-bojador"
+    },
+    {
+      "type": "navigate",
+      "target": "arguin",
+      "hint_level": 2,
+      "text": "線索：博哈多爾角再往南，撒哈拉海岸外的一座小島，有葡萄牙人的貿易站。"
+    },
+    {
+      "type": "quiz",
+      "question": "撒哈拉沙漠一直延伸到大西洋的海邊，下列哪一個是它乾燥的原因？",
+      "choices": [
+        "位在副熱帶高壓帶，空氣下沉；外海又有加那利寒流，空氣不容易形成雨",
+        "因為那裡終年下雪",
+        "因為那裡在赤道上",
+        "因為那裡的海水是淡水"
+      ],
+      "answer": 0,
+      "explanation": "北緯 20°～30° 是副熱帶高壓帶，空氣下沉、不易降雨；沿岸往南流的加那利寒流讓近海的空氣又冷又穩定，只起霧不下雨。所以撒哈拉沙漠一路延伸到海邊。"
+    }
+  ],
+  "reward": {
+    "xp": 100,
+    "gold": 160,
+    "reputation": 8,
+    "unlock_ports": ["arguin"],
+    "codex": []
+  }
+}

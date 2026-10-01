@@ -1,0 +1,19 @@
+{
+  "id": "mpinda",
+  "name": "姆平達（剛果河口）",
+  "name_en": "Mpinda",
+  "historical_names": [],
+  "country": "安哥拉",
+  "country_en": "Angola",
+  "region": "gulf-of-guinea",
+  "location": [12.35, -6.05],
+  "kind": "port",
+  "goods": ["ivory"],
+  "climate": "熱帶莽原氣候",
+  "blurb": "剛果河口南岸的港口，屬於剛果王國的索約省。1482 年前後葡萄牙航海者抵達這裡，開始和剛果王國往來。",
+  "sights": [],
+  "gossip": [
+    "剛果河的水量大到在海上好幾十公里外都喝得到淡水。",
+    "剛果王國的首都在內陸的高原上，國王叫做「曼尼剛果」。"
+  ]
+}

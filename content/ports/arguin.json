@@ -1,0 +1,19 @@
+{
+  "id": "arguin",
+  "name": "阿爾金島",
+  "name_en": "Arguin",
+  "historical_names": [],
+  "country": "茅利塔尼亞",
+  "country_en": "Mauritania",
+  "region": "west-africa",
+  "location": [-16.43, 20.6],
+  "kind": "port",
+  "goods": ["gum-arabic"],
+  "climate": "熱帶沙漠氣候",
+  "blurb": "撒哈拉沙漠海岸外的小島。葡萄牙人在島上蓋了貿易站，和騎駱駝從沙漠來的柏柏爾商人交換貨物。",
+  "sights": [],
+  "gossip": [
+    "島外的淺灘又寬又長，很多船在這裡擱淺。",
+    "沙漠商隊從內陸帶來阿拉伯膠和黃金，想換布、馬和小麥。"
+  ]
+}

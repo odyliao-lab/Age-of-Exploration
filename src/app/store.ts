@@ -40,10 +40,14 @@ import {
   hailRival,
   rivalAtTavern,
   RIVAL_BONUS,
-  RIVAL_NAME,
+  rivalOf,
+  portsProgress,
+  endingFor,
   sellToMerchant,
   takeSounding,
   goFishing,
+  fetchWater,
+  sightSun,
   crewSpeaker,
   sightStars,
   pray,
@@ -85,7 +89,8 @@ import { ACHIEVEMENT_MAP } from '@/game/achievements';
 import { SKILLS } from '@/game/progression';
 import { findSeaPath } from '@/geo/seaPath';
 import { play } from './sound';
-import type { World } from '@/game/world';
+import { scenarioWorld, type World } from '@/game/world';
+import { BUILDING_NAMES, cultureOf } from '@/town/layout';
 import type { Appearance } from '@/game/cosmetics';
 import type { SailSetting } from '@/game/sailing';
 import type { SeaSight } from '@/game/crewTalk';
@@ -142,18 +147,14 @@ export interface SaveInfo {
   updatedAt: number;
   /** 已完成的任務（主選單顯示各章進度） */
   completedQuests: string[];
+  /** 圖鑑與成就跨劇本共用（企畫書 3.3 第 6 點） */
+  discovered: string[];
+  achievements: string[];
+  /** 問答紀錄（知識掌握度跨劇本共用） */
+  quiz: { domains: string[]; firstTry: boolean }[];
 }
 
-const ENDINGS: Record<string, { title: string; text: string }> = {
-  'tf-12-qilin': {
-    title: '航海誌：麒麟之國',
-    text: '你追隨寶船的航跡，從泉州一路航行到非洲東岸。鄭和船隊七下西洋，最遠就到這裡。海圖上的每一段海岸，都是你親眼看過、親手畫下的。',
-  },
-  'tf-13-cape': {
-    title: '航海誌：海的盡頭',
-    text: '在想像的航程中，你看見了非洲的最南端。半個多世紀後，葡萄牙人繞過這裡，從大西洋來到了印度洋；而你已經帶著一整張自己畫的海圖，走過了東西方的海上之路。',
-  },
-};
+export { sharedProgress } from '@/game/shared';
 
 function endingModal(world: World, g: GameState, e: { title: string; text: string }): Modal {
   const done = Object.values(g.quests).filter((q) => q.status === 'completed').length;
@@ -163,13 +164,13 @@ function endingModal(world: World, g: GameState, e: { title: string; text: strin
     text: e.text,
     stats: [
       `航海 ${Math.floor(g.day) + 1} 天，船長等級 ${g.captain.level}`,
-      `造訪港口 ${g.visitedPorts.length} / ${world.content.ports.length}`,
+      `造訪港口 ${portsProgress(world, g).visited} / ${portsProgress(world, g).total}`,
       `圖鑑 ${g.discovered.length} / ${world.content.codex.length} 張`,
       `海圖面積約 ${chartedArea(g)} 萬平方公里`,
       `完成任務 ${done} 個，回報傳聞發現 ${g.reported.length} 處`,
       `甩開海盜 ${g.stats.piratesOutwitted} 次，牽星定位 ${g.stats.starsCorrect} 次`,
       `名聲 ${g.reputation}（${reputationRank(g.reputation).title}），完成商人委託 ${g.stats.contracts} 件`,
-      `和${RIVAL_NAME}比賽：你贏 ${g.rival.wins} 次、他贏 ${g.rival.losses} 次`,
+      `和${rivalOf(world, g).name}比賽：你贏 ${g.rival.wins} 次、他贏 ${g.rival.losses} 次`,
       `參加節慶 ${g.festivalsSeen.length} 次，在海圖上寫了 ${g.notes.length} 個註記`,
     ],
     lesson: '還有沒找到的傳聞、沒去過的港口嗎？海圖上的空白，就是下一段冒險。',
@@ -217,6 +218,9 @@ interface GameStore {
   /** 海圖上顯示風與洋流圖 */
   windField: boolean;
   toggleWindField: () => void;
+  /** 海圖上顯示這個劇本的歷史航線 */
+  historyRoutes: boolean;
+  toggleHistoryRoutes: () => void;
   /** 從圖鑑跳到海圖上的某個地點 */
   mapFocus: { at: LonLat; key: number } | null;
   showOnMap: (at: LonLat) => void;
@@ -258,6 +262,8 @@ interface GameStore {
   /** 測深（打水） */
   sound: () => void;
   fish: () => void;
+  fetchWater: () => void;
+  sightSun: () => void;
   /** 向使節船致意 */
   greetEnvoy: (fleetId: number) => void;
   /** 向寶船艦隊致意 */
@@ -364,6 +370,8 @@ export function planSummary(world: World, game: GameState, planning: Planning) {
 }
 
 export const useGame = create<GameStore>((set, get) => {
+  /** 內容原本的世界；進入劇本時換成該劇本視角的世界（港口名稱不同） */
+  let baseWorld: World | null = null;
   /** 套用引擎結果：更新狀態、轉換事件、通知迷霧、排程存檔 */
   function apply(input: StepResult) {
     const { world } = get();
@@ -399,10 +407,11 @@ export const useGame = create<GameStore>((set, get) => {
         else if (e.sight === 'birds' || e.sight === 'albatross') play('chirp');
       }
     }
-    // 完成史實航程的終點（麻林）或想像航程（好望角）：航海誌總結
+    // 完成劇本的終點任務：航海誌總結
     for (const e of result.events) {
-      if (e.type === 'questCompleted' && ENDINGS[e.questId]) {
-        modals.push(endingModal(world, result.state, ENDINGS[e.questId]));
+      const ending = e.type === 'questCompleted' ? endingFor(world, result.state, e.questId) : null;
+      if (ending) {
+        modals.push(endingModal(world, result.state, ending));
       }
     }
     set((s) => ({
@@ -477,9 +486,12 @@ export const useGame = create<GameStore>((set, get) => {
       if (next !== game) commit(next);
     },
     toggleWindField: () => set((s) => ({ windField: !s.windField })),
+    historyRoutes: false,
+    toggleHistoryRoutes: () => set((s) => ({ historyRoutes: !s.historyRoutes })),
     seaSight: null,
 
     init: (world) => {
+      baseWorld = world;
       set({ world });
       void get().refreshSaves();
     },
@@ -487,11 +499,28 @@ export const useGame = create<GameStore>((set, get) => {
     refreshSaves: async () => set({ saves: await listSaves() }),
 
     startNew: async (scenarioId) => {
-      const { world } = get();
+      const world = baseWorld;
       if (!world) return;
       await deleteSave(scenarioId);
-      const { state } = newGame(world, scenarioId);
+      const { state } = newGame(scenarioWorld(world, scenarioId), scenarioId);
       get().loadGame(state);
+      // 新的航程：先用劇本簡介交代故事背景
+      const scenario = world.scenarios.get(scenarioId);
+      if (scenario) {
+        set((s) => ({
+          modals: [
+            ...s.modals,
+            {
+              type: 'info',
+              title: `${scenario.name}：序`,
+              text: scenario.description,
+              note: `${scenario.era}・歷史靈感：${scenario.inspiration}。先到「${
+                BUILDING_NAMES[cultureOf(world.ports.get(scenario.home_port)!.country)].office
+              }」接第一個差事吧！`,
+            },
+          ],
+        }));
+      }
       void persist(state);
     },
 
@@ -505,6 +534,7 @@ export const useGame = create<GameStore>((set, get) => {
       const game = ensureDaily(state, Date.now());
       if (fromDisk) persisted = game;
       set({
+        world: baseWorld ? scenarioWorld(baseWorld, state.scenarioId) : get().world,
         townView: true,
         building: null,
         lastBuilding: null,
@@ -633,6 +663,7 @@ export const useGame = create<GameStore>((set, get) => {
                 '收帆、半帆、滿帆控制速度；靠近港口會出現「入港」按鈕。',
               ],
               lesson:
+                world.scenarios.get(game.scenarioId)?.first_voyage_lesson ??
                 '冬天（11–3 月）南海與東海吹東北季風，往西南順風好走，往東北就是頂風。鄭和船隊都是冬天出發、夏天返航，就是順著季風航行。',
             },
           ],
@@ -785,6 +816,43 @@ export const useGame = create<GameStore>((set, get) => {
         toast({ text: `${crewSpeaker(world, game)}：「${r.catch.text}」`, kind: 'talk' });
       }
     },
+    fetchWater: () => {
+      const { world, game } = get();
+      if (!world || !game) return;
+      const r = fetchWater(world, game);
+      if (!r) return;
+      commit(r.state);
+      if (r.found) play('splash');
+      if (r.lesson) {
+        set((s) => ({
+          modals: [
+            ...s.modals,
+            { type: 'info', title: '上岸取水', text: r.text, lesson: r.lesson! },
+          ],
+        }));
+      } else {
+        toast({ text: `${crewSpeaker(world, game)}：「${r.text}」`, kind: 'talk' });
+      }
+    },
+    sightSun: () => {
+      const { world, game } = get();
+      if (!world || !game) return;
+      const r = sightSun(world, game);
+      if (!r) return;
+      apply({ state: r.state, events: r.events, fogChanged: [] });
+      scheduleSave(true);
+      play('correct');
+      if (r.lesson) {
+        set((s) => ({
+          modals: [
+            ...s.modals,
+            { type: 'info', title: '正午量太陽', text: r.text, lesson: r.lesson! },
+          ],
+        }));
+      } else {
+        toast({ text: `${crewSpeaker(world, game)}：「${r.text}」`, kind: 'talk' });
+      }
+    },
     enterBuilding: (kind) => {
       set({ building: kind, lastBuilding: kind });
       const { world, game } = get();
@@ -799,14 +867,14 @@ export const useGame = create<GameStore>((set, get) => {
           n.type === 'challenge'
             ? {
                 type: 'info',
-                title: `對手船長${RIVAL_NAME}`,
-                text: `一位穿著綢緞長袍的年輕船長把酒杯往桌上一放：「我是廣州來的${RIVAL_NAME}。聽說你也在打聽${n.target.rumor!.from}說的那個地方？${n.days} 天之內，看誰先找到、先回報給學者！」`,
+                title: `對手船長${rivalOf(world, game).name}`,
+                text: `${rivalOf(world, game).look}把酒杯往桌上一放：「我是${rivalOf(world, game).from}來的${rivalOf(world, game).name}。聽說你也在打聽${n.target.rumor!.from}說的那個地方？${n.days} 天之內，看誰先找到、先回報給學者！」`,
                 note: `比賽是選擇性的：${n.days} 天內搶先回報，學者會多給 ${RIVAL_BONUS.gold} 金幣和 ${RIVAL_BONUS.reputation} 點名聲。輸了也沒關係，那個地方還是可以去找。`,
               }
             : {
                 type: 'info',
-                title: `${RIVAL_NAME}搶先了`,
-                text: `${RIVAL_NAME}得意地晃著航海日誌：「${n.target.name}？我早就找到，還回報給學者啦！下次再比吧。」`,
+                title: `${rivalOf(world, game).name}搶先了`,
+                text: `${rivalOf(world, game).name}得意地晃著航海日誌：「${n.target.name}？我早就找到，還回報給學者啦！下次再比吧。」`,
                 note: '別灰心，那個地方你還是可以去找、去回報。下次在酒館遇到他，還會有新的比賽。',
               },
         ],
@@ -820,7 +888,7 @@ export const useGame = create<GameStore>((set, get) => {
       const next = pray(g);
       if (next === g) return;
       commit(next);
-      toast({ text: '上香祈求航海平安，船員士氣回升了。', kind: 'success' });
+      toast({ text: '祈求航海平安，船員士氣回升了。', kind: 'success' });
     },
 
     buyGood: (good, qty) => {
@@ -869,7 +937,7 @@ export const useGame = create<GameStore>((set, get) => {
       toast({ text: `學者記下了 ${r.count} 項發現，致贈 ${r.gold} 金幣！`, kind: 'success' });
       if (r.raceWon) {
         toast({
-          text: `你比${RIVAL_NAME}先一步！學者額外致贈 ${RIVAL_BONUS.gold} 金幣。`,
+          text: `你比${rivalOf(world, game).name}先一步！學者額外致贈 ${RIVAL_BONUS.gold} 金幣。`,
           kind: 'success',
         });
       }

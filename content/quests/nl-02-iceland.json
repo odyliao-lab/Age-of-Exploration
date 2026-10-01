@@ -1,0 +1,54 @@
+{
+  "id": "nl-02-iceland",
+  "title": "冒煙的海灣",
+  "scenario": "northern-longship",
+  "chapter": 1,
+  "tier": 1,
+  "kind": "main",
+  "giver_port": "nidaros",
+  "objectives": [
+    {
+      "domain": "C",
+      "text": "能說明冰島的火山與間歇泉。"
+    },
+    {
+      "domain": "A",
+      "text": "能找到冰島。"
+    }
+  ],
+  "prerequisites": ["nl-01-trade"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "老船主哈康",
+      "lines": [
+        "該去冰島了。從法羅群島再往西北走，看到冰河和冒煙的山，就是冰島。",
+        "聽說今年夏天冰島人在全民大會上決定改信基督教，大家都在討論這件事。"
+      ]
+    },
+    {
+      "type": "discover",
+      "target": "geysir"
+    },
+    {
+      "type": "navigate",
+      "target": "reykjavik",
+      "hint_level": 2,
+      "text": "線索：法羅群島西北方的大島，西南岸有一座「冒煙的海灣」。"
+    },
+    {
+      "type": "quiz",
+      "question": "英文的「間歇泉」（geyser）這個字，是從哪裡來的？",
+      "choices": ["冰島的一座噴泉「蓋錫爾」", "日本的溫泉", "義大利的火山", "中國的古書"],
+      "answer": 0,
+      "explanation": "冰島位在大西洋中洋脊上，地底很熱，地下水被加熱後會週期性地噴出地面。冰島西南部的「蓋錫爾」噴泉最有名，英文的 geyser 就來自它的名字。"
+    }
+  ],
+  "reward": {
+    "xp": 150,
+    "gold": 200,
+    "reputation": 12,
+    "unlock_ports": ["reykjavik"],
+    "codex": []
+  }
+}

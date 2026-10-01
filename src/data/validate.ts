@@ -2,6 +2,7 @@
  * 交叉參照驗證：確認各資料檔引用的 id 都存在，
  * 以及企畫書規定的內容規則（傳說必附科學對照、任務至少一個學習目標等）。
  */
+import { HATS } from '../game/cosmetics';
 import { SHIPS } from '../game/progression';
 import type { ContentBundle } from './schema';
 
@@ -138,6 +139,19 @@ export function crossValidate(bundle: ContentBundle): ContentIssue[] {
     const home = bundle.ports.find((p) => p.id === s.home_port);
     if (home && home.region !== s.home_region)
       issues.push({ file: f, message: '家鄉港口不在家鄉海域區內' });
+    if (s.start_hat && !HATS.some((h) => h.id === s.start_hat))
+      issues.push({ file: f, message: `未知的帽子：${s.start_hat}` });
+    for (const r of s.historic_routes)
+      for (const pid of r.ports)
+        if (typeof pid === 'string' && !portIds.has(pid))
+          issues.push({ file: f, message: `歷史航線「${r.name}」含未知港口：${pid}` });
+    for (const pid of Object.keys(s.port_names))
+      if (!portIds.has(pid)) issues.push({ file: f, message: `port_names 含未知港口：${pid}` });
+    for (const qid of Object.keys(s.endings)) {
+      const q = bundle.quests.find((x) => x.id === qid);
+      if (!q || q.scenario !== s.id)
+        issues.push({ file: f, message: `endings 的任務不在這個劇本：${qid}` });
+    }
   }
 
   return issues;

@@ -1,0 +1,51 @@
+{
+  "id": "nl-r4-wool",
+  "title": "羊之島的羊毛布",
+  "scenario": "northern-longship",
+  "chapter": 0,
+  "tier": 0,
+  "kind": "region",
+  "giver_port": "torshavn",
+  "objectives": [
+    {
+      "domain": "F",
+      "text": "知道北大西洋的島嶼以牧羊與羊毛布為生。"
+    }
+  ],
+  "prerequisites": ["nl-00-fjord"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "托爾斯港的織布婦人",
+      "lines": [
+        "島上的羊一年剪兩次毛，我們織出來的布又厚又防風。運 8 匹到尼達洛斯，換些木頭和鐵回來吧。"
+      ]
+    },
+    {
+      "type": "deliver",
+      "good": "wool-cloth",
+      "qty": 8,
+      "target": "nidaros",
+      "text": "在托爾斯港、奧克尼或都柏林的市集買羊毛布"
+    },
+    {
+      "type": "quiz",
+      "question": "法羅群島為什麼適合養羊，卻長不出大樹？",
+      "choices": [
+        "風大、夏天涼，樹長不高，但草地很茂盛",
+        "因為島上太熱",
+        "因為羊把島上的樹都吃光了，島上本來是熱帶雨林",
+        "因為島上沒有雨"
+      ],
+      "answer": 0,
+      "explanation": "法羅群島位在北大西洋中央，終年強風、夏天涼爽多雨，樹木很難長高，卻很適合長草。北歐移民帶來羊群，羊毛布成了島上最重要的產品，「法羅」在古諾斯語裡就是「羊之島」的意思。"
+    }
+  ],
+  "reward": {
+    "xp": 90,
+    "gold": 150,
+    "reputation": 6,
+    "unlock_ports": [],
+    "codex": []
+  }
+}

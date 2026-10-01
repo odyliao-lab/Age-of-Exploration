@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useMemo, useRef } from 'react';
 import { compass16 } from '@/geo/geo';
 import { knots, normDeg, type SailSetting } from '@/game/sailing';
 import {
@@ -16,6 +16,10 @@ import {
   coastSightBlocked,
   starSightBlocked,
   fishBlocked,
+  fetchWaterBlocked,
+  sunSightBlocked,
+  rivalOf,
+  sunOf,
 } from '@/game/state';
 import { isNight, timeLabel } from '@/game/navigation';
 import { useGame } from '../store';
@@ -61,6 +65,8 @@ export function HelmPanel() {
     greetArmada,
     hailRival,
     fish,
+    fetchWater,
+    sightSun,
   } = useGame.getState();
   const dial = useRef<SVGSVGElement>(null);
   const dragging = useRef(false);
@@ -90,9 +96,14 @@ export function HelmPanel() {
       ? `${ns} ${Math.abs(lat).toFixed(1)}°`
       : `${ns}約 ${Math.max(0, Math.abs(lat) - latSpread).toFixed(1)}°～${(Math.abs(lat) + latSpread).toFixed(1)}°`;
   const starBlocked = starSightBlocked(game);
-  const night = isNight(game.day);
+  const night = isNight(game.day, sunOf(game));
   const coastBlocked = coastSightBlocked(world, game);
   const canFish = !fishBlocked(game);
+  // 找附近有沒有陸地要檢查幾十個點：只在位置或冷卻狀態改變時重算
+  const waterKey = `${game.day - game.waterDay < 3}|${game.ship.position[0].toFixed(2)}|${game.ship.position[1].toFixed(2)}`;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const canFetchWater = useMemo(() => !fetchWaterBlocked(world, game), [world, waterKey]);
+  const canSightSun = !sunSightBlocked(game);
   const kn = knots(st.motion.speed);
   const sailClass =
     st.motion.pointOfSail === '頂風' ? 'bad' : st.motion.pointOfSail === '迎風' ? 'ok' : 'good';
@@ -150,7 +161,7 @@ export function HelmPanel() {
           )}
           {rivalShip && (
             <button type="button" onClick={() => hailRival(rivalShip.id)}>
-              📣 向陸天行喊話
+              📣 向{rivalOf(world, game).name}喊話
             </button>
           )}
           {armada && (
@@ -171,14 +182,24 @@ export function HelmPanel() {
           <button type="button" onClick={sound} title="放下測深錘，量水深、看海底">
             🪢 測深
           </button>
+          {canFetchWater && (
+            <button type="button" onClick={fetchWater} title="派小艇上岸找淡水（沙漠海岸找不到）">
+              💧 上岸取水
+            </button>
+          )}
           {canFish && (
             <button type="button" onClick={fish} title="撒網捕魚，補一點糧食（每天一次）">
               🐟 撒網
             </button>
           )}
+          {canSightSun && (
+            <button type="button" onClick={sightSun} title="量正午太陽的高度，推算緯度">
+              ☀️ 正午量太陽
+            </button>
+          )}
           {night && !starBlocked && (
             <button type="button" onClick={() => openStargazing(true)}>
-              ✨ 觀星定位（牽星術）
+              ✨ 觀星定位
             </button>
           )}
           {port && (
@@ -231,7 +252,7 @@ export function HelmPanel() {
             </span>
           </div>
           <div className="helm-nav">
-            <span>🕰️ {timeLabel(game.day)}</span>
+            <span>🕰️ {timeLabel(game.day, sunOf(game))}</span>
             <span title="航位推算：沒有定位時，誤差每天累積">
               📍 {latText}
               {errKm > 8 && <span className="meta">（誤差 ±{errKm} 公里）</span>}

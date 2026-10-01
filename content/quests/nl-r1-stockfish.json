@@ -1,0 +1,53 @@
+{
+  "id": "nl-r1-stockfish",
+  "title": "乾鱈魚運到都柏林",
+  "scenario": "northern-longship",
+  "chapter": 0,
+  "tier": 0,
+  "kind": "main",
+  "giver_port": "nidaros",
+  "objectives": [
+    {
+      "domain": "F",
+      "text": "知道乾鱈魚是北歐的重要商品。"
+    },
+    {
+      "domain": "D",
+      "text": "能說明寒冷乾燥的氣候適合做乾魚。"
+    }
+  ],
+  "prerequisites": ["nl-01-trade"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "尼達洛斯的魚商",
+      "lines": ["都柏林的商人愛死了我們的乾鱈魚，運 10 擔過去吧，換些銀子回來。"]
+    },
+    {
+      "type": "deliver",
+      "good": "stockfish",
+      "qty": 10,
+      "target": "dublin",
+      "text": "在尼達洛斯或雷克雅維克的市集買乾鱈魚"
+    },
+    {
+      "type": "quiz",
+      "question": "為什麼挪威北部和冰島特別適合做乾鱈魚？",
+      "choices": [
+        "冬春寒冷乾燥又有風，魚掛在架上不會腐壞，慢慢風乾",
+        "因為那裡很熱，魚很快就曬乾",
+        "因為那裡的魚本來就是乾的",
+        "因為那裡常下大雨"
+      ],
+      "answer": 0,
+      "explanation": "乾鱈魚要在接近冰點、乾燥有風的天氣裡掛好幾個月：太熱會腐壞，太濕會發霉。北歐高緯度的冬春氣候剛好合適，這種不用鹽的保存方法流傳了一千多年。"
+    }
+  ],
+  "reward": {
+    "xp": 100,
+    "gold": 160,
+    "reputation": 8,
+    "unlock_ports": [],
+    "codex": []
+  }
+}

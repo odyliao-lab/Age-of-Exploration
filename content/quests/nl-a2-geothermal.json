@@ -1,0 +1,49 @@
+{
+  "id": "nl-a2-geothermal",
+  "title": "說書人的考驗：冰與火之島",
+  "scenario": "northern-longship",
+  "chapter": 1,
+  "tier": 1,
+  "kind": "academy",
+  "giver_port": "reykjavik",
+  "objectives": [
+    {
+      "domain": "C",
+      "text": "能說明冰島為什麼有火山與溫泉。"
+    }
+  ],
+  "prerequisites": ["nl-02-iceland"],
+  "steps": [
+    {
+      "type": "quiz",
+      "question": "冰島為什麼有這麼多火山、溫泉和間歇泉？",
+      "choices": [
+        "它位在大西洋中洋脊上，兩塊板塊在這裡分開，地底的岩漿很靠近地面",
+        "因為冰島很靠近赤道",
+        "因為冰島的冰會發熱",
+        "因為冰島在海底"
+      ],
+      "answer": 0,
+      "explanation": "大西洋中洋脊是北美板塊與歐亞板塊分開的地方，岩漿從裂縫湧上來。冰島剛好騎在洋脊上，所以有火山、溫泉、間歇泉，辛格韋德利的大地裂縫還看得到兩塊板塊正在分開。"
+    },
+    {
+      "type": "quiz",
+      "question": "冰島又有冰河又有火山。冰河為什麼能在這裡存在？",
+      "choices": [
+        "緯度高、夏天涼，高山上的雪一年融不完，越積越厚變成冰",
+        "因為火山會製造冰",
+        "因為冰島在南極旁邊",
+        "因為冰是從海上漂來的"
+      ],
+      "answer": 0,
+      "explanation": "冰島在北緯 63°～66°，高山上夏天也很涼，冬天積的雪融不完，年復一年壓成冰河。有時火山在冰河底下噴發，還會造成冰河洪水。"
+    }
+  ],
+  "reward": {
+    "xp": 120,
+    "gold": 100,
+    "reputation": 6,
+    "unlock_ports": [],
+    "codex": []
+  }
+}

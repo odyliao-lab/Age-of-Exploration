@@ -1,0 +1,44 @@
+{
+  "id": "wg-a1-eratosthenes",
+  "title": "學者的考驗：量地球",
+  "scenario": "westward-gamble",
+  "chapter": 0,
+  "tier": 0,
+  "kind": "academy",
+  "giver_port": "palos",
+  "objectives": [
+    {
+      "domain": "A",
+      "text": "能說明古人如何量出地球的大小。"
+    }
+  ],
+  "prerequisites": ["wg-00-palos"],
+  "steps": [
+    {
+      "type": "quiz",
+      "question": "兩千多年前，埃拉托斯特尼怎麼量出地球的大小？",
+      "choices": [
+        "比較兩座城市同一天正午的太陽影子角度，再用兩城的距離推算",
+        "派人繞著地球走一圈",
+        "從高山上看地平線",
+        "用船在海上量"
+      ],
+      "answer": 0,
+      "explanation": "夏至正午，埃及南方的賽伊尼太陽直射井底，北方的亞歷山卓卻有約 7° 的影子。7° 大約是一整圈的五十分之一，只要知道兩城的距離，乘以 50 就是地球一圈的長度。"
+    },
+    {
+      "type": "quiz",
+      "question": "如果把地球估計得比實際小，往西航行的人會以為亞洲在哪裡？",
+      "choices": ["比實際近很多", "比實際遠很多", "在正南方", "在北極"],
+      "answer": 0,
+      "explanation": "地球越小，往西到亞洲的距離就越短。哥倫布採用了偏小的估計，以為加那利群島往西約 4000 公里就是日本——實際上超過一萬九千公里，中間還隔著美洲。"
+    }
+  ],
+  "reward": {
+    "xp": 60,
+    "gold": 60,
+    "reputation": 3,
+    "unlock_ports": [],
+    "codex": []
+  }
+}

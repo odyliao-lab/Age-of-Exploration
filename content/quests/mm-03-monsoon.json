@@ -1,0 +1,55 @@
+{
+  "id": "mm-03-monsoon",
+  "title": "季風的節奏",
+  "scenario": "monsoon-merchant",
+  "chapter": 1,
+  "tier": 1,
+  "kind": "main",
+  "giver_port": "aden",
+  "objectives": [
+    {
+      "domain": "D",
+      "text": "能說明印度洋的季風一年換兩次方向。"
+    },
+    {
+      "domain": "A",
+      "text": "能找到印度西南的馬拉巴爾海岸。"
+    }
+  ],
+  "prerequisites": ["mm-02-hormuz"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "叔父優素福",
+      "lines": [
+        "印度洋的生意，是跟著風做的。夏天吹西南季風，從阿拉伯往印度順風；冬天吹東北季風，從印度回阿拉伯、往東非都順風。",
+        "不過夏天最強的那幾個月，印度西岸的海浪大到港口都關了。所以我們都在夏末、風勢轉弱時出發，冬天再順著東北風回來。",
+        "去卡利卡特吧，那是胡椒海岸最大的港口。"
+      ]
+    },
+    {
+      "type": "navigate",
+      "target": "calicut",
+      "hint_level": 2
+    },
+    {
+      "type": "quiz",
+      "question": "阿拉伯商人從印度回到阿拉伯，最好選哪個季節出發？",
+      "choices": [
+        "冬天，吹東北季風的時候",
+        "夏天，吹西南季風的時候",
+        "哪個季節都一樣",
+        "只能在沒有風的時候"
+      ],
+      "answer": 0,
+      "explanation": "冬天的東北季風從印度吹向阿拉伯與東非，正好把船送回西邊；夏天的西南季風則把船從阿拉伯送到印度。商人一年往返一趟，貿易的節奏跟著季風走。"
+    }
+  ],
+  "reward": {
+    "xp": 180,
+    "gold": 260,
+    "reputation": 15,
+    "unlock_ports": ["calicut"],
+    "codex": []
+  }
+}
