@@ -118,6 +118,17 @@ describe('event outcomes', () => {
     );
   });
 
+  it('tells Pacific stories in Polynesia', () => {
+    const at = ctx({ position: [-152, -17], daysAtSea: 25 });
+    const scurvy = createEvent('scurvy', at, rng());
+    expect(scurvy.lesson).toContain('麵包果');
+    expect(scurvy.choices![0].label).toContain('甘藷');
+    expect(createEvent('flotsam', at, rng()).text).not.toContain('香料');
+    const north = createEvent('stargazing', ctx({ position: [-153, 12] }), rng());
+    expect(north.question!.prompt).not.toContain('牽星板');
+    expect(createEvent('scurvy', ctx({ position: [-30, 10] }), rng()).lesson).toContain('達伽馬');
+  });
+
   it('trades time against morale in the doldrums', () => {
     const ev = createEvent('doldrums', ctx(), rng());
     expect(resolveChoice(ev, 'row', 0.5, { pirateToll: 1, fleeBonus: 0 }, 0)).toMatchObject({

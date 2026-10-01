@@ -57,7 +57,12 @@ export interface EventEffect {
 
 /** 大西洋與歐洲的海域（東經 25° 以西）：事件的歷史小故事換成這一帶的例子 */
 function inAtlantic([lon]: LonLat): boolean {
-  return lon < 25;
+  return lon < 25 && !inPacific([lon, 0]);
+}
+
+/** 太平洋中部（玻里尼西亞）：事件換成玻里尼西亞航海家的例子 */
+function inPacific([lon]: LonLat): boolean {
+  return lon < -100;
 }
 
 export interface EventContext {
@@ -191,9 +196,12 @@ export function createEvent(id: EventId, ctx: EventContext, rand: () => number):
       return {
         ...base,
         title: '海上漂流物',
-        text: '瞭望員發現遠處漂著一個木箱，裡面有幾枚錢幣和一包用油布包好的香料。',
-        lesson:
-          '洋流會把漂流物帶到很遠的地方。例如椰子可以隨著洋流漂過整個印度洋，在遙遠的海岸發芽，這也是熱帶島嶼常見椰子樹的原因之一。',
+        text: inPacific(ctx.position)
+          ? '瞭望員發現海上漂著一根粗大的漂流木，旁邊還浮著幾顆椰子和一片珍珠貝。'
+          : '瞭望員發現遠處漂著一個木箱，裡面有幾枚錢幣和一包用油布包好的香料。',
+        lesson: inPacific(ctx.position)
+          ? '海上的漂流木和新鮮的樹枝、椰子，是附近有陸地的線索之一。椰子也可以隨著洋流漂過大洋，在遙遠的珊瑚島上發芽。'
+          : '洋流會把漂流物帶到很遠的地方。例如椰子可以隨著洋流漂過整個印度洋，在遙遠的海岸發芽，這也是熱帶島嶼常見椰子樹的原因之一。',
       };
     }
     case 'stargazing': {
@@ -203,10 +211,14 @@ export function createEvent(id: EventId, ctx: EventContext, rand: () => number):
       if (lat >= 3) {
         const wrongs = [a + 12, Math.max(0, a - 12), a + 25].map((x) => `北緯約 ${x}°`);
         question = mcq(
-          `航海長用牽星板量出北極星在地平線上約 ${a}° 高。船隊大約在哪個緯度？`,
+          inPacific(ctx.position)
+            ? `老航海家伸直手臂比了比：北極星在地平線上約 ${a}° 高。我們大約在哪個緯度？`
+            : `航海長用牽星板量出北極星在地平線上約 ${a}° 高。船隊大約在哪個緯度？`,
           `北緯約 ${a}°`,
           [...new Set(wrongs)].filter((w) => w !== `北緯約 ${a}°`).slice(0, 3),
-          '在北半球，北極星的仰角約等於所在地的緯度。古代航海者就是用這個方法判斷南北位置，鄭和船隊使用的「牽星術」也是同樣的原理。',
+          inPacific(ctx.position)
+            ? '在北半球，北極星的仰角約等於所在地的緯度。玻里尼西亞的航海家往北航向夏威夷時，會看著北極星從海平面慢慢升高，用星星的高度判斷離夏威夷的緯度還有多遠。'
+            : '在北半球，北極星的仰角約等於所在地的緯度。古代航海者就是用這個方法判斷南北位置，鄭和船隊使用的「牽星術」也是同樣的原理。',
           rand,
         );
       } else if (lat <= -3) {
@@ -238,13 +250,19 @@ export function createEvent(id: EventId, ctx: EventContext, rand: () => number):
         ...base,
         title: '船員生病了',
         text: '在海上待了很久，幾名船員牙齦出血、全身無力。船醫說這是缺乏新鮮蔬果造成的病。',
-        lesson: inAtlantic(ctx.position)
-          ? '這種病叫壞血病，是缺乏維生素 C 造成的，是大航海時代遠洋船員的一大威脅。達伽馬前往印度的船隊，有一大半船員因壞血病倒下；直到 18 世紀，歐洲人才確認新鮮的柑橘類水果可以預防。'
-          : '這種病叫壞血病，是缺乏維生素 C 造成的，是大航海時代遠洋船員的一大威脅。有一種說法認為，中國船隊會在船上用木桶發豆芽，補充新鮮蔬菜。',
+        lesson: inPacific(ctx.position)
+          ? '這種病叫壞血病，是缺乏維生素 C 造成的。玻里尼西亞航海家的航程大多在一個月以內，船上帶著發酵的麵包果泥、甘藷、椰子和乾魚，一路還能釣魚、接雨水；航程越長，越需要盡快找到下一座島。'
+          : inAtlantic(ctx.position)
+            ? '這種病叫壞血病，是缺乏維生素 C 造成的，是大航海時代遠洋船員的一大威脅。達伽馬前往印度的船隊，有一大半船員因壞血病倒下；直到 18 世紀，歐洲人才確認新鮮的柑橘類水果可以預防。'
+            : '這種病叫壞血病，是缺乏維生素 C 造成的，是大航海時代遠洋船員的一大威脅。有一種說法認為，中國船隊會在船上用木桶發豆芽，補充新鮮蔬菜。',
         choices: [
           {
             id: 'sprouts',
-            label: inAtlantic(ctx.position) ? '拿出存放的洋蔥和果乾' : '用存糧發豆芽',
+            label: inPacific(ctx.position)
+              ? '拿出甘藷和發酵的麵包果泥'
+              : inAtlantic(ctx.position)
+                ? '拿出存放的洋蔥和果乾'
+                : '用存糧發豆芽',
             hint: '消耗 3 天份糧食，保住士氣',
           },
           { id: 'endure', label: '先忍耐，盡快靠港', hint: '士氣大幅下降' },

@@ -1192,7 +1192,7 @@ const UNSAILED_SEAS = [
 ];
 const NO_PIRATE_SEAS = [...UNSAILED_SEAS, 'gulf-of-guinea', 'iceland', 'greenland'];
 
-/** 大西洋的海域：寶船艦隊與朝貢使節船不會出現 */
+/** 大西洋與太平洋中部的海域：寶船艦隊與朝貢使節船不會出現 */
 const ATLANTIC_REGIONS = [
   'west-polynesia',
   'society-islands',
