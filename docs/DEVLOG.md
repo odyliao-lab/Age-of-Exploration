@@ -4,6 +4,21 @@
 
 ---
 
+## 2026-10-01 — 晚間：試玩回饋後台設定與正式站驗收完成
+
+- 在 Supabase `age-of-exploration` 的 SQL Editor 執行原始 `0002_feedback.sql`。
+  RLS 開啟，只有 `feedback_insert_own`（authenticated、INSERT）；anon 無權限，authenticated 只有 INSERT，
+  以 authenticated 身分 SELECT 實際得到 `42501: permission denied for table feedback`。
+- 正式站「繞地球一圈」實測通過：登入後送出直接寫入；登出後先存本機、可複製，重新登入後自動補送。
+  兩筆的使用者與必要 context 欄位核對正確，回饋歷史皆顯示「已送出」，未觀察到主控台錯誤或警告。
+- 登入時遇到「東方寶船」測試存檔衝突，依擁有者同意選擇「保留本機」，同步與衝突處理畫面正常。
+- 保留 `Codex 驗收 1`、`Codex 驗收 2` 兩筆測試回饋；回饋列 ID、時間與完整結果記錄於
+  `docs/08-codex-handoff-feedback.md` 第 3 節，交接狀態改為 🟢。
+- 本次只更新文件，未修改遊戲程式、內容或既有 migration，也未記錄帳號信箱或秘密。
+- Windows 的內容測試遇到 timeout；改在 WSL Ubuntu、Node.js 22 的隔離副本執行完整
+  `npm run check`（26 個測試檔、210 項測試全過）與 `npm run build`，皆通過。
+  使用 `VITEST_MAX_WORKERS=1`，未放寬原有 timeout 或略過測試，環境差異已記於交接文件。
+
 ## 2026-10-01 — 下午：第七個劇本「繞地球一圈」、遊戲內回饋
 
 - **劇本設定**：1519 年 9 月從西班牙的聖盧卡爾出發，你是麥哲倫船隊裡的年輕見習領航員。
