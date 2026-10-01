@@ -140,6 +140,17 @@ export function RewardModal({ modal }: { modal: Modal }) {
         )}
         {modal.note && <p className="meta">{r(modal.note)}</p>}
         <div className="row end">
+          {modal.feedback && (
+            <button
+              type="button"
+              onClick={() => {
+                dismiss();
+                openPanel('feedback');
+              }}
+            >
+              💬 寫下感想
+            </button>
+          )}
           <button type="button" className="primary" autoFocus onClick={dismiss}>
             繼續
           </button>

@@ -5,6 +5,10 @@ import { serviceWorker } from './tools/serviceWorker';
 
 export default defineConfig({
   plugins: [react(), serviceWorker()],
+  define: {
+    // 建置時間：玩家回報問題時附上，才知道是哪一版
+    'import.meta.env.VITE_BUILD_TIME': JSON.stringify(new Date().toISOString().slice(0, 16)),
+  },
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),

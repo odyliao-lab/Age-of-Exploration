@@ -155,3 +155,20 @@ export async function pushCloudSave(
   );
   if (error) throw new Error(`上傳雲端存檔失敗：${error.message}`, { cause: error });
 }
+
+/** 送出一則試玩回饋（資料表 feedback 只能新增，玩家讀不到；supabase/migrations/0002_feedback.sql） */
+export async function pushFeedback(entry: {
+  scenarioId: string;
+  tags: string[];
+  message: string;
+  context: unknown;
+}): Promise<void> {
+  const sb = await client();
+  const { error } = await sb.from('feedback').insert({
+    scenario_id: entry.scenarioId,
+    tags: entry.tags,
+    message: entry.message,
+    context: entry.context,
+  });
+  if (error) throw new Error(`送出回饋失敗：${error.message}`, { cause: error });
+}

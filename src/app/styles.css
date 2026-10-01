@@ -818,7 +818,8 @@ button.wide {
     align-items: center;
   }
 
-  .map-actions .zoom {
+  /* 手機用兩指縮放；手冊與回饋按鈕留著 */
+  .map-actions .zoom-step {
     display: none;
   }
 
@@ -828,7 +829,20 @@ button.wide {
   }
 
   .map-toolbar button {
-    padding: 4px 8px;
+    padding: 4px 6px;
+    white-space: nowrap;
+  }
+
+  /* 直立的手機：按鈕排滿一整列，字不折行；船長按鈕省掉頭像 */
+  .map-actions {
+    width: 100%;
+    gap: 4px;
+  }
+  .map-actions button {
+    flex: 1 1 auto;
+  }
+  .map-actions .captain-btn .avatar {
+    display: none;
   }
 
   .bottom-panel {
@@ -1643,6 +1657,10 @@ button.wide {
   .helm-nav .meta {
     display: none;
   }
+  /* 手機橫放：工具列太擠，縮放按鈕改用兩指縮放 */
+  .map-actions .zoom-step {
+    display: none;
+  }
   /* 手機橫放：動作按鈕放在左下角，避開上方的提示與右邊的舵盤 */
   .sea-dock {
     left: 8px;
@@ -2208,4 +2226,86 @@ html.large-text .helm-left .condition.compact {
 }
 .scenario-more p {
   margin: 6px 0;
+}
+
+/* 試玩回饋 */
+.feedback .hint {
+  margin: 4px 0 10px;
+  line-height: 1.55;
+  color: var(--ink-soft);
+}
+.feedback .hint.small,
+.feedback .small {
+  font-size: 0.85em;
+}
+.feedback-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.feedback-tags .chip {
+  border: 1px solid var(--parchment-dark);
+  background: var(--card);
+  border-radius: 999px;
+  padding: 6px 12px;
+  min-height: 36px;
+}
+.feedback-tags .chip.on {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--card);
+}
+.feedback-message {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.feedback-message textarea {
+  width: 100%;
+  font: inherit;
+  padding: 8px;
+  border: 1px solid var(--parchment-dark);
+  border-radius: 8px;
+  background: #fff;
+  resize: vertical;
+}
+.feedback-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 10px;
+}
+.feedback-preview {
+  white-space: pre-wrap;
+  font: inherit;
+  font-size: 0.9em;
+  background: var(--card);
+  border: 1px solid var(--parchment-dark);
+  border-radius: 8px;
+  padding: 8px 10px;
+  max-height: 40vh;
+  overflow: auto;
+}
+.feedback-history {
+  margin-top: 14px;
+}
+.feedback-history ul {
+  list-style: none;
+  padding: 0;
+  margin: 6px 0 0;
+}
+.feedback-history li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  border-top: 1px solid var(--parchment-dark);
+}
+.feedback-history li > span:first-child {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }

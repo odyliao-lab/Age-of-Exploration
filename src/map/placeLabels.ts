@@ -47,6 +47,7 @@ export class PlaceLabels {
     this.items = [];
     for (const p of list) {
       const root = new Container();
+      root.cullable = true;
       const pos = lonLatToView(p.location);
       root.position.set(pos.x, pos.y);
       const g = new Graphics();

@@ -56,6 +56,7 @@ export class FogLayer {
         for (const wrap of [-1, 0, 1]) {
           const sprite = new Sprite(texture);
           sprite.position.set(tx * TILE + wrap * FOG_COLS, ty * TILE);
+          sprite.cullable = true;
           this.container.addChild(sprite);
         }
         this.tiles.push({ canvas, ctx, texture, x0: tx * TILE, y0: ty * TILE });

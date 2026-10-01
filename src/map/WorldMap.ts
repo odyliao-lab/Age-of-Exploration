@@ -6,7 +6,15 @@
  *
  * 圖層順序（下到上）：波紋 → 陸地 → 水痕與風 → 迷霧 → 經緯線 → 航線 → 港口 → 船
  */
-import { Application, Container, Graphics, Text, type FederatedPointerEvent } from 'pixi.js';
+import {
+  Application,
+  Container,
+  CullerPlugin,
+  extensions,
+  Graphics,
+  Text,
+  type FederatedPointerEvent,
+} from 'pixi.js';
 import type { LonLat } from '@/data/schema';
 import type { SailSetting } from '@/game/sailing';
 import { FogLayer } from './fogLayer';
@@ -43,10 +51,14 @@ function wrapped(g: Graphics): Container {
   for (const wrap of [-1, 0, 1]) {
     const copy = wrap === 0 ? g : new Graphics(g.context);
     copy.x = wrap * WORLD_WIDTH;
+    // 不在畫面裡的那幾圈就不畫
+    copy.cullable = true;
     layer.addChild(copy);
   }
   return layer;
 }
+
+let cullerAdded = false;
 
 /** 船隻配色（Pixi 色碼） */
 export interface ShipStyle {
@@ -211,6 +223,11 @@ export class WorldMap {
   }
 
   static async create(host: HTMLElement, opts: WorldMapOptions): Promise<WorldMap> {
+    // 每一幀跳過畫面外的物件（海圖左右各多一圈、拉近時大部分港口與迷霧圖塊都在畫面外）
+    if (!cullerAdded) {
+      extensions.add(CullerPlugin);
+      cullerAdded = true;
+    }
     const app = new Application();
     await app.init({
       resizeTo: host,
@@ -689,6 +706,7 @@ export class WorldMap {
     this.markers = [];
     for (const data of ports) {
       const root = new Container();
+      root.cullable = true;
       const p = lonLatToView(data.location);
       root.position.set(p.x, p.y);
       const dot = new Graphics();

@@ -110,7 +110,7 @@ export const SAIL_SECONDS_PER_DAY = 6;
 const AUTOSAVE_MS = 4000;
 
 type Screen = 'menu' | 'map';
-export type Panel = 'codex' | 'captain' | 'fleet' | 'logbook' | 'handbook' | null;
+export type Panel = 'codex' | 'captain' | 'fleet' | 'logbook' | 'handbook' | 'feedback' | null;
 
 export interface Toast {
   id: number;
@@ -131,6 +131,8 @@ export type Modal =
       /** 一般說明（不是地理小教室） */
       note?: string;
       stats?: string[];
+      /** 顯示「寫下感想」按鈕（劇本結局） */
+      feedback?: boolean;
     };
 
 export interface MapMark {
@@ -177,6 +179,7 @@ function endingModal(world: World, g: GameState, e: { title: string; text: strin
       `參加節慶 ${g.festivalsSeen.length} 次，在海圖上寫了 ${g.notes.length} 個註記`,
     ],
     lesson: '還有沒找到的傳聞、沒去過的港口嗎？海圖上的空白，就是下一段冒險。',
+    feedback: true,
   };
 }
 

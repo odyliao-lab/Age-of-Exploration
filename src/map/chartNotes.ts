@@ -25,6 +25,7 @@ export class ChartNotes {
     this.items = [];
     for (const n of list) {
       const root = new Container();
+      root.cullable = true;
       const p = lonLatToView(n.at);
       root.position.set(p.x, p.y);
       const g = new Graphics();
