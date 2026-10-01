@@ -285,6 +285,8 @@ export interface GameState {
   fishDay: number;
   /** 上次上岸取水的遊戲日 */
   waterDay: number;
+  /** 上次讀海上徵兆的遊戲日 */
+  signDay: number;
   /** 海上看得見的船隊與風暴雲團 */
   fleets: SeaFleet[];
   storms: StormCell[];
@@ -423,6 +425,7 @@ export function newGame(world: World, scenarioId: string, seed = newSeed()): Ste
     coastDay: -1,
     fishDay: -1,
     waterDay: -99,
+    signDay: -1,
     fleets: [],
     storms: [],
     mists: [],
@@ -624,10 +627,18 @@ export function tick(world: World, state: GameState, days: number): StepResult {
             }
           }
         }
+        // 海圖的東西兩端（經度 ±180°，換日線）沒有接起來：船不能從邊緣開過去
+        const edge = !!next && Math.abs(next[0] - from[0]) > 180;
+        if (edge) next = null;
         const blocked = step > 0 && next === null;
         if (next) to = next;
         if (blocked && !helm.blocked) {
-          events.push({ type: 'warning', text: '船頭頂到海岸了！轉個方向離開淺灘。' });
+          events.push({
+            type: 'warning',
+            text: edge
+              ? '已經到了海圖的邊緣（經度 180°，換日線）。再過去的海域還沒畫進這張海圖，轉個方向吧。'
+              : '船頭頂到海岸了！轉個方向離開淺灘。',
+          });
         }
         if (blocked !== helm.blocked) helm = { ...helm, blocked };
       }
@@ -990,7 +1001,10 @@ function seaLife(
       events.push({
         type: 'talk',
         speaker: crewSpeaker(world, state),
-        text: '北極星已經貼在海平面上，快看不見了。從現在起，中午太陽最高的時候量太陽的高度，一樣能算出緯度。',
+        text:
+          pos[1] < 0
+            ? '我們在赤道南邊，北極星沉到海平面底下，看不到了。中午太陽最高的時候量太陽的高度，一樣能算出緯度。'
+            : '北極星已經貼在海平面上，快看不見了。從現在起，中午太陽最高的時候量太陽的高度，一樣能算出緯度。',
       });
     } else if (
       !hinted.includes('water-low') &&
@@ -1166,11 +1180,25 @@ export const TREASURE_FLEET_LAST_YEAR = 1433;
  * 15 世紀末還沒有商船往來的大洋（大西洋中部、加勒比海）：不會遇到商船與海盜。
  * 幾內亞灣有葡萄牙商船，但還沒有海盜。
  */
-const UNSAILED_SEAS = ['central-atlantic', 'caribbean', 'vinland'];
+const UNSAILED_SEAS = [
+  'central-atlantic',
+  'caribbean',
+  'vinland',
+  'west-polynesia',
+  'society-islands',
+  'east-polynesia',
+  'hawaii',
+  'rapa-nui',
+];
 const NO_PIRATE_SEAS = [...UNSAILED_SEAS, 'gulf-of-guinea', 'iceland', 'greenland'];
 
 /** 大西洋的海域：寶船艦隊與朝貢使節船不會出現 */
 const ATLANTIC_REGIONS = [
+  'west-polynesia',
+  'society-islands',
+  'east-polynesia',
+  'hawaii',
+  'rapa-nui',
   'north-sea',
   'iceland',
   'greenland',
@@ -1642,6 +1670,129 @@ export function takeSounding(
       '離開大陸棚，海底就陡降成深海。航海者靠水深和底質，就能在看不到岸時判斷離陸地多遠。';
   }
   return { state: next, sounding, text: soundingText(sounding), fixed, lesson };
+}
+
+// ---------------------------------------------------------------- 讀海上的徵兆（玻里尼西亞的航海術）
+
+/** 讀徵兆的範圍：太遠看不到任何徵兆，太近直接看得到島 */
+export const SIGN_MAX_KM = 150;
+export const SIGN_MIN_KM = 15;
+export const SIGN_FIX_KM = 25;
+const COMPASS_8 = ['北', '東北', '東', '東南', '南', '西南', '西', '西北'];
+
+export type SeaSignKind = 'birds-dusk' | 'birds-dawn' | 'cloud' | 'swell';
+
+export interface SeaSignQuestion {
+  kind: SeaSignKind;
+  prompt: string;
+  /** 四個方位（8 方位的索引） */
+  choices: number[];
+  /** 島真正的方位（8 方位的索引） */
+  answer: number;
+}
+
+/** 最近陸地的方位（8 方位）；範圍內沒有陸地時回傳 null */
+function nearestLandDir(world: World, pos: LonLat): { dir: number; km: number } | null {
+  for (const km of [SIGN_MIN_KM, 30, 50, 75, 100, SIGN_MAX_KM]) {
+    for (let b = 0; b < 360; b += 22.5) {
+      if (landAt(world, destinationPoint(pos, b, km))) return { dir: Math.round(b / 45) % 8, km };
+    }
+  }
+  return null;
+}
+
+/** 為什麼現在不能讀徵兆（可以時回傳 null） */
+export function signsBlocked(world: World, state: GameState): string | null {
+  if (!state.helm) return '要在海上才能讀徵兆';
+  if (!world.scenarios.get(state.scenarioId)?.wayfinding) return '這個劇本的航海者不用這種方法';
+  if (state.signDay === Math.floor(state.day)) return '今天已經讀過海上的徵兆了';
+  const near = nearestLandDir(world, state.ship.position);
+  if (!near) return '四周只有大洋，還看不到任何陸地的徵兆';
+  if (near.km <= SIGN_MIN_KM) return '島就在眼前，不用讀徵兆了';
+  return null;
+}
+
+/** 依時刻出一道徵兆題：黃昏、清晨看海鳥，白天看雲，夜裡感覺湧浪 */
+export function seaSignQuestion(world: World, state: GameState): SeaSignQuestion | null {
+  if (signsBlocked(world, state)) return null;
+  const near = nearestLandDir(world, state.ship.position)!;
+  const d = near.dir;
+  const h = hourOfDay(state.day);
+  const kind: SeaSignKind =
+    h >= 16 && h < 20
+      ? 'birds-dusk'
+      : h >= 5 && h < 8
+        ? 'birds-dawn'
+        : h >= 8 && h < 16
+          ? 'cloud'
+          : 'swell';
+  const w = (k: number) => COMPASS_8[(d + k + 8) % 8];
+  const prompt =
+    kind === 'birds-dusk'
+      ? `黃昏了，一群燕鷗低低地掠過海面，往${w(0)}方飛去。燕鷗白天出海捕魚、晚上回島上過夜。島在哪個方向？`
+      : kind === 'birds-dawn'
+        ? `天剛亮，一群燕鷗從船旁飛過，往${w(4)}方的大海飛去。燕鷗清晨從島上出發去捕魚。島在哪個方向？`
+        : kind === 'cloud'
+          ? `${w(0)}方的天邊有一朵雲，一整天都停在同一個地方，雲的底部透著淡淡的綠色。島在哪個方向？`
+          : `夜裡看不清楚，舵手閉上眼睛感覺船身：大湧浪從${w(3)}方規律地推來，還有一組比較短、亂的湧浪從${w(0)}方撞過來。島在哪個方向？`;
+  // 選項：正確方位、正對面，以及左右兩個方位；依日期固定順序
+  const opts = [0, 4, 2, 6].map((k) => (d + k) % 8);
+  const rot = Math.floor(state.day) % 4;
+  const choices = [...opts.slice(rot), ...opts.slice(0, rot)];
+  return { kind, prompt, choices, answer: d };
+}
+
+const SIGN_LESSONS: Record<SeaSignKind, string> = {
+  'birds-dusk':
+    '燕鷗、鰹鳥這些海鳥白天到海上捕魚，傍晚一定飛回島上過夜，活動範圍大約離島幾十公里。黃昏時跟著牠們飛的方向走，就會找到島。',
+  'birds-dawn':
+    '清晨海鳥從島上出發，飛向大海去捕魚——牠們飛去的方向是「離開」島的方向，所以島在牠們飛來的那一邊。早上和傍晚的判斷正好相反。',
+  cloud:
+    '島上的陸地白天受熱，空氣上升形成雲，所以島的上空常常有一朵停著不動的雲；淺淺的潟湖還會把綠色反射到雲的底部。看到「停住的雲」和「綠色的雲底」，島就在下面。',
+  swell:
+    '大洋上的湧浪方向穩定，航海者靠船身的起伏保持航向。湧浪碰到島嶼會被反射、折射，形成一組方向不同的短浪。感覺到這種交錯的湧浪，就知道島在反射浪來的方向。',
+};
+
+/** 回答徵兆題：答對就把位置誤差縮小 */
+export function readSigns(
+  world: World,
+  state: GameState,
+  choice: number,
+): {
+  state: GameState;
+  correct: boolean;
+  text: string;
+  lesson: string;
+  events: GameEvent[];
+} | null {
+  const q = seaSignQuestion(world, state);
+  if (!q) return null;
+  const correct = choice === q.answer;
+  let next: GameState = { ...state, signDay: Math.floor(state.day) };
+  const events: GameEvent[] = [];
+  if (correct) {
+    const xp = gainXp(next, 10);
+    events.push(...xp.events);
+    next = {
+      ...next,
+      captain: xp.captain,
+      skillPoints: xp.skillPoints,
+      nav: { day: state.day, errorKm: Math.min(positionErrorKm(world, state), SIGN_FIX_KM) },
+    };
+  }
+  return {
+    state: next,
+    correct,
+    text: correct
+      ? `沒錯，島在${COMPASS_8[q.answer]}方！對照記憶中的島嶼位置，我們知道自己在哪裡了。`
+      : `島其實在${COMPASS_8[q.answer]}方。再想想看這個徵兆代表什麼。`,
+    lesson: SIGN_LESSONS[q.kind],
+    events,
+  };
+}
+
+export function compass8Name(i: number): string {
+  return COMPASS_8[((i % 8) + 8) % 8];
 }
 
 /** 上岸取水：一次補幾天份的淡水、多久才能再取一次 */

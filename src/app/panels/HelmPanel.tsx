@@ -21,6 +21,7 @@ import {
   sunSightBlocked,
   rivalOf,
   sunOf,
+  signsBlocked,
 } from '@/game/state';
 import { isNight, timeLabel } from '@/game/navigation';
 import { useGame } from '../store';
@@ -107,6 +108,9 @@ export function HelmPanel() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const canFetchWater = useMemo(() => !fetchWaterBlocked(world, game), [world, waterKey]);
   const canSightSun = !sunSightBlocked(game);
+  const signsKey = `${Math.floor(game.day)}|${game.signDay}|${game.ship.position[0].toFixed(1)}|${game.ship.position[1].toFixed(1)}`;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const canReadSigns = useMemo(() => !signsBlocked(world, game), [world, signsKey]);
   const kn = knots(st.motion.speed);
   const sailClass =
     st.motion.pointOfSail === '頂風' ? 'bad' : st.motion.pointOfSail === '迎風' ? 'ok' : 'good';
@@ -193,6 +197,15 @@ export function HelmPanel() {
           {canFish && (
             <button type="button" onClick={fish} title="撒網捕魚，補一點糧食（每天一次）">
               🐟 撒網
+            </button>
+          )}
+          {canReadSigns && (
+            <button
+              type="button"
+              onClick={() => useGame.getState().openSeaSigns(true)}
+              title="看海鳥、雲和湧浪，判斷島在哪個方向"
+            >
+              🌊 讀海上的徵兆
             </button>
           )}
           {canSightSun && (

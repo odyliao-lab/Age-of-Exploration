@@ -153,7 +153,8 @@ export type Culture =
   | 'iberia'
   | 'westafrica'
   | 'taino'
-  | 'norse';
+  | 'norse'
+  | 'polynesia';
 
 export function cultureOf(country: string): Culture {
   // 琉球王國在今日本沖繩
@@ -168,6 +169,13 @@ export function cultureOf(country: string): Culture {
     return 'arabia';
   // 伊比利半島（葡萄牙、西班牙）與大西洋島嶼上的殖民港口：白牆紅瓦、教堂鐘樓
   if (['葡萄牙', '西班牙', '維德角', '聖多美'].some((c) => country.includes(c))) return 'iberia';
+  // 玻里尼西亞的村落：開放式的茅草屋、石砌的祭祀台
+  if (
+    ['玻里尼西亞', '庫克群島', '東加', '薩摩亞', '夏威夷', '拉帕努伊'].some((c) =>
+      country.includes(c),
+    )
+  )
+    return 'polynesia';
   // 北歐人（維京人）的聚落：木牆與長滿青草的草皮屋頂
   if (
     ['挪威', '冰島', '格陵蘭', '法羅', '愛爾蘭', '蘇格蘭', '紐芬蘭'].some((c) =>
@@ -246,6 +254,15 @@ export const BUILDING_NAMES: Record<Culture, Record<BuildingKind, string>> = {
     market: '市集',
     shipyard: '造船廠',
     dock: '碼頭',
+  },
+  polynesia: {
+    office: '首領的大屋',
+    academy: '航海家之屋',
+    temple: '瑪拉埃（祭祀台）',
+    tavern: '聚會的大屋',
+    market: '交換的廣場',
+    shipyard: '雙體獨木舟屋',
+    dock: '海灘',
   },
   norse: {
     office: '首領的長屋',

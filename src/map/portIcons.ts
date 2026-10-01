@@ -15,7 +15,8 @@ export type PortCulture =
   | 'iberia'
   | 'westafrica'
   | 'taino'
-  | 'norse';
+  | 'norse'
+  | 'polynesia';
 
 const INK = 0x3a2414;
 
@@ -102,6 +103,7 @@ export function drawPortIcon(g: Graphics, culture: PortCulture, hub: boolean) {
       break;
     case 'westafrica':
     case 'taino':
+    case 'polynesia':
       // 圓形土屋（泰諾人的「波伊歐」）與尖尖的茅草屋頂
       for (const x of [-12, -3, 6]) {
         g.rect(x, -5, 7, 5).fill({ color: 0xb9794a }).stroke({ width: 1, color: INK });

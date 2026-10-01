@@ -1,0 +1,49 @@
+{
+  "id": "sp-r2-adze",
+  "title": "薩摩亞的石斧",
+  "scenario": "star-navigators",
+  "chapter": 1,
+  "tier": 1,
+  "kind": "main",
+  "giver_port": "upolu",
+  "objectives": [
+    {
+      "domain": "F",
+      "text": "知道玄武岩石斧是造獨木舟的重要工具。"
+    }
+  ],
+  "prerequisites": ["sp-02-homeland"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "烏波盧的石匠",
+      "lines": ["大溪地的造船師傅要新的石斧，運 6 把過去吧。好石斧能挖空一整棵大樹。"]
+    },
+    {
+      "type": "deliver",
+      "good": "basalt-adze",
+      "qty": 6,
+      "target": "tahiti",
+      "text": "在烏波盧或凱阿拉凱夸灣買玄武岩石斧"
+    },
+    {
+      "type": "quiz",
+      "question": "考古學家怎麼知道石斧是從薩摩亞運到很遠的島上的？",
+      "choices": [
+        "分析石頭的化學成分，每個火山的玄武岩成分都不一樣",
+        "看石斧上刻的名字",
+        "問石斧的主人",
+        "石斧會自己移動"
+      ],
+      "answer": 0,
+      "explanation": "每座火山噴出的岩漿成分不同，就像指紋一樣。考古學家分析在各島挖到的石斧，發現有些來自好幾千公里外的薩摩亞或夏威夷，證明玻里尼西亞的島嶼之間有規律的往來航線。"
+    }
+  ],
+  "reward": {
+    "xp": 150,
+    "gold": 220,
+    "reputation": 12,
+    "unlock_ports": [],
+    "codex": []
+  }
+}

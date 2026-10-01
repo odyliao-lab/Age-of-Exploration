@@ -1,0 +1,19 @@
+{
+  "id": "kealakekua",
+  "name": "凱阿拉凱夸灣（夏威夷島）",
+  "name_en": "Kealakekua (Hawai'i)",
+  "historical_names": [],
+  "country": "美國（夏威夷）",
+  "country_en": "United States (Hawai'i)",
+  "region": "hawaii",
+  "location": [-155.92, 19.47],
+  "kind": "port",
+  "goods": ["feathers", "basalt-adze"],
+  "climate": "熱帶莽原氣候",
+  "blurb": "夏威夷大島西岸的海灣，背後是高聳的火山。這裡的人用成千上萬根紅色、黃色的鳥羽毛做成首領的披風。",
+  "sights": [],
+  "gossip": [
+    "山頂冬天會下雪，我們叫它「白色的山」——毛納基亞。",
+    "地底的火神佩蕾住在火山口裡，熔岩一流就是好幾個月。"
+  ]
+}

@@ -1,0 +1,55 @@
+{
+  "id": "sp-05-rapanui",
+  "title": "世界的肚臍",
+  "scenario": "star-navigators",
+  "chapter": 4,
+  "tier": 4,
+  "kind": "main",
+  "giver_port": "raiatea",
+  "objectives": [
+    {
+      "domain": "B",
+      "text": "能找到玻里尼西亞三角與拉帕努伊。"
+    },
+    {
+      "domain": "E",
+      "text": "知道甘藷是玻里尼西亞人到過美洲的證據之一。"
+    }
+  ],
+  "prerequisites": ["sp-04-north"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "老航海家泰卡",
+      "lines": [
+        "最後一趟，我們往東方的盡頭去——那裡有一座小小的島，離任何島都很遠很遠。",
+        "一樣等夏天的西風。找不到的話，就順著信風回來，別逞強。"
+      ]
+    },
+    {
+      "type": "navigate",
+      "target": "rapa-nui",
+      "hint_level": 4,
+      "text": "線索：一直往東，在南回歸線附近，玻里尼西亞三角最東邊的角落，一座立著巨大石像的孤島。"
+    },
+    {
+      "type": "quiz",
+      "question": "原產南美洲的甘藷，在歐洲人到來以前就出現在拉帕努伊和玻里尼西亞。這代表什麼？",
+      "choices": [
+        "玻里尼西亞的航海家很可能曾經航行到南美洲",
+        "甘藷是被鳥帶過來的",
+        "甘藷原本就長在每個島上",
+        "歐洲人更早就來過了"
+      ],
+      "answer": 0,
+      "explanation": "甘藷不能在海上漂流那麼遠還發芽，它的名字在玻里尼西亞和南美洲也很相像。一般認為，玻里尼西亞的航海家在約 1200 年前後到過南美洲，再把甘藷帶回來，種到整個玻里尼西亞。"
+    }
+  ],
+  "reward": {
+    "xp": 400,
+    "gold": 600,
+    "reputation": 40,
+    "unlock_ports": ["rapa-nui"],
+    "codex": ["polynesian-triangle", "hokulea"]
+  }
+}

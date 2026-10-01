@@ -1,0 +1,12 @@
+{
+  "id": "mauna-kea",
+  "category": "mountain",
+  "name": "毛納基亞火山",
+  "name_en": "Mauna Kea",
+  "location": [-155.47, 19.82],
+  "discover_radius_km": 120,
+  "domains": ["C", "D"],
+  "body": "夏威夷島上的休眠火山，海拔 4207 公尺；如果從海底的山腳算起，超過一萬公尺，比聖母峰還高。山頂冬天會下雪，在熱帶的島上非常少見。",
+  "source": "維基百科「毛納基亞火山」條目",
+  "reviewed": false
+}

@@ -1,0 +1,13 @@
+{
+  "id": "sina",
+  "name": "希娜·薩摩亞",
+  "profession": "interpreter",
+  "home_port": "upolu",
+  "hire_cost": 200,
+  "specialty": "薩摩亞語、東加語與各島的方言",
+  "bio": "薩摩亞首領家的女兒，會說好幾個島的話。她說各島的語言很像，因為大家本來就是一家人。",
+  "lines": [
+    "薩摩亞話的「你好」是 Tālofa，夏威夷話是 Aloha——聽起來是不是很像？",
+    "我們數一、二、三是 tasi、lua、tolu，台灣的阿美族也有很像的說法呢。"
+  ]
+}

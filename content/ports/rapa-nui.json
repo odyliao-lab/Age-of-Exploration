@@ -1,0 +1,16 @@
+{
+  "id": "rapa-nui",
+  "name": "阿納凱納（拉帕努伊）",
+  "name_en": "Anakena (Rapa Nui)",
+  "historical_names": [],
+  "country": "智利（拉帕努伊）",
+  "country_en": "Chile (Rapa Nui)",
+  "region": "rapa-nui",
+  "location": [-109.32, -27.07],
+  "kind": "port",
+  "goods": ["sweet-potato"],
+  "climate": "副熱帶海洋性氣候",
+  "blurb": "拉帕努伊島北岸唯一的白沙灘，相傳第一位首領荷圖·瑪圖阿就是在這裡登陸。島上沒有高山擋風，樹木越來越少，人們把心力放在雕刻巨大的石像上。",
+  "sights": ["moai"],
+  "gossip": ["我們叫這座島「世界的肚臍」。", "石像背對著大海，面向村落，守護著祖先的後代。"]
+}

@@ -57,6 +57,7 @@ const base = (): ContentBundle => ({
       text_names: {},
       historic_routes: [],
       currency: '金幣',
+      wayfinding: false,
       currency_icon: '💰',
       port_names: {},
       endings: {},

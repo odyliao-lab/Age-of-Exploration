@@ -1,0 +1,19 @@
+{
+  "id": "nuku-hiva",
+  "name": "努庫希瓦（馬克薩斯群島）",
+  "name_en": "Nuku Hiva",
+  "historical_names": [],
+  "country": "法屬玻里尼西亞（馬克薩斯群島）",
+  "country_en": "French Polynesia",
+  "region": "east-polynesia",
+  "location": [-140.1, -8.91],
+  "kind": "port",
+  "goods": ["sweet-potato"],
+  "climate": "熱帶莽原氣候",
+  "blurb": "馬克薩斯群島的主島，陡峭的火山峭壁直直插進海裡，沒有珊瑚礁保護。考古學家在這裡找到東玻里尼西亞最早的定居遺跡之一。",
+  "sights": [],
+  "gossip": [
+    "我們的山谷很深，一個山谷就是一個部落。",
+    "甘藷是從很遠很遠的東邊來的——比日出的地方還遠。"
+  ]
+}

@@ -1,0 +1,55 @@
+{
+  "id": "sp-00-star-compass",
+  "title": "星星的房子",
+  "scenario": "star-navigators",
+  "chapter": 0,
+  "tier": 0,
+  "kind": "main",
+  "giver_port": "raiatea",
+  "objectives": [
+    {
+      "domain": "A",
+      "text": "能說明星羅盤如何用星星升起的方位判斷方向。"
+    },
+    {
+      "domain": "B",
+      "text": "能找到社會群島。"
+    }
+  ],
+  "prerequisites": [],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "老航海家泰卡",
+      "lines": [
+        "孩子，航海家不看紙上的海圖，海圖在這裡——（他指著自己的頭）。",
+        "天邊一圈分成好多「房子」。每顆星都從固定的房子升起、落到固定的房子。記住它們，晚上就不會迷路。",
+        "先到東南邊的大溪地吧，那裡的山很高，遠遠就看得到。"
+      ]
+    },
+    {
+      "type": "navigate",
+      "target": "tahiti",
+      "hint_level": 1
+    },
+    {
+      "type": "quiz",
+      "question": "為什麼航海家看著「正在升起的星星」就能判斷方向？",
+      "choices": [
+        "同一顆星每天都從地平線上同一個方位升起",
+        "星星會跟著船走",
+        "星星都從正北方升起",
+        "因為星星會發出聲音"
+      ],
+      "answer": 0,
+      "explanation": "因為地球自轉，星星每晚從東邊的地平線升起、西邊落下，而且同一顆星每天都從同一個方位升起。航海家記住幾十顆星升起與落下的方位，就像一個用星星做成的羅盤。"
+    }
+  ],
+  "reward": {
+    "xp": 50,
+    "gold": 100,
+    "reputation": 5,
+    "unlock_ports": ["tahiti"],
+    "codex": ["star-compass"]
+  }
+}

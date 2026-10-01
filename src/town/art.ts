@@ -82,6 +82,24 @@ export const PALETTES: Record<Culture, Palette> = {
     palm: false,
     turf: true,
   },
+  polynesia: {
+    ground: '#e2cf9c',
+    groundDot: '#cdb882',
+    road: '#d8c79a',
+    roadLine: '#bba977',
+    wall: '#a8834c',
+    wallShade: '#7d6038',
+    roof: '#c2a15e',
+    roofLine: '#957637',
+    ridge: '#6f5226',
+    temple: '#8a8478',
+    office: '#c2a15e',
+    leaf: '#3f8a4a',
+    leafDark: '#2c6a36',
+    trunk: '#8a6a3a',
+    palm: true,
+    thatchAll: true,
+  },
   taino: {
     ground: '#dcc494',
     groundDot: '#c7ad7a',
@@ -606,6 +624,15 @@ export function drawLocalBoat(ctx: Ctx, culture: Culture, x: number, y0: number,
     px(ctx, x + 8, y - 3, 26, 2, '#9a7a4a');
     px(ctx, x + 8, y + 15, 26, 2, '#9a7a4a');
     px(ctx, x + 16, y + 1, 10, 10, '#e0c080');
+    return;
+  }
+  if (culture === 'polynesia') {
+    // 雙體獨木舟：兩條細長的船身用橫木連起來，中間一面蟹爪帆
+    px(ctx, x + 2, y + 2, 36, 4, '#6b4426');
+    px(ctx, x + 2, y + 11, 36, 4, '#6b4426');
+    for (let k = 0; k < 4; k++) px(ctx, x + 8 + k * 8, y + 5, 2, 7, '#8a6a3a');
+    for (let k = 0; k < 8; k++) px(ctx, x + 14 + k, y - 8 + k, Math.max(1, 10 - k), 1, '#e0c080');
+    px(ctx, x + 19, y - 9, 2, 17, '#3a2414');
     return;
   }
   if (culture === 'westafrica' || culture === 'taino') {

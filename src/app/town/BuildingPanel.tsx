@@ -61,6 +61,9 @@ const robed = (c: Culture, coat: string, skin: string): PersonLook | null => {
   // 北歐人：羊毛外衣與羊毛帽
   if (c === 'norse')
     return { skin: '#efd2b8', coat, hat: '#6b5a3a', hair: '#c9a86a', hatStyle: 'cap' };
+  // 玻里尼西亞：塔帕樹皮布與花環
+  if (c === 'polynesia')
+    return { skin: '#9e6a44', coat, hat: '#d9653a', hair: '#1c1410', hatStyle: 'cap' };
   // 泰諾人：棉布短裙與羽飾
   if (c === 'taino')
     return { skin: '#a8714a', coat, hat: '#e0b94a', hair: '#1c1410', hatStyle: 'cap' };
@@ -115,7 +118,9 @@ const NPCS: Record<BuildingKind, (c: Culture) => Npc> = {
           ? '客棧老闆'
           : c === 'norse'
             ? '宴會廳的主人'
-            : '酒館老闆娘',
+            : c === 'polynesia'
+              ? '聚會大屋的主人'
+              : '酒館老闆娘',
     look: robed(c, '#b5482b', '#c68f63') ?? {
       skin: '#e0b18a',
       coat: '#b5482b',
@@ -159,6 +164,13 @@ const TEMPLE: Record<
     action: '點蠟燭祈福',
     lesson:
       '伊比利半島的遠航船隊出發前，水手們會在港邊的教堂守夜祈禱，家人在岸邊送行——里斯本的船隊從西邊的貝倫出發，西班牙的船隊則從帕洛斯、塞維亞出航。一趟遠航常常要一兩年，不一定回得來。',
+  },
+  polynesia: {
+    keeper: '祭司',
+    greeting: '這是瑪拉埃，祖先與神明降臨的地方。遠航之前，航海家都要在這裡祈求平安。',
+    action: '獻上椰子與花環',
+    lesson:
+      '瑪拉埃是用石塊鋪成的祭祀廣場與平台，是玻里尼西亞社會的中心。賴阿特阿島上的塔普塔普阿泰瑪拉埃，相傳是遠航的出發點，航海家從這裡出發，在新的島上用帶來的石頭建立新的瑪拉埃；它在 2017 年列入世界遺產。',
   },
   norse: {
     keeper: '聖所的守護人',

@@ -1,0 +1,19 @@
+{
+  "id": "rarotonga",
+  "name": "拉羅湯加",
+  "name_en": "Rarotonga",
+  "historical_names": [],
+  "country": "庫克群島",
+  "country_en": "Cook Islands",
+  "region": "society-islands",
+  "location": [-159.78, -21.23],
+  "kind": "port",
+  "goods": ["coconut", "tapa"],
+  "climate": "熱帶雨林氣候",
+  "blurb": "庫克群島的主島，一座被珊瑚礁圍繞的火山島。相傳往南方奧特亞羅瓦（紐西蘭）的大獨木舟，就是從這附近出發的。",
+  "sights": [],
+  "gossip": [
+    "往西南航行好多天，有一片很大、很冷的土地，那裡的人叫它奧特亞羅瓦——長白雲之鄉。",
+    "（奧特亞羅瓦在換日線的另一邊，這張海圖還沒畫到那裡。）"
+  ]
+}

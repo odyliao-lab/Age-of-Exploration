@@ -15,7 +15,7 @@ export interface ShipLook {
   sail: number;
   flag: number;
   /** 船型樣式（預設中式帆船） */
-  rig?: 'junk' | 'lateen' | 'square';
+  rig?: 'junk' | 'lateen' | 'square' | 'vaka';
 }
 
 export interface SailTrim {
@@ -73,6 +73,20 @@ export class ShipSprite {
   private drawHull() {
     const g = this.hull;
     g.clear();
+    if (this.look.rig === 'vaka') {
+      // 雙體獨木舟：兩條細長的船身，中間用橫木與平台連起來
+      for (const x of [-6, 6]) {
+        g.poly([x, -20, x + 2.5, -12, x + 2.5, 14, x, 20, x - 2.5, 14, x - 2.5, -12], true)
+          .fill({ color: this.look.hull })
+          .stroke({ width: 1.1, color: INK });
+      }
+      g.rect(-6, -6, 12, 14)
+        .fill({ color: 0x8a5a33, alpha: 0.9 })
+        .stroke({ width: 0.8, color: INK });
+      for (const y of [-12, 12]) g.moveTo(-6, y).lineTo(6, y);
+      g.stroke({ width: 1.2, color: INK });
+      return;
+    }
     if (this.look.rig === 'square') {
       // 克拉克帆船：圓胖的船身，船頭船尾有高起的船樓
       g.poly(
@@ -133,7 +147,8 @@ export class ShipSprite {
     // 帆與船身中線的夾角：頂風時貼近中線，順風時接近橫向
     const swing = Math.min(80, Math.max(12, angleOffWind / 2)) * leeward;
     const rad = (swing * Math.PI) / 180;
-    if (this.look.rig === 'lateen') this.drawLateen(g, rad, leeward, sail);
+    if (this.look.rig === 'lateen' || this.look.rig === 'vaka')
+      this.drawLateen(g, rad, leeward, sail);
     else if (this.look.rig === 'square') this.drawSquare(g, windRel, leeward, sail, rad);
     else this.drawLug(g, rad, leeward, sail);
     this.drawFlag(time, windRel);
@@ -280,7 +295,7 @@ export class ShipSprite {
     f.clear();
     const flagRad = ((windRel + Math.sin(time * 6) * 8) * Math.PI) / 180;
     const px = 0;
-    const py = this.look.rig === 'lateen' ? 19 : 20;
+    const py = this.look.rig === 'lateen' || this.look.rig === 'vaka' ? 19 : 20;
     // 船體座標以船頭為上（-y）：角度 θ 的方向向量是 (sin θ, -cos θ)
     const tx = px + Math.sin(flagRad) * 7;
     const ty = py - Math.cos(flagRad) * 7;

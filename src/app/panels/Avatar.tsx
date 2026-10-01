@@ -45,6 +45,21 @@ function Hat({ id }: { id: string }) {
           <path d="M20 23 L44 23" strokeWidth={2.5} />
         </g>
       );
+    case 'flowers':
+      // 花環
+      return (
+        <g {...line}>
+          {[22, 27, 32, 37, 42].map((x, i) => (
+            <circle
+              key={x}
+              cx={x}
+              cy={i % 2 ? 17 : 19}
+              r={3.2}
+              fill={i % 2 ? '#e0b94a' : '#d9653a'}
+            />
+          ))}
+        </g>
+      );
     case 'woolcap':
       // 北歐人的羊毛圓帽
       return (

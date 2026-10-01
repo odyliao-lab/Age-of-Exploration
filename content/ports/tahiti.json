@@ -1,0 +1,16 @@
+{
+  "id": "tahiti",
+  "name": "大溪地",
+  "name_en": "Tahiti",
+  "historical_names": [],
+  "country": "法屬玻里尼西亞（社會群島）",
+  "country_en": "French Polynesia",
+  "region": "society-islands",
+  "location": [-149.57, -17.53],
+  "kind": "port",
+  "goods": ["feathers", "pearl-shell"],
+  "climate": "熱帶雨林氣候",
+  "blurb": "社會群島最大的島，兩座火山連成葫蘆形。肥沃的山谷裡種滿麵包樹、芋頭和香蕉，潟湖裡出產漂亮的黑蝶珍珠貝。",
+  "sights": [],
+  "gossip": ["紅色的羽毛最珍貴，只有首領和神明才配得上。", "這裡的山很高，雲總是掛在山頂上。"]
+}

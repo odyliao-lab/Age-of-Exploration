@@ -1,0 +1,54 @@
+{
+  "id": "sp-02-homeland",
+  "title": "西方的故鄉",
+  "scenario": "star-navigators",
+  "chapter": 1,
+  "tier": 1,
+  "kind": "main",
+  "giver_port": "rarotonga",
+  "objectives": [
+    {
+      "domain": "E",
+      "text": "知道玻里尼西亞人屬於南島語族，祖先可能來自台灣一帶。"
+    },
+    {
+      "domain": "A",
+      "text": "能找到東加與薩摩亞。"
+    }
+  ],
+  "prerequisites": ["sp-01-signs"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "拉羅湯加的長老",
+      "lines": [
+        "我們的祖先最早住在西邊的東加和薩摩亞。更早以前，他們從更西邊、太陽落下的大島群一路航行過來。",
+        "去看看祖先的土地吧：先到東加，再往北到薩摩亞。"
+      ]
+    },
+    {
+      "type": "navigate",
+      "target": "tongatapu",
+      "hint_level": 2
+    },
+    {
+      "type": "navigate",
+      "target": "upolu",
+      "hint_level": 2
+    },
+    {
+      "type": "quiz",
+      "question": "語言學和考古學認為，玻里尼西亞人所屬的「南島語族」最早可能從哪裡出發？",
+      "choices": ["台灣一帶", "南美洲", "非洲", "北極"],
+      "answer": 0,
+      "explanation": "玻里尼西亞語和台灣原住民的語言、菲律賓語、馬來語都屬於南島語系。研究認為南島語族大約五千年前從台灣一帶出發，往南、往東航行，最後散布到整個太平洋與印度洋的島嶼——台灣和玻里尼西亞，其實是遠房親戚。"
+    }
+  ],
+  "reward": {
+    "xp": 150,
+    "gold": 200,
+    "reputation": 12,
+    "unlock_ports": ["tongatapu", "upolu"],
+    "codex": ["austronesian"]
+  }
+}

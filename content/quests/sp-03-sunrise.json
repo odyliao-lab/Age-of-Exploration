@@ -1,0 +1,59 @@
+{
+  "id": "sp-03-sunrise",
+  "title": "日出的方向",
+  "scenario": "star-navigators",
+  "chapter": 2,
+  "tier": 2,
+  "kind": "main",
+  "giver_port": "raiatea",
+  "objectives": [
+    {
+      "domain": "D",
+      "text": "知道往東航行要等夏天的西風。"
+    },
+    {
+      "domain": "C",
+      "text": "能說明環礁是怎麼形成的。"
+    }
+  ],
+  "prerequisites": ["sp-02-homeland"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "老航海家泰卡",
+      "lines": [
+        "往東走是頂著信風。我們等到夏天信風變弱、吹起西風的時候才出發——萬一找不到島，再順著信風回家。",
+        "東邊有一大片低低的珊瑚環礁，小心礁石。過了環礁，往東北就是高高的馬克薩斯群島。"
+      ]
+    },
+    {
+      "type": "discover",
+      "target": "tuamotu"
+    },
+    {
+      "type": "navigate",
+      "target": "nuku-hiva",
+      "hint_level": 3,
+      "text": "線索：土阿莫土環礁的東北方，一群沒有珊瑚礁保護、峭壁直插進海裡的高聳火山島。"
+    },
+    {
+      "type": "quiz",
+      "question": "土阿莫土群島的環礁是怎麼形成的？",
+      "choices": [
+        "火山島慢慢下沉，四周的珊瑚礁一直往上長，最後只剩一圈珊瑚島圍著潟湖",
+        "珊瑚從海底噴出來",
+        "冰河刨出來的",
+        "河流沖積成的"
+      ],
+      "answer": 0,
+      "explanation": "珊瑚只能在溫暖、陽光照得到的淺海生長。火山島形成後，四周長出珊瑚礁；火山島因為地殼下沉慢慢沒入海中，珊瑚卻一直往上長，最後只剩下一圈環狀的珊瑚島，中間是潟湖。這是達爾文提出的環礁形成理論。"
+    }
+  ],
+  "reward": {
+    "xp": 220,
+    "gold": 280,
+    "reputation": 16,
+    "unlock_ports": ["nuku-hiva"],
+    "codex": []
+  }
+}

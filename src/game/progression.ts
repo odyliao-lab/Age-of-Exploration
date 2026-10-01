@@ -138,6 +138,8 @@ export interface ShipDef {
   minLevel: number;
   /** 船隻小知識（企畫書 9.4） */
   lore: string;
+  /** 海圖上的特殊畫法（雙體獨木舟） */
+  look?: 'vaka';
 }
 
 export const SHIPS: Record<string, ShipDef> = {
@@ -210,6 +212,36 @@ export const SHIPS: Record<string, ShipDef> = {
     price: 650,
     minLevel: 3,
     lore: '印度洋貿易用的大型三角帆船，兩根桅杆都掛著三角帆。阿拉伯與波斯商人用這類船把馬匹運到印度，把胡椒、棉布、瓷器運回波斯灣和紅海；每年順著季風往返一趟。',
+  },
+  vaka: {
+    id: 'vaka',
+    rig: 'lateen',
+    look: 'vaka',
+    name: '雙體獨木舟',
+    name_en: 'Vaka (double canoe)',
+    supplyDays: 30,
+    speed: 1.15,
+    sturdiness: 1,
+    crewSlots: 2,
+    cargo: 16,
+    price: 0,
+    minLevel: 1,
+    lore: '兩條獨木舟用橫木綁在一起，中間鋪上平台，掛著像蟹鉗一樣的三角帆（蟹爪帆）。雙船身又穩又快，平台上可以載家人、豬、雞、種子和幼苗——玻里尼西亞人就是開著它，把整個家族和生活搬到新的島上。',
+  },
+  'voyaging-vaka': {
+    id: 'voyaging-vaka',
+    rig: 'lateen',
+    look: 'vaka',
+    name: '遠航大雙體舟',
+    name_en: 'Voyaging Canoe',
+    supplyDays: 45,
+    speed: 1.1,
+    sturdiness: 1.2,
+    crewSlots: 3,
+    cargo: 26,
+    price: 500,
+    minLevel: 3,
+    lore: "二十公尺長的遠航雙體舟，可以載二三十個人和幾個星期的食物、淡水。1976 年仿造的霍庫雷阿號（Hōkūle'a）不用任何現代儀器，從夏威夷航行到大溪地，證明了古代玻里尼西亞人有能力刻意遠航，而不是隨波漂流。",
   },
   knarr: {
     id: 'knarr',

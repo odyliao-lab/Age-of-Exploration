@@ -1,0 +1,16 @@
+{
+  "id": "upolu",
+  "name": "烏波盧（薩摩亞）",
+  "name_en": "Upolu (Samoa)",
+  "historical_names": [],
+  "country": "薩摩亞",
+  "country_en": "Samoa",
+  "region": "west-polynesia",
+  "location": [-171.76, -13.83],
+  "kind": "port",
+  "goods": ["basalt-adze", "tapa"],
+  "climate": "熱帶雨林氣候",
+  "blurb": "薩摩亞群島的大島。這裡出產堅硬細緻的玄武岩，磨成的石斧是造獨木舟最重要的工具，會被帶到好幾千公里外的島上交換。",
+  "sights": [],
+  "gossip": ["玄武岩要磨很多天，才能磨成一把好石斧。", "薩摩亞人說，這裡是玻里尼西亞的搖籃。"]
+}
