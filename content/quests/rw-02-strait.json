@@ -1,0 +1,81 @@
+{
+  "id": "rw-02-strait",
+  "title": "南方的海峽",
+  "scenario": "round-the-world",
+  "chapter": 1,
+  "tier": 1,
+  "kind": "main",
+  "giver_port": "guanabara",
+  "objectives": [
+    {
+      "domain": "D",
+      "text": "能說明南半球的季節和北半球相反。"
+    },
+    {
+      "domain": "B",
+      "text": "能找到麥哲倫海峽。"
+    }
+  ],
+  "prerequisites": ["rw-01-brazil"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "船隊總司令",
+      "lines": [
+        "一定有一條海峽穿過這片大陸。我們沿著海岸往南找，一個海灣一個海灣地探查。",
+        "等冬天來了，就找個海灣停下來過冬。"
+      ]
+    },
+    {
+      "type": "discover",
+      "target": "rio-de-la-plata"
+    },
+    {
+      "type": "discover",
+      "target": "san-julian"
+    },
+    {
+      "type": "quiz",
+      "question": "船隊在 4 月停下來「過冬」。為什麼 4 月是冬天？",
+      "choices": [
+        "在南半球，季節和北半球相反，4～9 月是秋冬",
+        "因為那年特別冷",
+        "因為南美洲沒有夏天",
+        "因為船隊迷路了"
+      ],
+      "answer": 0,
+      "explanation": "地球的自轉軸是傾斜的。北半球斜向太陽的時候（6 月前後）是夏天，南半球就是冬天；反過來 12 月是南半球的夏天。所以在巴塔哥尼亞，4 月已經是冷颼颼的秋末了。"
+    },
+    {
+      "type": "dialogue",
+      "speaker": "記錄員皮加費塔",
+      "lines": [
+        "冬天終於過去了。總司令說：海峽一定在更南邊。",
+        "（船隊找到海峽的時候，岸上的夜裡滿是點點的火光。）"
+      ]
+    },
+    {
+      "type": "discover",
+      "target": "strait-of-magellan"
+    },
+    {
+      "type": "quiz",
+      "question": "穿過麥哲倫海峽，船隊從哪個大洋進入哪個大洋？",
+      "choices": [
+        "從大西洋進入太平洋",
+        "從印度洋進入大西洋",
+        "從太平洋進入北冰洋",
+        "從大西洋進入印度洋"
+      ],
+      "answer": 0,
+      "explanation": "麥哲倫海峽在南美洲南端，連接東邊的大西洋和西邊的太平洋。後來的人發現火地島更南邊的合恩角也能繞過去，但那裡的風浪是全世界最兇的。"
+    }
+  ],
+  "reward": {
+    "xp": 220,
+    "gold": 250,
+    "reputation": 16,
+    "unlock_ports": [],
+    "codex": ["tierra-del-fuego"]
+  }
+}

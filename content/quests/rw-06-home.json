@@ -1,0 +1,72 @@
+{
+  "id": "rw-06-home",
+  "title": "回家的路",
+  "scenario": "round-the-world",
+  "chapter": 5,
+  "tier": 4,
+  "kind": "main",
+  "giver_port": "tidore",
+  "objectives": [
+    {
+      "domain": "A",
+      "text": "能說明往西繞地球一圈為什麼會少一天。"
+    },
+    {
+      "domain": "B",
+      "text": "能說出維多利亞號回航的路線。"
+    }
+  ],
+  "prerequisites": ["rw-05-spice"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "艾爾卡諾船長",
+      "lines": [
+        "千里達號漏水了，要留下來修理。維多利亞號載滿丁香，繼續往西回家。",
+        "印度洋上到處是葡萄牙的港口，我們要往南繞得遠遠的，一路不靠岸，直到繞過好望角。"
+      ]
+    },
+    {
+      "type": "discover",
+      "target": "cape-of-good-hope"
+    },
+    {
+      "type": "navigate",
+      "target": "santiago",
+      "hint_level": 4,
+      "text": "線索：繞過好望角往北，越過赤道，在非洲西邊外海的群島。"
+    },
+    {
+      "type": "dialogue",
+      "speaker": "記錄員皮加費塔",
+      "lines": [
+        "我每天都在日記上寫下日期，一天也沒漏過。日記上今天是星期三。",
+        "可是岸上的人卻說：今天是星期四！我們到底在哪裡弄丟了一天？"
+      ]
+    },
+    {
+      "type": "quiz",
+      "question": "皮加費塔的日記為什麼少了一天？",
+      "choices": [
+        "船隊一直往西航行、追著太陽走，繞地球一圈就少看了一次日出",
+        "他忘了寫一天",
+        "岸上的人算錯了",
+        "因為船停在海上不算日子"
+      ],
+      "answer": 0,
+      "explanation": "地球每 24 小時自轉一圈。往西航行時，船跟著太陽走，每一天都比岸上的人長一點點；繞地球一圈，累積起來剛好少過一天。今天的換日線就是為了這個問題而畫的。"
+    },
+    {
+      "type": "navigate",
+      "target": "sanlucar",
+      "hint_level": 2
+    }
+  ],
+  "reward": {
+    "xp": 500,
+    "gold": 600,
+    "reputation": 40,
+    "unlock_ports": ["sanlucar"],
+    "codex": ["date-line"]
+  }
+}

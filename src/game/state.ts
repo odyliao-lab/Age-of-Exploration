@@ -659,7 +659,7 @@ export function tick(world: World, state: GameState, days: number): StepResult {
     const condition = passTime(before, stepDays, m);
     const stats = trackCrossings(s.stats, from[1], to[1]);
     s = { ...s, ship: { position: to, heading }, condition, stats };
-    for (const id of linesCrossed(world, from[1], to[1])) {
+    for (const id of linesCrossed(world, from, to)) {
       if (!discovered.includes(id)) {
         discovered = [...discovered, id];
         events.push({ type: 'discovered', codexId: id });
@@ -2482,13 +2482,15 @@ const LINE_LATITUDES = {
   'antarctic-circle': -66.56,
 } as const;
 
-/** 這一小步穿越的緯線所對應的知識卡 */
-function linesCrossed(world: World, fromLat: number, toLat: number): string[] {
+/** 這一小步穿越的緯線（與換日線）所對應的知識卡 */
+function linesCrossed(world: World, from: LonLat, to: LonLat): string[] {
   return world.content.codex
     .filter((c) => {
       if (!c.line) return false;
+      // 經度從 +180 跳到 -180（或反過來）就是越過了換日線
+      if (c.line === 'date-line') return Math.abs(to[0] - from[0]) > 180;
       const line = LINE_LATITUDES[c.line];
-      return (fromLat - line) * (toLat - line) < 0;
+      return (from[1] - line) * (to[1] - line) < 0;
     })
     .map((c) => c.id);
 }

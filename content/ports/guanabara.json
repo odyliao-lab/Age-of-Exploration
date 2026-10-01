@@ -1,0 +1,19 @@
+{
+  "id": "guanabara",
+  "name": "瓜納巴拉灣",
+  "name_en": "Guanabara Bay",
+  "historical_names": [],
+  "country": "巴西",
+  "country_en": "Brazil",
+  "region": "brazil-coast",
+  "location": [-43.17, -22.9],
+  "kind": "port",
+  "goods": ["brazilwood"],
+  "climate": "熱帶莽原氣候",
+  "blurb": "被高聳的花崗岩山峰圍繞的大海灣，今天的里約熱內盧就在這裡。灣邊住著說圖皮語的圖皮南巴人，他們種樹薯、捕魚，用吊床睡覺。",
+  "sights": [],
+  "gossip": [
+    "「吊床」這個東西，歐洲人以前從來沒見過。",
+    "森林裡有一種紅色木頭，可以染出漂亮的紅色——葡萄牙人叫它「巴西木」。"
+  ]
+}

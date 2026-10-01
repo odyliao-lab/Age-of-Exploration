@@ -1,0 +1,57 @@
+{
+  "id": "rw-05-spice",
+  "title": "香料群島",
+  "scenario": "round-the-world",
+  "chapter": 4,
+  "tier": 4,
+  "kind": "main",
+  "giver_port": "cebu",
+  "objectives": [
+    {
+      "domain": "B",
+      "text": "能找到摩鹿加群島。"
+    },
+    {
+      "domain": "F",
+      "text": "知道丁香只產在少數幾座島上。"
+    }
+  ],
+  "prerequisites": ["rw-04-mactan"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "艾爾卡諾船長",
+      "lines": ["聽說西南邊有個大城叫汶萊，船隊先到那裡補給，再往東南找香料群島。"]
+    },
+    {
+      "type": "navigate",
+      "target": "brunei",
+      "hint_level": 3
+    },
+    {
+      "type": "navigate",
+      "target": "tidore",
+      "hint_level": 4,
+      "text": "線索：從汶萊往東南，在赤道附近、民答那峨島南方的一串火山島。"
+    },
+    {
+      "type": "quiz",
+      "question": "為什麼丁香在歐洲貴得像金子？",
+      "choices": [
+        "全世界的丁香原本只長在摩鹿加群島的幾座小島上，要經過很多商人轉手才運到歐洲",
+        "丁香是用金子做的",
+        "丁香很重",
+        "歐洲的丁香被吃光了"
+      ],
+      "answer": 0,
+      "explanation": "丁香樹需要火山土和溫暖潮濕的氣候，原本只長在摩鹿加群島。丁香從這裡經過爪哇、印度、阿拉伯、威尼斯的商人一路轉賣，每轉一次價格就漲一次，到了歐洲已經貴得驚人。"
+    }
+  ],
+  "reward": {
+    "xp": 300,
+    "gold": 400,
+    "reputation": 22,
+    "unlock_ports": ["tidore"],
+    "codex": []
+  }
+}

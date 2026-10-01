@@ -1,0 +1,12 @@
+{
+  "id": "tierra-del-fuego",
+  "category": "island",
+  "name": "火地島",
+  "name_en": "Tierra del Fuego",
+  "location": [-68.8, -53.9],
+  "discover_radius_km": 90,
+  "domains": ["C", "E"],
+  "body": "海峽南邊的大島。船員晚上看見岸上點點的火光——那是當地的塞爾克南人與亞馬納人燒的營火——就把這裡叫做「火的土地」。這些居民在這麼冷的地方生活了上萬年。",
+  "source": "維基百科「火地島」條目",
+  "reviewed": false
+}

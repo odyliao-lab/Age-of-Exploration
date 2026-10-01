@@ -1,0 +1,19 @@
+{
+  "id": "tidore",
+  "name": "蒂多雷",
+  "name_en": "Tidore",
+  "historical_names": [],
+  "country": "印尼（摩鹿加群島）",
+  "country_en": "Indonesia (Maluku)",
+  "region": "maluku",
+  "location": [127.4, 0.68],
+  "kind": "port",
+  "goods": ["cloves", "nutmeg"],
+  "climate": "熱帶雨林氣候",
+  "blurb": "摩鹿加群島的一座火山島，由蘇丹治理。山坡上種滿丁香樹，花苞曬乾就是丁香。對面的特爾納特島和蒂多雷是競爭對手，葡萄牙人已經在特爾納特落腳。",
+  "sights": [],
+  "gossip": [
+    "一斤丁香在這裡很便宜，運到歐洲卻貴得像金子。",
+    "阿拉伯、爪哇、中國的商人，幾百年來都來這裡買丁香。"
+  ]
+}

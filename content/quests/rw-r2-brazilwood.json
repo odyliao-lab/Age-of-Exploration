@@ -1,0 +1,46 @@
+{
+  "id": "rw-r2-brazilwood",
+  "title": "紅色的染料",
+  "scenario": "round-the-world",
+  "chapter": 1,
+  "tier": 1,
+  "kind": "region",
+  "giver_port": "guanabara",
+  "objectives": [
+    {
+      "domain": "F",
+      "text": "知道巴西木的用途與過度砍伐的問題。"
+    }
+  ],
+  "prerequisites": ["rw-01-brazil"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "拉斯帕爾馬斯來的布商",
+      "lines": [
+        "（他是跟著船隊做生意的商人）巴西木能染出漂亮的紅布！幫我運 6 捆到拉斯帕爾馬斯，我付好價錢。"
+      ]
+    },
+    {
+      "type": "deliver",
+      "good": "brazilwood",
+      "qty": 6,
+      "target": "las-palmas",
+      "text": "在瓜納巴拉灣買巴西木"
+    },
+    {
+      "type": "quiz",
+      "question": "葡萄牙人砍了幾百年的巴西木，今天的巴西木怎麼了？",
+      "choices": ["變成了瀕臨絕種的樹，受到保護", "長滿了整個歐洲", "變成了石頭", "全部變成了藍色"],
+      "answer": 0,
+      "explanation": "巴西木被大量砍伐，巴西沿岸的大西洋森林只剩下原本的一小部分，巴西木也成了瀕危物種。今天最好的小提琴弓用巴西木做，人們正在想辦法重新種植。"
+    }
+  ],
+  "reward": {
+    "xp": 120,
+    "gold": 180,
+    "reputation": 10,
+    "unlock_ports": [],
+    "codex": []
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "id": "brazilwood",
+  "category": "goods",
+  "name": "巴西木",
+  "name_en": "Brazilwood",
+  "domains": ["F", "E"],
+  "body": "巴西沿岸森林裡的紅色木頭，可以磨成粉、熬出紅色染料，和東南亞的蘇木是親戚。葡萄牙人大量砍伐、運回歐洲染布，「巴西」這個國名就是從這種樹來的。",
+  "source": "維基百科「巴西木」條目",
+  "reviewed": false
+}

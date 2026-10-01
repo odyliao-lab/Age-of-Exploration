@@ -1,0 +1,12 @@
+{
+  "id": "rio-de-la-plata",
+  "category": "river",
+  "name": "拉布拉他河口",
+  "name_en": "Río de la Plata",
+  "location": [-56.8, -35.3],
+  "discover_radius_km": 150,
+  "domains": ["C", "B"],
+  "body": "巴拉那河與烏拉圭河匯流後的河口，寬達兩百公里，海水在這裡變成淡水。麥哲倫的船隊花了好幾個星期探查，原本希望這是通往另一個大洋的海峽，結果發現是一條大河。",
+  "source": "維基百科「拉布拉他河」條目",
+  "reviewed": false
+}

@@ -1,0 +1,55 @@
+{
+  "id": "rw-01-brazil",
+  "title": "紅木的海岸",
+  "scenario": "round-the-world",
+  "chapter": 0,
+  "tier": 1,
+  "kind": "main",
+  "giver_port": "las-palmas",
+  "objectives": [
+    {
+      "domain": "A",
+      "text": "能說明越過赤道後北極星與季節的變化。"
+    },
+    {
+      "domain": "F",
+      "text": "知道巴西的國名來自巴西木。"
+    }
+  ],
+  "prerequisites": ["rw-00-west"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "記錄員皮加費塔",
+      "lines": [
+        "（他在日記本上寫個不停）我要把這趟航行看到的一切都記下來。",
+        "船隊要往西南橫渡大洋，越過赤道，到南美洲的大海灣補給。"
+      ]
+    },
+    {
+      "type": "navigate",
+      "target": "guanabara",
+      "hint_level": 2,
+      "text": "線索：往西南橫渡大西洋、越過赤道，在南緯 23° 附近被高聳岩山圍繞的大海灣。"
+    },
+    {
+      "type": "quiz",
+      "question": "「巴西」這個國名是從哪裡來的？",
+      "choices": [
+        "一種可以染出紅色的樹——巴西木",
+        "一位國王的名字",
+        "當地人說的「大海」",
+        "一種香料"
+      ],
+      "answer": 0,
+      "explanation": "巴西沿岸的森林裡有一種紅色的木頭，可以熬出紅色染料。葡萄牙人大量砍伐、運回歐洲，這片海岸就被叫做「巴西木的土地」，後來成了國名。"
+    }
+  ],
+  "reward": {
+    "xp": 80,
+    "gold": 140,
+    "reputation": 8,
+    "unlock_ports": ["guanabara"],
+    "codex": ["brazilwood"]
+  }
+}

@@ -64,6 +64,7 @@ const GREETINGS: Record<string, Greeting> = {
   'nuku-hiva': { phrase: 'Kaoha！', lang: '馬克薩斯語', meaning: '你好、歡迎' },
   rarotonga: { phrase: 'Kia orana！', lang: '庫克群島毛利語', meaning: '祝你長壽、你好' },
   pewhairangi: { phrase: 'Kia ora！', lang: '毛利語', meaning: '祝你健康、你好' },
+  cebu: { phrase: 'Maayong adlaw！', lang: '宿霧語', meaning: '日安、你好' },
   tongatapu: { phrase: 'Mālō e lelei！', lang: '東加語', meaning: '你好' },
   upolu: { phrase: 'Tālofa！', lang: '薩摩亞語', meaning: '你好' },
   kealakekua: { phrase: 'Aloha！', lang: '夏威夷語', meaning: '愛、你好、再見' },

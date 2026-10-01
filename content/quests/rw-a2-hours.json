@@ -1,0 +1,44 @@
+{
+  "id": "rw-a2-hours",
+  "title": "一小時十五度",
+  "scenario": "round-the-world",
+  "chapter": 3,
+  "tier": 3,
+  "kind": "academy",
+  "giver_port": "cebu",
+  "objectives": [
+    {
+      "domain": "A",
+      "text": "能說明經度與時間的關係（每 15° 差 1 小時）。"
+    }
+  ],
+  "prerequisites": ["rw-03-pacific"],
+  "steps": [
+    {
+      "type": "quiz",
+      "question": "地球 24 小時自轉一圈 360°，每小時轉幾度？",
+      "choices": ["15°", "24°", "36°", "1°"],
+      "answer": 0,
+      "explanation": "360° ÷ 24 小時 = 15°。所以經度每差 15°，當地的正午時間就差 1 小時：越往東，太陽越早升起。"
+    },
+    {
+      "type": "quiz",
+      "question": "宿霧在東經約 124°，聖盧卡爾在西經約 6°。往西繞過來的船隊，和留在西班牙的人比，日子會怎麼樣？",
+      "choices": [
+        "船上每天都比岸上長一點，累積起來會少過大半天",
+        "完全一樣",
+        "船上多過了一天",
+        "船上的時間停止了"
+      ],
+      "answer": 0,
+      "explanation": "從聖盧卡爾往西到宿霧，船隊已經跟著太陽繞了 230° 左右（360° 減掉兩地相差的 130°），每 15° 就少過 1 小時，累積起來船上少過了十幾個小時。再繞完剩下的一段回到西班牙，就會剛好少一整天。"
+    }
+  ],
+  "reward": {
+    "xp": 80,
+    "gold": 80,
+    "reputation": 4,
+    "unlock_ports": [],
+    "codex": []
+  }
+}

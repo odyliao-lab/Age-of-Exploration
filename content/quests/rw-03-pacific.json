@@ -1,0 +1,59 @@
+{
+  "id": "rw-03-pacific",
+  "title": "平靜的大洋",
+  "scenario": "round-the-world",
+  "chapter": 2,
+  "tier": 2,
+  "kind": "main",
+  "giver_port": "guanabara",
+  "objectives": [
+    {
+      "domain": "B",
+      "text": "能說明太平洋有多大。"
+    },
+    {
+      "domain": "D",
+      "text": "知道長途航行缺乏新鮮食物會得壞血病。"
+    }
+  ],
+  "prerequisites": ["rw-01-brazil"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "船隊總司令",
+      "lines": [
+        "穿過海峽以後，另一邊就是我們要橫渡的大洋。",
+        "香料群島應該不遠了——頂多幾個星期吧。"
+      ]
+    },
+    {
+      "type": "discover",
+      "target": "mar-pacifico"
+    },
+    {
+      "type": "navigate",
+      "target": "cebu",
+      "hint_level": 4,
+      "text": "線索：橫渡太平洋往西北，越過換日線，經過馬里亞納群島，再往西到菲律賓中部的島群。"
+    },
+    {
+      "type": "quiz",
+      "question": "太平洋大約有多大？",
+      "choices": [
+        "比全世界的陸地加起來還大",
+        "和地中海差不多",
+        "比大西洋小一點",
+        "大約是台灣的十倍"
+      ],
+      "answer": 0,
+      "explanation": "太平洋面積約 1 億 6 千萬平方公里，佔地球表面的三分之一，比全世界的陸地加起來還大。麥哲倫以為幾個星期就能橫渡，結果走了三個多月，許多船員死於飢餓與壞血病。"
+    }
+  ],
+  "reward": {
+    "xp": 300,
+    "gold": 300,
+    "reputation": 20,
+    "unlock_ports": ["cebu"],
+    "codex": ["marianas"]
+  }
+}
