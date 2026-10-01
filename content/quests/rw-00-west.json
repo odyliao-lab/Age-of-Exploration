@@ -1,0 +1,55 @@
+{
+  "id": "rw-00-west",
+  "title": "往西的航路",
+  "scenario": "round-the-world",
+  "chapter": 0,
+  "tier": 0,
+  "kind": "main",
+  "giver_port": "sanlucar",
+  "objectives": [
+    {
+      "domain": "E",
+      "text": "能說明西班牙為什麼要往西尋找香料群島。"
+    },
+    {
+      "domain": "B",
+      "text": "能找到加那利群島。"
+    }
+  ],
+  "prerequisites": [],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "船隊總司令",
+      "lines": [
+        "葡萄牙人已經繞過非洲，控制了往東去香料群島的航路。",
+        "可是地球是圓的——如果一直往西走，從另一邊也能到達香料群島。",
+        "我們先往南到加那利群島補給，再往西橫渡大洋。"
+      ]
+    },
+    {
+      "type": "navigate",
+      "target": "las-palmas",
+      "hint_level": 1
+    },
+    {
+      "type": "quiz",
+      "question": "為什麼西班牙的船隊要「往西」去東方的香料群島？",
+      "choices": [
+        "條約把往東繞過非洲的航路劃給了葡萄牙",
+        "往西比較近",
+        "往東的海結冰了",
+        "香料群島在西班牙的西邊"
+      ],
+      "answer": 0,
+      "explanation": "1494 年的托德西利亞斯條約，用一條經線把新航路分給西班牙和葡萄牙，往東繞過非洲的路歸葡萄牙。西班牙只好賭一把：往西航行，從地球的另一邊到達亞洲。"
+    }
+  ],
+  "reward": {
+    "xp": 50,
+    "gold": 100,
+    "reputation": 5,
+    "unlock_ports": ["las-palmas"],
+    "codex": ["tordesillas"]
+  }
+}

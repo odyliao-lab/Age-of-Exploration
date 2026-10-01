@@ -4,7 +4,7 @@
  */
 import { Container, Graphics, Text } from 'pixi.js';
 import type { LonLat } from '@/data/schema';
-import { lonLatToWorld } from './projection';
+import { lonLatToView, wrapX } from './projection';
 
 export interface PlaceLabel {
   id: string;
@@ -47,7 +47,8 @@ export class PlaceLabels {
     this.items = [];
     for (const p of list) {
       const root = new Container();
-      const pos = lonLatToWorld(p.location);
+      root.cullable = true;
+      const pos = lonLatToView(p.location);
       root.position.set(pos.x, pos.y);
       const g = new Graphics();
       glyph(g, p.category);
@@ -82,6 +83,7 @@ export class PlaceLabels {
   setScale(scale: number) {
     const inv = 1 / scale;
     for (const it of this.items) {
+      it.root.x = wrapX(it.root.x);
       it.root.scale.set(inv);
       it.label.visible = scale >= 2.5;
     }

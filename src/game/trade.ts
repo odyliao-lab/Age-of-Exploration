@@ -54,6 +54,8 @@ export const GOODS_PRICE: Record<string, number> = {
   'sweet-potato': 12,
   coconut: 8,
   'pearl-shell': 50,
+  pounamu: 70,
+  brazilwood: 25,
 };
 
 const PRODUCER_FACTOR = 0.55;

@@ -1,0 +1,12 @@
+{
+  "id": "mar-pacifico",
+  "category": "phenomenon",
+  "name": "太平洋",
+  "name_en": "Pacific Ocean",
+  "location": [-82.0, -44.0],
+  "discover_radius_km": 700,
+  "domains": ["B", "D"],
+  "body": "穿過海峽以後，船隊一連好幾個月都遇到平靜的海和穩定的信風，麥哲倫就把這片大洋叫做「平靜的海」（太平洋）。其實太平洋比全世界的陸地加起來還大，船隊整整三個多月都沒有找到補給：餅乾生了蟲，水發臭了，許多人死於壞血病。",
+  "source": "維基百科「太平洋」「麥哲倫環球航行」條目",
+  "reviewed": false
+}

@@ -270,7 +270,14 @@ describe('shortage range', () => {
   it('never asks an Indian Ocean port for goods only found in the Atlantic', () => {
     const ports = world.content.ports;
     const malacca = world.ports.get('malacca')!;
-    const atlanticOnly = ['wine', 'salt', 'gum-arabic', 'malagueta', 'gold-dust'];
+    // 只在大西洋沿岸（東經 25° 以西、美洲以東）出產的貨物
+    const goods = [...new Set(ports.flatMap((p) => p.goods))];
+    const atlanticOnly = goods.filter((g) =>
+      ports
+        .filter((p) => p.goods.includes(g))
+        .every((p) => p.location[0] < 25 && p.location[0] > -60),
+    );
+    expect(atlanticOnly).toEqual(expect.arrayContaining(['wine', 'salt', 'malagueta']));
     for (let week = 0; week < 60; week++) {
       const g = shortageAt(ports, malacca, week * 7);
       if (g) expect(atlanticOnly).not.toContain(g);

@@ -27,16 +27,16 @@ export function clampScale(scale: number, size: Size): number {
   return Math.min(MAX_SCALE, Math.max(minScale(size), scale));
 }
 
-/** 限制平移，讓世界地圖始終覆蓋整個畫面，不露出地圖外的空白 */
+/** 限制平移：南北不露出地圖外的空白；東西可以無限捲動 */
 export function clampView(view: View, size: Size): View {
   const scale = clampScale(view.scale, size);
-  const w = WORLD_WIDTH * scale;
   const h = WORLD_HEIGHT * scale;
   const clampAxis = (v: number, content: number, viewport: number) =>
     content <= viewport ? (viewport - content) / 2 : Math.min(0, Math.max(viewport - content, v));
+  // 東西方向不限制：海圖在換日線接起來，可以一直往東或往西捲動
   return {
     scale,
-    x: clampAxis(view.x, w, size.width),
+    x: view.x,
     y: clampAxis(view.y, h, size.height),
   };
 }

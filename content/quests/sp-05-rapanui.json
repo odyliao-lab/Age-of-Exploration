@@ -16,7 +16,7 @@
       "text": "知道甘藷是玻里尼西亞人到過美洲的證據之一。"
     }
   ],
-  "prerequisites": ["sp-04-north"],
+  "prerequisites": ["sp-04b-aotearoa"],
   "steps": [
     {
       "type": "dialogue",

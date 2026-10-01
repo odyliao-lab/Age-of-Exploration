@@ -1,0 +1,19 @@
+{
+  "id": "cebu",
+  "name": "宿霧",
+  "name_en": "Cebu",
+  "historical_names": [],
+  "country": "菲律賓",
+  "country_en": "Philippines",
+  "region": "visayas",
+  "location": [123.9, 10.3],
+  "kind": "port",
+  "goods": ["gold-dust"],
+  "climate": "熱帶雨林氣候",
+  "blurb": "米沙鄢群島的貿易港，由拉惹（首領）治理。港裡停著從暹羅、中國來的商船，人們用金子、米、薑和豬做交易。1521 年 4 月，麥哲倫的船隊來到這裡。",
+  "sights": [],
+  "gossip": [
+    "中國的帆船每年都會來，帶來瓷器和絲綢。",
+    "對面麥克坦島的首領拉布拉布，不肯向外來的人低頭。"
+  ]
+}

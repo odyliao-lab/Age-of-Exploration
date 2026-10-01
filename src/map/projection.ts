@@ -7,6 +7,7 @@
  */
 import { geoEquirectangular } from 'd3-geo';
 import type { LonLat } from '@/data/schema';
+import { wrapLon } from '@/geo/geo';
 
 export const DEG_PX = 8;
 export const WORLD_WIDTH = 360 * DEG_PX;
@@ -28,7 +29,41 @@ export function lonLatToWorld([lon, lat]: LonLat): Point {
 }
 
 export function worldToLonLat({ x, y }: Point): LonLat {
-  return [x / DEG_PX - 180, 90 - y / DEG_PX];
+  return [wrapLon(x / DEG_PX - 180), 90 - y / DEG_PX];
+}
+
+/**
+ * 海圖的東西兩端在換日線接起來：世界座標的 x 可以超出 0～WORLD_WIDTH，
+ * 同一個經度每隔 WORLD_WIDTH 重複一次。畫面上的東西都畫在「離鏡頭中心最近的那一圈」。
+ */
+let wrapAnchor = WORLD_WIDTH / 2;
+
+/** 鏡頭中心的世界 x（WorldMap 每次移動鏡頭時更新） */
+export function setWrapAnchor(x: number) {
+  wrapAnchor = x;
+}
+
+/** 把世界 x 移到離鏡頭中心最近的那一圈 */
+export function wrapX(x: number): number {
+  return x + Math.round((wrapAnchor - x) / WORLD_WIDTH) * WORLD_WIDTH;
+}
+
+/** 經緯度 → 離鏡頭最近那一圈的世界座標 */
+export function lonLatToView(lonLat: LonLat): Point {
+  const p = lonLatToWorld(lonLat);
+  return { x: wrapX(p.x), y: p.y };
+}
+
+/** 一串經緯度 → 連續的世界座標：跨過換日線的航線不會被拉成橫跨整張海圖的線 */
+export function viewPath(points: LonLat[]): Point[] {
+  const out: Point[] = [];
+  for (const ll of points) {
+    const p = lonLatToWorld(ll);
+    const prev = out[out.length - 1];
+    const ref = prev ? prev.x : wrapAnchor;
+    out.push({ x: p.x + Math.round((ref - p.x) / WORLD_WIDTH) * WORLD_WIDTH, y: p.y });
+  }
+  return out;
 }
 
 /**

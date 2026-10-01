@@ -4,7 +4,7 @@
  */
 import { Container, Graphics, Text } from 'pixi.js';
 import type { LonLat } from '@/data/schema';
-import { lonLatToWorld } from './projection';
+import { lonLatToView, wrapX } from './projection';
 
 export interface ChartNote {
   id: number;
@@ -25,7 +25,8 @@ export class ChartNotes {
     this.items = [];
     for (const n of list) {
       const root = new Container();
-      const p = lonLatToWorld(n.at);
+      root.cullable = true;
+      const p = lonLatToView(n.at);
       root.position.set(p.x, p.y);
       const g = new Graphics();
       // 小小的叉號，像在紙上用筆點出位置
@@ -63,6 +64,9 @@ export class ChartNotes {
   }
 
   setScale(scale: number) {
-    for (const it of this.items) it.scale.set(1 / scale);
+    for (const it of this.items) {
+      it.x = wrapX(it.x);
+      it.scale.set(1 / scale);
+    }
   }
 }

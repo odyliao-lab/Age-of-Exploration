@@ -1,0 +1,44 @@
+{
+  "id": "rw-a1-line",
+  "title": "劃分世界的經線",
+  "scenario": "round-the-world",
+  "chapter": 0,
+  "tier": 0,
+  "kind": "academy",
+  "giver_port": "sanlucar",
+  "objectives": [
+    {
+      "domain": "A",
+      "text": "能在海圖上找到托德西利亞斯條約的分界線。"
+    }
+  ],
+  "prerequisites": ["rw-00-west"],
+  "steps": [
+    {
+      "type": "locate",
+      "prompt": "托德西利亞斯條約的分界線在維德角群島以西約 370 里格，大約是西經 46°。請在海圖上點出這條線經過赤道的位置。",
+      "target": [-46.5, 0.0],
+      "tolerance_km": 500,
+      "explanation": "分界線大約在西經 46°，正好穿過南美洲東邊突出的地方——所以巴西那一段海岸歸葡萄牙，今天的巴西人說葡萄牙語。"
+    },
+    {
+      "type": "quiz",
+      "question": "地球是圓的。這條經線繞到地球另一邊，大約在東經 133° 左右。這會造成什麼問題？",
+      "choices": [
+        "兩國都說摩鹿加群島在自己那一半，吵了好幾年",
+        "另一邊的線會掉進海裡",
+        "沒有問題，因為另一邊沒有陸地",
+        "地球會被切成兩半"
+      ],
+      "answer": 0,
+      "explanation": "當時沒有辦法準確量經度，兩國都主張香料群島在自己的範圍內。1529 年的薩拉戈薩條約，西班牙才把摩鹿加群島的權利賣給葡萄牙。"
+    }
+  ],
+  "reward": {
+    "xp": 80,
+    "gold": 80,
+    "reputation": 4,
+    "unlock_ports": [],
+    "codex": []
+  }
+}

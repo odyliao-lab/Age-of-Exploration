@@ -87,9 +87,10 @@ export const CodexEntry = z.object({
   location: LonLat.optional(),
   /** 航行經過多少公里內自動發現（landmark 類常用） */
   discover_radius_km: z.number().positive().optional(),
-  /** 航行穿越這條緯線時發現（赤道、回歸線、極圈） */
+  /** 航行穿越這條緯線時發現（赤道、回歸線、極圈）；date-line 是經度 180° 的換日線 */
   line: z
     .enum([
+      'date-line',
       'equator',
       'tropic-of-cancer',
       'tropic-of-capricorn',

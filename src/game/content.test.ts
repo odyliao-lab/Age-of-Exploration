@@ -29,10 +29,22 @@ import { distanceKm } from '@/geo/geo';
 const world = buildWorld(contentForTests());
 const allHarbors = [...world.harbors.values()];
 
+/** 繞過大陸的轉角：橫跨半個地球的航程（例如環球航行）分段搜尋 */
+const CAPES: LonLat[] = [
+  [20, -37], // 好望角外海
+  [-66, -57], // 合恩角外海
+  [100, 3], // 麻六甲海峽
+];
+
 function route(from: LonLat, to: LonLat): LonLat[] {
-  const path = findSeaPath(from, to, allHarbors);
-  if (!path) throw new Error(`找不到海上航線 ${from} → ${to}`);
-  return path;
+  const direct = findSeaPath(from, to, allHarbors);
+  if (direct) return direct;
+  for (const cape of CAPES) {
+    const a = findSeaPath(from, cape, allHarbors);
+    const b = a && findSeaPath(cape, to, allHarbors);
+    if (a && b) return [...a, ...b.slice(1)];
+  }
+  throw new Error(`找不到海上航線 ${from} → ${to}`);
 }
 
 /** 航行到港口；途中的事件與風暴自動以最安全的方式處理 */
@@ -329,10 +341,8 @@ describe('Star Navigators content', () => {
     const sc = world.scenarios.get('star-navigators')!;
     expect(sc.wayfinding).toBe(true);
     expect(sc.currency).toBe('珍寶');
-    // 海圖不跨換日線：所有港口都在西經
-    for (const p of scenarioPorts(world, s)) {
-      expect(p.location[0], p.id).toBeLessThan(0);
-    }
+    // 奧特亞羅瓦在換日線的另一邊（東經）
+    expect(scenarioPorts(world, s).some((p) => p.location[0] > 0)).toBe(true);
     const remaining = new Set(
       world.content.quests.filter((q) => q.scenario === 'star-navigators').map((q) => q.id),
     );
@@ -347,6 +357,35 @@ describe('Star Navigators content', () => {
       }
     }
     expect(remaining.size).toBe(0);
-    expect(s.visitedPorts).toEqual(expect.arrayContaining(['kealakekua', 'rapa-nui', 'nuku-hiva']));
+    expect(s.visitedPorts).toEqual(
+      expect.arrayContaining(['kealakekua', 'rapa-nui', 'nuku-hiva', 'pewhairangi']),
+    );
   });
+});
+
+describe('Around the World content', () => {
+  it('plays every quest from start to finish', () => {
+    let s = newGame(world, 'round-the-world', 1519).state;
+    expect(s.dockedAt).toBe('sanlucar');
+    expect(s.shipTypeId).toBe('nao');
+    const remaining = new Set(
+      world.content.quests.filter((q) => q.scenario === 'round-the-world').map((q) => q.id),
+    );
+    for (let round = 0; round < 30 && remaining.size; round++) {
+      const ready = [...remaining].filter((id) =>
+        world.quests.get(id)!.prerequisites.every((p) => s.quests[p]?.status === 'completed'),
+      );
+      expect(ready.length, `卡住的任務：${[...remaining].join(', ')}`).toBeGreaterThan(0);
+      for (const id of ready) {
+        s = playQuest(s, id);
+        remaining.delete(id);
+      }
+    }
+    expect(remaining.size).toBe(0);
+    expect(s.visitedPorts).toEqual(expect.arrayContaining(['guanabara', 'cebu', 'tidore']));
+    expect(s.discovered).toEqual(
+      expect.arrayContaining(['strait-of-magellan', 'mar-pacifico', 'date-line']),
+    );
+    // 繞地球一圈的航程很長，路線搜尋要花比較多時間
+  }, 60_000);
 });

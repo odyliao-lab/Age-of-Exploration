@@ -77,16 +77,30 @@ export function StatusBar(props: {
         <button
           type="button"
           className="zoom"
+          aria-label="試玩回饋"
+          title="試玩回饋：好玩、卡住、看不懂都可以告訴我們"
+          onClick={() => openPanel('feedback')}
+        >
+          💬
+        </button>
+        <button
+          type="button"
+          className="zoom"
           aria-label="航海手冊"
           title="航海手冊"
           onClick={() => openPanel('handbook')}
         >
           ？
         </button>
-        <button type="button" className="zoom" aria-label="縮小" onClick={props.onZoomOut}>
+        <button
+          type="button"
+          className="zoom zoom-step"
+          aria-label="縮小"
+          onClick={props.onZoomOut}
+        >
           −
         </button>
-        <button type="button" className="zoom" aria-label="放大" onClick={props.onZoomIn}>
+        <button type="button" className="zoom zoom-step" aria-label="放大" onClick={props.onZoomIn}>
           ＋
         </button>
         <button type="button" onClick={props.onFindShip}>

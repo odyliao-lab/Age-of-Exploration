@@ -1,0 +1,19 @@
+{
+  "id": "sanlucar",
+  "name": "聖盧卡爾",
+  "name_en": "Sanlúcar de Barrameda",
+  "historical_names": [],
+  "country": "西班牙",
+  "country_en": "Spain",
+  "region": "iberian-atlantic",
+  "location": [-6.36, 36.78],
+  "kind": "hub",
+  "goods": ["wine"],
+  "climate": "地中海型氣候",
+  "blurb": "瓜達幾維河的出海口。從內陸的大城塞維亞順河而下，船隊就在這裡集合、等風出海。1519 年 9 月，五艘船從這裡出發，要往西找到通往香料群島的路。",
+  "sights": [],
+  "gossip": [
+    "塞維亞的商人說，只要運回一船丁香，整趟航行的花費就都賺回來了。",
+    "船隊裡有西班牙人、葡萄牙人、義大利人、希臘人、非洲人……各地的水手都有。"
+  ]
+}

@@ -103,7 +103,7 @@ function atEdgeOfKnownWorld(s: AchievementInput): boolean {
   for (let b = 0; b < 360; b += 45) {
     const [lon, lat] = destinationPoint(s.ship.position, b, 450);
     const r = Math.floor((90 - lat) / FOG_RES);
-    const c = Math.floor((lon + 180) / FOG_RES);
+    const c = Math.min(FOG_COLS - 1, Math.floor((lon + 180) / FOG_RES));
     if (!s.fog[r * FOG_COLS + c]) unknown++;
   }
   return unknown >= 5;
@@ -217,6 +217,25 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     category: '探索',
     title: '信風的水手',
     check: (s) => s.visitedPorts.some((p) => ['guanahani', 'baracoa', 'marien'].includes(p)),
+  },
+  {
+    id: 'circumnavigation',
+    name: '繞地球一圈',
+    description: '穿過麥哲倫海峽、越過換日線、繞過好望角，回到出發的地方',
+    category: '探索',
+    title: '環球航海家',
+    check: (s) =>
+      s.quests['rw-06-home']?.status === 'completed' ||
+      ['strait-of-magellan', 'date-line', 'cape-of-good-hope'].every((id) =>
+        s.discovered.includes(id),
+      ),
+  },
+  {
+    id: 'date-line',
+    name: '多翻一天的日曆',
+    description: '航行越過經度 180° 的換日線',
+    category: '探索',
+    check: (s) => s.discovered.includes('date-line'),
   },
   {
     id: 'zaytun',

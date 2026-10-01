@@ -243,7 +243,11 @@ export function initCloud() {
       status: user ? 'idle' : 'signedOut',
       ...(urlError && !user ? { message: `登入沒有完成：${urlError}` } : {}),
     });
-    if (user && user.id !== prev?.id) void syncNow();
+    if (user && user.id !== prev?.id) {
+      void syncNow();
+      // 之前沒登入時寫的試玩回饋，登入後補送
+      void import('./feedbackOutbox').then((m) => m.flushFeedback()).catch(() => {});
+    }
   }).catch(() => {
     // 離線或載入失敗：照常用本機存檔
     useCloud.setState({ status: 'signedOut', message: '目前無法連線到雲端存檔服務。' });

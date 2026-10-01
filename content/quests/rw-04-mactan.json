@@ -1,0 +1,58 @@
+{
+  "id": "rw-04-mactan",
+  "title": "麥克坦的淺灘",
+  "scenario": "round-the-world",
+  "chapter": 3,
+  "tier": 3,
+  "kind": "main",
+  "giver_port": "cebu",
+  "objectives": [
+    {
+      "domain": "E",
+      "text": "能用不同的觀點理解麥克坦之戰。"
+    },
+    {
+      "domain": "B",
+      "text": "知道菲律賓由七千多座島嶼組成。"
+    }
+  ],
+  "prerequisites": ["rw-03-pacific"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "記錄員皮加費塔",
+      "lines": [
+        "宿霧的拉惹和總司令結盟，還受了洗。總司令要附近的首領都歸順西班牙。",
+        "對面麥克坦島的首領拉布拉布不肯。總司令帶了幾十個人去攻打……",
+        "（4 月 27 日，在麥克坦的淺灘上，總司令被拉布拉布的戰士殺死了。）"
+      ]
+    },
+    {
+      "type": "dialogue",
+      "speaker": "艾爾卡諾船長",
+      "lines": [
+        "我們失去了總司令，船員也不夠開三艘船了。",
+        "可是香料群島還沒到。我們要繼續往南找。"
+      ]
+    },
+    {
+      "type": "quiz",
+      "question": "今天的菲律賓人怎麼看拉布拉布？",
+      "choices": [
+        "把他當作第一位抵抗外來殖民的英雄",
+        "認為他是海盜",
+        "不知道他是誰",
+        "認為他是西班牙的將軍"
+      ],
+      "answer": 0,
+      "explanation": "同一場戰鬥，從不同的角度看意義完全不同。對歐洲人來說，這是麥哲倫之死；對菲律賓人來說，拉布拉布保衛了自己的土地。宿霧今天還立著拉布拉布的雕像。"
+    }
+  ],
+  "reward": {
+    "xp": 250,
+    "gold": 280,
+    "reputation": 18,
+    "unlock_ports": ["brunei"],
+    "codex": ["lapulapu"]
+  }
+}

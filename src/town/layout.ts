@@ -171,7 +171,7 @@ export function cultureOf(country: string): Culture {
   if (['葡萄牙', '西班牙', '維德角', '聖多美'].some((c) => country.includes(c))) return 'iberia';
   // 玻里尼西亞的村落：開放式的茅草屋、石砌的祭祀台
   if (
-    ['玻里尼西亞', '庫克群島', '東加', '薩摩亞', '夏威夷', '拉帕努伊'].some((c) =>
+    ['玻里尼西亞', '庫克群島', '東加', '薩摩亞', '夏威夷', '拉帕努伊', '奧特亞羅瓦'].some((c) =>
       country.includes(c),
     )
   )
@@ -183,8 +183,9 @@ export function cultureOf(country: string): Culture {
     )
   )
     return 'norse';
-  // 加勒比海的泰諾人村落：圓形茅草屋、獨木舟
-  if (['巴哈馬', '古巴', '海地', '多明尼加'].some((c) => country.includes(c))) return 'taino';
+  // 加勒比海的泰諾人與巴西沿岸的圖皮人村落：熱帶的茅草屋、獨木舟
+  if (['巴哈馬', '古巴', '海地', '多明尼加', '巴西'].some((c) => country.includes(c)))
+    return 'taino';
   // 西非與中非的王國：土牆、茅草屋頂
   if (['迦納', '剛果', '安哥拉', '塞內加爾', '甘比亞'].some((c) => country.includes(c)))
     return 'westafrica';

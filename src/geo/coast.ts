@@ -7,6 +7,7 @@
 import type { LonLat } from '@/data/schema';
 import type { LandRing } from '@/map/land';
 import { DEG_PX, WORLD_HEIGHT } from '@/map/projection';
+import { wrapLon } from './geo';
 
 /** 每一帶的高度（世界座標像素；2 像素 = 0.25°） */
 const BAND_PX = 2;
@@ -41,7 +42,7 @@ export class CoastIndex {
   }
 
   isLand([lon, lat]: LonLat): boolean {
-    const x = (lon + 180) * DEG_PX;
+    const x = (wrapLon(lon) + 180) * DEG_PX;
     const y = (90 - lat) * DEG_PX;
     const band = this.bands[Math.min(BANDS - 1, Math.max(0, Math.floor(y / BAND_PX)))];
     const e = this.edges;

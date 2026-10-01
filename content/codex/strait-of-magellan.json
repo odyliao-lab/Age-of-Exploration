@@ -1,0 +1,12 @@
+{
+  "id": "strait-of-magellan",
+  "category": "landmark",
+  "name": "麥哲倫海峽",
+  "name_en": "Strait of Magellan",
+  "location": [-68.85, -52.45],
+  "discover_radius_km": 30,
+  "domains": ["B", "C"],
+  "body": "1520 年 10 月，船隊找到這條彎彎曲曲的海峽，花了 38 天才穿過去。海峽兩岸是冰河刻出的峽灣，風很大、潮水很急。一艘船在途中掉頭逃回西班牙。",
+  "source": "維基百科「麥哲倫海峽」條目",
+  "reviewed": false
+}

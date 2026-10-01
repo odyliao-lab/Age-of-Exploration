@@ -627,17 +627,12 @@ export function tick(world: World, state: GameState, days: number): StepResult {
             }
           }
         }
-        // 海圖的東西兩端（經度 ±180°，換日線）沒有接起來：船不能從邊緣開過去
-        const edge = !!next && Math.abs(next[0] - from[0]) > 180;
-        if (edge) next = null;
         const blocked = step > 0 && next === null;
         if (next) to = next;
         if (blocked && !helm.blocked) {
           events.push({
             type: 'warning',
-            text: edge
-              ? '已經到了海圖的邊緣（經度 180°，換日線）。再過去的海域還沒畫進這張海圖，轉個方向吧。'
-              : '船頭頂到海岸了！轉個方向離開淺灘。',
+            text: '船頭頂到海岸了！轉個方向離開淺灘。',
           });
         }
         if (blocked !== helm.blocked) helm = { ...helm, blocked };
@@ -664,7 +659,7 @@ export function tick(world: World, state: GameState, days: number): StepResult {
     const condition = passTime(before, stepDays, m);
     const stats = trackCrossings(s.stats, from[1], to[1]);
     s = { ...s, ship: { position: to, heading }, condition, stats };
-    for (const id of linesCrossed(world, from[1], to[1])) {
+    for (const id of linesCrossed(world, from, to)) {
       if (!discovered.includes(id)) {
         discovered = [...discovered, id];
         events.push({ type: 'discovered', codexId: id });
@@ -1189,6 +1184,7 @@ const UNSAILED_SEAS = [
   'east-polynesia',
   'hawaii',
   'rapa-nui',
+  'aotearoa',
 ];
 const NO_PIRATE_SEAS = [...UNSAILED_SEAS, 'gulf-of-guinea', 'iceland', 'greenland'];
 
@@ -1199,6 +1195,7 @@ const ATLANTIC_REGIONS = [
   'east-polynesia',
   'hawaii',
   'rapa-nui',
+  'aotearoa',
   'north-sea',
   'iceland',
   'greenland',
@@ -1601,7 +1598,10 @@ export function starSightBlocked(state: GameState): string | null {
     return '白天看不到星星，等天黑再觀星';
   }
   if (insideMist(state.mists, state.ship.position)) return '霧太濃，看不到星星';
-  if (!canSightPolaris(state.ship.position[1])) return '北極星太低，貼在海平面上量不準';
+  if (!canSightPolaris(state.ship.position[1]))
+    return state.ship.position[1] < 0
+      ? '在赤道南邊，北極星沉到海平面底下了'
+      : '北極星太低，貼在海平面上量不準';
   if (state.starNight === nightIndex(state.day) || state.day - state.starDay < 0.5)
     return '今晚已經觀星定位過了';
   return null;
@@ -2482,13 +2482,15 @@ const LINE_LATITUDES = {
   'antarctic-circle': -66.56,
 } as const;
 
-/** 這一小步穿越的緯線所對應的知識卡 */
-function linesCrossed(world: World, fromLat: number, toLat: number): string[] {
+/** 這一小步穿越的緯線（與換日線）所對應的知識卡 */
+function linesCrossed(world: World, from: LonLat, to: LonLat): string[] {
   return world.content.codex
     .filter((c) => {
       if (!c.line) return false;
+      // 經度從 +180 跳到 -180（或反過來）就是越過了換日線
+      if (c.line === 'date-line') return Math.abs(to[0] - from[0]) > 180;
       const line = LINE_LATITUDES[c.line];
-      return (fromLat - line) * (toLat - line) < 0;
+      return (from[1] - line) * (to[1] - line) < 0;
     })
     .map((c) => c.id);
 }

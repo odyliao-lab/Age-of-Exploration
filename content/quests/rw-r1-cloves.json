@@ -1,0 +1,44 @@
+{
+  "id": "rw-r1-cloves",
+  "title": "一船丁香",
+  "scenario": "round-the-world",
+  "chapter": 4,
+  "tier": 4,
+  "kind": "region",
+  "giver_port": "tidore",
+  "objectives": [
+    {
+      "domain": "F",
+      "text": "知道香料貿易的利潤與它背後的代價。"
+    }
+  ],
+  "prerequisites": ["rw-05-spice"],
+  "steps": [
+    {
+      "type": "dialogue",
+      "speaker": "蒂多雷的丁香商人",
+      "lines": ["蘇丹很高興有新的買主。把丁香運回你們的國家吧——10 包就夠讓塞維亞的商人瞪大眼睛了。"]
+    },
+    {
+      "type": "deliver",
+      "good": "cloves",
+      "qty": 10,
+      "target": "sanlucar",
+      "text": "在蒂多雷買丁香"
+    },
+    {
+      "type": "quiz",
+      "question": "維多利亞號運回的丁香，賣掉以後大約抵得上什麼？",
+      "choices": ["整支船隊出發的花費", "一個麵包", "一艘新船的一根桅杆", "什麼都不值"],
+      "answer": 0,
+      "explanation": "維多利亞號載回約 26 噸丁香，賣掉的錢就抵得上五艘船出發時的花費。但這筆帳沒有算進兩百多條人命，也沒有算進香料貿易帶給摩鹿加群島的殖民與戰爭。"
+    }
+  ],
+  "reward": {
+    "xp": 200,
+    "gold": 300,
+    "reputation": 15,
+    "unlock_ports": [],
+    "codex": []
+  }
+}

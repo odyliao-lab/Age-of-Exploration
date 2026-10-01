@@ -1,0 +1,19 @@
+{
+  "id": "pewhairangi",
+  "name": "佩懷蘭吉（島嶼灣）",
+  "name_en": "Pēwhairangi (Bay of Islands)",
+  "historical_names": [],
+  "country": "紐西蘭（奧特亞羅瓦）",
+  "country_en": "New Zealand (Aotearoa)",
+  "region": "aotearoa",
+  "location": [174.12, -35.25],
+  "kind": "port",
+  "goods": ["pounamu"],
+  "climate": "溫帶海洋性氣候",
+  "blurb": "北島北端的海灣，散布著一百多座小島。從熱帶來的航海家發現這裡的森林高大、天氣涼爽，熱帶的作物很難長，只有甘藷靠著挖地窖保存，才熬得過冬天。",
+  "sights": [],
+  "gossip": [
+    "這裡的樹好高好粗，一棵貝殼杉就能挖出一整艘大獨木舟。",
+    "森林裡有一種不會飛的大鳥，比人還高，我們叫牠「摩亞」。"
+  ]
+}

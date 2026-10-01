@@ -5,7 +5,7 @@
  */
 import { Container, Graphics, Texture, TilingSprite } from 'pixi.js';
 import type { LonLat } from '@/data/schema';
-import { WORLD_HEIGHT, WORLD_WIDTH, lonLatToWorld, type Point } from './projection';
+import { WORLD_HEIGHT, WORLD_WIDTH, lonLatToView, type Point } from './projection';
 import type { View } from './viewport';
 
 const STREAKS = 90;
@@ -66,7 +66,8 @@ export class SeaFx {
   constructor() {
     this.waves = new TilingSprite({
       texture: waveTexture(),
-      width: WORLD_WIDTH,
+      // 三圈寬：海圖在換日線接起來，鏡頭在哪一圈都有波紋
+      width: WORLD_WIDTH * 3,
       height: WORLD_HEIGHT,
     });
     this.under.addChild(this.waves);
@@ -83,6 +84,8 @@ export class SeaFx {
     this.size = size;
     // 波紋固定畫面大小
     this.waves.tileScale.set(1 / view.scale);
+    const centerX = (size.width / 2 - view.x) / view.scale;
+    this.waves.x = (Math.round((centerX - WORLD_WIDTH / 2) / WORLD_WIDTH) - 1) * WORLD_WIDTH;
     const a = Math.max(0, Math.min(0.9, (view.scale - 2.5) / 8));
     this.waves.alpha = a;
     this.streakGfx.alpha = Math.max(0, Math.min(1, (view.scale - 2) / 4));
@@ -90,12 +93,17 @@ export class SeaFx {
 
   /** 記錄船的位置，畫出逐漸消失的水痕 */
   trackShip(position: LonLat, moving: boolean) {
-    const p = lonLatToWorld(position);
+    const p = lonLatToView(position);
     const last = this.wake[this.wake.length - 1];
     const minStep = 4 / this.view.scale;
     if (moving && (!last || Math.hypot(p.x - last.p.x, p.y - last.p.y) > minStep)) {
       this.wake.push({ p, t: this.time });
     }
+  }
+
+  /** 船被移到另一圈海圖時，水痕跟著平移 */
+  shiftWake(dx: number) {
+    for (const w of this.wake) w.p = { x: w.p.x + dx, y: w.p.y };
   }
 
   clearWake() {

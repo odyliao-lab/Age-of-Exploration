@@ -18,7 +18,6 @@ interface Tile {
   canvas: HTMLCanvasElement;
   ctx: CanvasRenderingContext2D;
   texture: Texture;
-  sprite: Sprite;
   x0: number;
   y0: number;
 }
@@ -53,10 +52,14 @@ export class FogLayer {
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         const texture = Texture.from(canvas);
         texture.source.scaleMode = 'linear';
-        const sprite = new Sprite(texture);
-        sprite.position.set(tx * TILE, ty * TILE);
-        this.container.addChild(sprite);
-        this.tiles.push({ canvas, ctx, texture, sprite, x0: tx * TILE, y0: ty * TILE });
+        // 海圖在換日線接起來：左右各多畫一圈，共用同一張圖塊
+        for (const wrap of [-1, 0, 1]) {
+          const sprite = new Sprite(texture);
+          sprite.position.set(tx * TILE + wrap * FOG_COLS, ty * TILE);
+          sprite.cullable = true;
+          this.container.addChild(sprite);
+        }
+        this.tiles.push({ canvas, ctx, texture, x0: tx * TILE, y0: ty * TILE });
       }
     }
   }
@@ -77,7 +80,8 @@ export class FogLayer {
       // 模糊會影響鄰近圖塊的邊緣，一併標記
       for (const dx of [-MARGIN, 0, MARGIN]) {
         for (const dy of [-MARGIN, 0, MARGIN]) {
-          const tx = Math.floor((x + dx) / TILE);
+          // 東西兩端在換日線接起來
+          const tx = Math.floor(((((x + dx) % FOG_COLS) + FOG_COLS) % FOG_COLS) / TILE);
           const ty = Math.floor((y + dy) / TILE);
           if (tx >= 0 && ty >= 0 && tx < this.cols && ty < this.rows) {
             this.dirty.add(ty * this.cols + tx);
@@ -103,12 +107,12 @@ export class FogLayer {
     const d = this.image.data;
     for (const t of this.dirty) {
       const tile = this.tiles[t];
-      // 讀取含邊界的格網到暫存影像（邊界外視為未探索）
+      // 讀取含邊界的格網到暫存影像（南北邊界外視為未探索；東西繞到另一端）
       for (let y = 0; y < size; y++) {
         const gy = tile.y0 + y - MARGIN;
         for (let x = 0; x < size; x++) {
-          const gx = tile.x0 + x - MARGIN;
-          const inside = gx >= 0 && gy >= 0 && gx < FOG_COLS && gy < FOG_ROWS;
+          const gx = (tile.x0 + x - MARGIN + FOG_COLS) % FOG_COLS;
+          const inside = gy >= 0 && gy < FOG_ROWS;
           const revealed = inside && fog[gy * FOG_COLS + gx] === 1;
           const o = (y * size + x) * 4;
           d[o] = PAPER[0];

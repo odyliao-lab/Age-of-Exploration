@@ -1,0 +1,11 @@
+{
+  "id": "date-line",
+  "category": "phenomenon",
+  "name": "換日線",
+  "name_en": "International Date Line",
+  "line": "date-line",
+  "domains": ["A", "D"],
+  "body": "地球每小時自轉 15°，24 小時轉一圈 360°。往西航行，追著太陽走，每一天都比在家的人長一點；繞地球一圈回來，就會少過一天。為了讓日期一致，後來的人在經度 180° 附近畫了一條「換日線」：往西越過它，日曆要多翻一天；往東越過它，日期要退一天。",
+  "source": "維基百科「國際換日線」條目",
+  "reviewed": false
+}
