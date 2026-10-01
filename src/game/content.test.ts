@@ -2,7 +2,7 @@
  * 內容完整性測試：用真實內容把整個東方寶船 MVP（序章與第一章）從頭玩到尾，
  * 確認每個任務都能完成、每個目的地都能從海上到達、每個「發現」步驟都真的會觸發。
  */
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type { LonLat } from '@/data/schema';
 import { findSeaPath, nearestSea } from '@/geo/seaPath';
 import { checkLeg } from './voyage';
@@ -25,6 +25,9 @@ import {
 import { contentForTests } from './testContent';
 import { buildWorld } from './world';
 import { distanceKm } from '@/geo/geo';
+
+// 這個檔案的測試會模擬整個劇本的航行，在較慢的電腦（例如 Windows 筆電）上可能超過預設的 5 秒
+vi.setConfig({ testTimeout: 30_000 });
 
 const world = buildWorld(contentForTests());
 const allHarbors = [...world.harbors.values()];
